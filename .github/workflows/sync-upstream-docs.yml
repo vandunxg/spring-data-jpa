@@ -1,0 +1,81 @@
+name: Sync upstream docs
+
+on:
+  schedule:
+    # Every Monday at 00:00 UTC.
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-upstream-docs
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync and open pull request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync Spring Data JPA docs
+        run: ./scripts/sync-spring-data-jpa-docs.sh
+
+      - name: Sync Spring Data Commons docs
+        run: ./scripts/sync-spring-data-commons-docs.sh
+
+      # Pull requests opened with GITHUB_TOKEN do not trigger the Docs workflow,
+      # so validate the synced content here instead.
+      - name: Build with Antora
+        id: build
+        continue-on-error: true
+        run: npx antora --fetch antora-playbook.yml
+
+      - name: Create pull request
+        id: pr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/sync-upstream-docs
+          delete-branch: true
+          title: 'chore: sync upstream documentation'
+          commit-message: |
+            chore: sync upstream documentation
+
+            Synced by .github/workflows/sync-upstream-docs.yml.
+          body: |
+            Automated sync of the upstream Antora documentation.
+
+            - `docs/` from [spring-projects/spring-data-jpa](https://github.com/spring-projects/spring-data-jpa) (`.upstream-version`)
+            - `vendor/data-commons/` from [spring-projects/spring-data-commons](https://github.com/spring-projects/spring-data-commons) (`.commons-upstream-version`)
+
+            Antora build: **${{ steps.build.outcome }}**
+
+            Review the English changes, then translate the affected pages into `vi/`
+            following `vi/CLAUDE.md`.
+          labels: documentation
+          add-paths: |
+            docs
+            vendor
+            .upstream-version
+            .commons-upstream-version
+
+      - name: Fail if the build broke
+        if: steps.build.outcome == 'failure'
+        run: |
+          echo "Antora build failed on the synced content." >&2
+          exit 1

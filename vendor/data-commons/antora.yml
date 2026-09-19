@@ -1,5 +1,5 @@
 name: data-commons
-version: true
+version: '4.2.0'
 title: Spring Data Commons
 nav:
   - modules/ROOT/nav.adoc

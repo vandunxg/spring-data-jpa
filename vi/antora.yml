@@ -1,5 +1,5 @@
 name: vi
-version: true
+version: '4.2.0'
 title: Spring Data JPA (Tiếng Việt)
 nav:
   - modules/ROOT/nav.adoc

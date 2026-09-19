@@ -1,5 +1,54 @@
 = Continuous Integration
 
+This repository is documentation-only: GitHub Actions builds the Antora site and
+publishes it to GitHub Pages. There is no Java build.
+
+== Workflows
+
+`.github/workflows/docs.yml`:: Builds the site with Antora on every pull request
+and on every push to `main`. Pushes to `main` additionally deploy the result to
+GitHub Pages. Pull requests build only, which is what catches broken xrefs,
+unresolved includes and missing attributes before merge.
+
+`.github/workflows/sync-upstream-docs.yml`:: Runs weekly (and on demand) to pull
+the upstream documentation into `docs/` and `vendor/data-commons/`, build it, and
+open a pull request with the result.
+
+== Building the site locally
+
+[source,bash]
+----
+npm ci
+npx antora --fetch antora-playbook.yml
+----
+
+The site is written to `build/site`; open `build/site/index.html`. `npm run serve`
+builds and serves it over HTTP instead.
+
+`antora-playbook.yml` assembles three components from this repository:
+
+[cols="1,1,3"]
+|===
+|Path |Component |Origin
+
+|`docs/`
+|`data-jpa`
+|English reference docs, synced from `spring-projects/spring-data-jpa`
+
+|`vi/`
+|`vi`
+|Vietnamese translation, maintained here
+
+|`vendor/data-commons/`
+|`data-commons`
+|Synced from `spring-projects/spring-data-commons`; required because the JPA
+pages include Commons pages through `include::{commons}@data-commons::page$…`
+|===
+
+Upstream derives the AsciiDoc attributes (`version`, `commons`, javadoc URLs and
+so on) from Maven resource filtering. This fork has no Maven build, so those
+values are pinned in `antora-playbook.yml` instead.
+
 == Running CI tasks locally
 
 You can run CI jobs locally using Docker and act[https://nektosact.com/].

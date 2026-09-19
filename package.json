@@ -1,0 +1,15 @@
+{
+  "name": "spring-data-jpa-docs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Antora documentation build for the Spring Data JPA reference docs (English + Vietnamese translation).",
+  "scripts": {
+    "build": "antora --fetch antora-playbook.yml",
+    "serve": "antora antora-playbook.yml && npx --yes http-server build/site -c-1"
+  },
+  "dependencies": {
+    "@asciidoctor/tabs": "1.0.0-beta.6",
+    "@springio/asciidoctor-extensions": "1.0.0-alpha.18",
+    "antora": "3.2.0"
+  }
+}

@@ -1,0 +1,77 @@
+# Antora playbook for the documentation-only fork.
+#
+# Builds a single site from the three components kept in this repository:
+#   docs/               -> data-jpa     (English, synced from spring-projects/spring-data-jpa)
+#   vi/                 -> vi           (Vietnamese translation)
+#   vendor/data-commons -> data-commons (vendored, needed so `include::{commons}@data-commons::` resolves)
+#
+# Upstream builds these attributes with Maven resource filtering (see
+# docs/resources/antora-resources/antora.yml). This repository has no Maven build,
+# so the values are pinned here instead.
+site:
+  title: Spring Data JPA Reference
+  url: https://vandunxg.github.io/spring-data-jpa
+  start_page: data-jpa::index.adoc
+
+content:
+  sources:
+    - url: .
+      branches: HEAD
+      worktrees: true
+      start_paths:
+        - docs
+        - vi
+        - vendor/data-commons
+
+output:
+  dir: ./build/site
+
+urls:
+  latest_version_segment: ''
+
+asciidoc:
+  attributes:
+    attribute-missing: 'warn'
+    chomp: 'all'
+    hide-uri-scheme: '@'
+    tabs-sync-option: '@'
+    version: '4.2.0@'
+    copyright-year: '2026@'
+    # Version prefix used by `include::{commons}@data-commons::page$…`; must match
+    # the version declared in vendor/data-commons/antora.yml.
+    commons: '4.2.0@'
+    store: 'Jpa@'
+    include-xml-namespaces: 'false@'
+    projection-collection: 'Collection@'
+    support-qbe-collection: 'false@'
+    springversionshort: '7.0@'
+    springversion: '7.0.0@'
+    springhateoasversion: '3.0.0@'
+    releasetrainversion: '2026.0.0@'
+    spring-data-commons-docs-url: 'https://docs.spring.io/spring-data/commons/reference/4.2@'
+    spring-data-commons-javadoc-base: '{spring-data-commons-docs-url}/api/java@'
+    springdocsurl: 'https://docs.spring.io/spring-framework/reference/{springversionshort}@'
+    spring-framework-docs: '{springdocsurl}@'
+    springjavadocurl: 'https://docs.spring.io/spring-framework/docs/{springversion}/javadoc-api@'
+    spring-framework-javadoc: '{springjavadocurl}@'
+    hibernatejavadocurl: 'https://docs.hibernate.org/orm/7.4/javadocs/@'
+    # javadoc: macros default to `xref:attachment$api/java`, which upstream fills
+    # from an unpacked Javadoc jar. Point them at the published API docs instead.
+    javadoc-location-org-springframework-data-jpa: 'https://docs.spring.io/spring-data/jpa/docs/current/api@'
+    javadoc-location-org-springframework-data: 'https://docs.spring.io/spring-data/commons/docs/current/api@'
+    javadoc-location-org-springframework: '{springjavadocurl}@'
+  extensions:
+    - '@asciidoctor/tabs'
+    - '@springio/asciidoctor-extensions'
+    - '@springio/asciidoctor-extensions/javadoc-extension'
+  sourcemap: true
+
+runtime:
+  log:
+    failure_level: warn
+    format: pretty
+
+ui:
+  bundle:
+    url: https://github.com/spring-io/antora-ui-spring/releases/download/v0.4.16/ui-bundle.zip
+    snapshot: true
