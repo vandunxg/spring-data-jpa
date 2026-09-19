@@ -1,0 +1,5 @@
+name: data-jpa
+version: true
+title: Spring Data JPA
+nav:
+- modules/ROOT/nav.adoc
