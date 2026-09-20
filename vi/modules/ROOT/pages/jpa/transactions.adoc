@@ -1,14 +1,14 @@
 [[transactions]]
-= Transactionality
+= Transaction
 
-By default, methods inherited from `CrudRepository` inherit the transactional configuration from javadoc:org.springframework.data.jpa.repository.support.SimpleJpaRepository[].
-For read operations, the transaction configuration `readOnly` flag is set to `true`.
-All others are configured with a plain `@Transactional` so that default transaction configuration applies.
-Repository methods that are backed by transactional repository fragments inherit the transactional attributes from the actual fragment method.
+Theo mặc định, các method được kế thừa từ `CrudRepository` kế thừa transactional configuration từ javadoc:org.springframework.data.jpa.repository.support.SimpleJpaRepository[].
+Đối với read operation, transaction configuration có flag `readOnly` được set thành `true`.
+Tất cả các method còn lại được cấu hình với `@Transactional` thông thường để default transaction configuration được áp dụng.
+Các repository method được backed bởi transactional repository fragment sẽ kế thừa transactional attribute từ chính fragment method đó.
 
-If you need to tweak transaction configuration for one of the methods declared in a repository, redeclare the method in your repository interface, as follows:
+Nếu bạn cần tinh chỉnh transaction configuration cho một trong các method đã khai báo trong repository, hãy redeclare method đó trong repository interface của bạn, như sau:
 
-.Custom transaction configuration for CRUD
+.Custom transaction configuration cho CRUD
 ====
 [source, java]
 ----
@@ -21,12 +21,12 @@ public interface UserRepository extends CrudRepository<User, Long> {
   // Further query method declarations
 }
 ----
-Doing so causes the `findAll()` method to run with a timeout of 10 seconds and without the `readOnly` flag.
+Việc này khiến method `findAll()` chạy với timeout 10 giây và không có flag `readOnly`.
 ====
 
-Another way to alter transactional behaviour is to use a facade or service implementation that (typically) covers more than one repository. Its purpose is to define transactional boundaries for non-CRUD operations. The following example shows how to use such a facade for more than one repository:
+Một cách khác để thay đổi transactional behaviour là sử dụng facade hoặc service implementation bao phủ (thường là) nhiều hơn một repository. Mục đích của nó là định nghĩa transactional boundary cho các operation không phải CRUD. Ví dụ sau minh họa cách dùng một facade cho nhiều hơn một repository:
 
-.Using a facade to define transactions for multiple repository calls
+.Sử dụng facade để định nghĩa transaction cho nhiều repository call
 ====
 [source, java]
 ----
@@ -54,19 +54,19 @@ public class UserManagementImpl implements UserManagement {
   }
 }
 ----
-This example causes call to `addRoleToAllUsers(…)` to run inside a transaction (participating in an existing one or creating a new one if none are already running). The transaction configuration at the repositories is then neglected, as the outer transaction configuration determines the actual one used. Note that you must activate `<tx:annotation-driven />` or use `@EnableTransactionManagement` explicitly to get annotation-based configuration of facades to work.
-This example assumes you use component scanning.
+Ví dụ này khiến lời gọi `addRoleToAllUsers(…)` chạy bên trong một transaction (tham gia vào một transaction đã tồn tại hoặc tạo mới nếu chưa có transaction nào đang chạy). Transaction configuration ở các repository lúc này bị bỏ qua, vì transaction configuration ở tầng ngoài mới là cái quyết định transaction thực sự được dùng. Lưu ý rằng bạn phải kích hoạt `<tx:annotation-driven />` hoặc dùng `@EnableTransactionManagement` một cách tường minh để annotation-based configuration của facade hoạt động.
+Ví dụ này giả định bạn đang dùng component scanning.
 
-Note that the call to `save` is not strictly necessary from a JPA point of view, but should still be there in order to stay consistent to the repository abstraction offered by Spring Data.
+Lưu ý rằng lời gọi `save` không thực sự bắt buộc xét theo góc độ JPA, nhưng vẫn nên có mặt để giữ nhất quán với repository abstraction mà Spring Data cung cấp.
 ====
 
 [[transactional-query-methods]]
 == Transactional query methods
 
-Declared query methods (including default methods) do not get any transaction configuration applied by default.
-To run those methods transactionally, use `@Transactional` at the repository interface you define, as shown in the following example:
+Các declared query method (bao gồm cả default method) không được áp dụng bất kỳ transaction configuration nào theo mặc định.
+Để chạy các method đó theo kiểu transactional, hãy dùng `@Transactional` ở repository interface bạn định nghĩa, như ví dụ sau:
 
-.Using @Transactional at query methods
+.Sử dụng @Transactional ở query methods
 ====
 [source, java]
 ----
@@ -81,15 +81,15 @@ interface UserRepository extends JpaRepository<User, Long> {
   void deleteInactiveUsers();
 }
 ----
-Typically, you want the `readOnly` flag to be set to `true`, as most of the query methods only read data. In contrast to that, `deleteInactiveUsers()` makes use of the `@Modifying` annotation and overrides the transaction configuration. Thus, the method runs with the `readOnly` flag set to `false`.
+Thông thường, bạn sẽ muốn flag `readOnly` được set thành `true`, vì phần lớn các query method chỉ đọc dữ liệu. Ngược lại, `deleteInactiveUsers()` sử dụng annotation `@Modifying` và ghi đè transaction configuration. Do đó, method này chạy với flag `readOnly` được set thành `false`.
 ====
 
 [NOTE]
 ====
-You can use transactions for read-only queries and mark them as such by setting the `readOnly` flag. Doing so does not, however, act as a check that you do not trigger a manipulating query (although some databases reject `INSERT` and `UPDATE` statements inside a read-only transaction). The `readOnly` flag is instead propagated as a hint to the underlying JDBC driver for performance optimizations. Furthermore, Spring performs some optimizations on the underlying JPA provider. For example, when used with Hibernate, the flush mode is set to `MANUAL` when you configure a transaction as `readOnly`, which causes Hibernate to skip dirty checks (a noticeable improvement on large object trees).
+Bạn có thể dùng transaction cho các read-only query và đánh dấu chúng bằng cách set flag `readOnly`. Tuy nhiên, việc này không đóng vai trò như một kiểm tra để đảm bảo bạn không vô tình kích hoạt một manipulating query (mặc dù một số database sẽ từ chối các statement `INSERT` và `UPDATE` bên trong một read-only transaction). Flag `readOnly` thay vào đó được propagate như một hint cho JDBC driver bên dưới nhằm mục đích tối ưu performance. Hơn nữa, Spring còn thực hiện một số tối ưu trên JPA provider bên dưới. Ví dụ, khi dùng với Hibernate, flush mode được set thành `MANUAL` khi bạn cấu hình một transaction là `readOnly`, khiến Hibernate bỏ qua dirty checking (một cải thiện đáng kể với các object tree lớn).
 ====
 
 [NOTE]
 ====
-While examples discuss `@Transactional` usage on the repository, we generally recommend declaring transaction boundaries when starting a unit of work to ensure proper consistency and desired transaction participation.
+Mặc dù các ví dụ ở đây thảo luận về việc dùng `@Transactional` ở repository, nhìn chung chúng tôi khuyến nghị khai báo transaction boundary ngay khi bắt đầu một unit of work để đảm bảo tính nhất quán và transaction participation như mong muốn.
 ====

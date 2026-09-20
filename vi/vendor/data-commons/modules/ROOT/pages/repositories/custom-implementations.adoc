@@ -1,0 +1,511 @@
+[[repositories.custom-implementations]]
+= Các Implementation Repository Tùy Chỉnh
+
+Spring Data cung cấp nhiều tùy chọn để tạo query method với rất ít mã.
+Nhưng khi những tùy chọn đó không đáp ứng nhu cầu, bạn cũng có thể cung cấp implementation tùy chỉnh của riêng mình cho các repository method.
+Phần này mô tả cách thực hiện điều đó.
+
+[[repositories.single-repository-behavior]]
+== Tùy chỉnh Repository riêng lẻ
+
+Để bổ sung chức năng tùy chỉnh cho một repository, trước tiên bạn phải định nghĩa một fragment interface và implementation cho chức năng tùy chỉnh, như sau:
+
+.Interface cho chức năng repository tùy chỉnh
+[source,java]
+----
+interface CustomizedUserRepository {
+  void someCustomMethod(User user);
+}
+----
+
+.Implementation của chức năng repository tùy chỉnh
+[source,java]
+----
+class CustomizedUserRepositoryImpl implements CustomizedUserRepository {
+
+  @Override
+  public void someCustomMethod(User user) {
+    // Implementation tùy chỉnh của bạn
+  }
+}
+----
+
+[NOTE]
+====
+Phần quan trọng nhất của tên class tương ứng với fragment interface là hậu tố `Impl`.
+Bạn có thể tùy chỉnh hậu tố dành riêng cho store bằng cách đặt `@Enable<StoreModule>Repositories(repositoryImplementationPostfix = …)`.
+====
+
+[WARNING]
+====
+Trong lịch sử, cơ chế phát hiện custom repository implementation của Spring Data tuân theo một
+https://docs.spring.io/spring-data/commons/docs/1.9.0.RELEASE/reference/html/#repositories.single-repository-behaviour[naming pattern]
+để suy ra tên class implementation tùy chỉnh từ repository, qua đó thực chất chỉ cho phép một custom implementation.
+
+Một type nằm trong cùng package với repository interface, khớp với _repository interface name_ theo sau bởi _implementation postfix_,
+được xem là custom implementation và sẽ được xử lý như một custom implementation.
+Một class tuân theo tên đó có thể dẫn đến hành vi không mong muốn.
+
+Chúng tôi xem quy ước đặt tên single-custom implementation là đã deprecated và khuyến nghị không sử dụng pattern này.
+Thay vào đó, hãy chuyển sang fragment-based programming model.
+====
+
+Bản thân implementation không phụ thuộc vào Spring Data và có thể là một Spring bean thông thường.
+Do đó, bạn có thể sử dụng hành vi dependency injection tiêu chuẩn để inject các tham chiếu đến bean khác (chẳng hạn như một `JdbcTemplate`), tham gia vào các aspect, v.v.
+
+Sau đó, bạn có thể để repository interface mở rộng fragment interface, như sau:
+
+.Thay đổi repository interface
+[source,java]
+----
+interface UserRepository extends CrudRepository<User, Long>, CustomizedUserRepository {
+
+  // Khai báo query method tại đây
+}
+----
+
+Việc mở rộng fragment interface bằng repository interface kết hợp chức năng CRUD và chức năng tùy chỉnh, đồng thời cung cấp chúng cho client.
+
+Spring Data repository được implementation bằng các fragment tạo thành một repository composition.
+Fragment bao gồm base repository, các functional aspect (chẳng hạn như xref:repositories/core-extensions.adoc#core.extensions.querydsl[Querydsl]), và các interface tùy chỉnh cùng implementation của chúng.
+Mỗi khi bạn thêm một interface vào repository interface, bạn mở rộng composition bằng cách thêm một fragment.
+Base repository và implementation của repository aspect được cung cấp bởi từng Spring Data module.
+
+Ví dụ sau đây cho thấy các interface tùy chỉnh và implementation tương ứng:
+
+.Fragment cùng implementation
+[source,java]
+----
+interface HumanRepository {
+  void someHumanMethod(User user);
+}
+
+class HumanRepositoryImpl implements HumanRepository {
+
+  @Override
+  public void someHumanMethod(User user) {
+    // Implementation tùy chỉnh của bạn
+  }
+}
+
+interface ContactRepository {
+
+  void someContactMethod(User user);
+
+  User anotherContactMethod(User user);
+}
+
+class ContactRepositoryImpl implements ContactRepository {
+
+  @Override
+  public void someContactMethod(User user) {
+    // Implementation tùy chỉnh của bạn
+  }
+
+  @Override
+  public User anotherContactMethod(User user) {
+    // Implementation tùy chỉnh của bạn
+  }
+}
+----
+
+Ví dụ sau đây cho thấy interface của một custom repository mở rộng `CrudRepository`:
+
+.Thay đổi repository interface
+[source,java]
+----
+interface UserRepository extends CrudRepository<User, Long>, HumanRepository, ContactRepository {
+
+  // Khai báo query method tại đây
+}
+----
+
+Repository có thể được tạo thành từ nhiều custom implementation, được import theo thứ tự khai báo.
+Custom implementation có độ ưu tiên cao hơn base implementation và repository aspect.
+Thứ tự này cho phép bạn override method của base repository và aspect, đồng thời giải quyết sự mơ hồ khi hai fragment đóng góp cùng một method signature.
+Repository fragment không bị giới hạn chỉ sử dụng trong một repository interface.
+Nhiều repository có thể sử dụng một fragment interface, cho phép bạn tái sử dụng các tùy chỉnh trên nhiều repository khác nhau.
+
+Ví dụ sau đây cho thấy một repository fragment và implementation của nó:
+
+.Fragment ghi đè `save(…)`
+[source,java]
+----
+interface CustomizedSave<T> {
+  <S extends T> S save(S entity);
+}
+
+class CustomizedSaveImpl<T> implements CustomizedSave<T> {
+
+  @Override
+  public <S extends T> S save(S entity) {
+    // Implementation tùy chỉnh của bạn
+  }
+}
+----
+
+Ví dụ sau đây cho thấy một repository sử dụng repository fragment nói trên:
+
+.Repository interface tùy chỉnh
+[source,java]
+----
+interface UserRepository extends CrudRepository<User, Long>, CustomizedSave<User> {
+}
+
+interface PersonRepository extends CrudRepository<Person, Long>, CustomizedSave<Person> {
+}
+----
+
+[[repositories.configuration]]
+=== Cấu hình
+
+Hạ tầng repository cố gắng tự động phát hiện custom implementation fragment bằng cách quét các class bên dưới package nơi nó tìm thấy repository.
+Các class này phải tuân theo quy ước đặt tên là thêm một hậu tố mặc định là `Impl`.
+
+Ví dụ sau đây cho thấy một repository sử dụng hậu tố mặc định và một repository đặt giá trị tùy chỉnh cho hậu tố:
+
+.Ví dụ cấu hình
+====
+[tabs]
+======
+Java::
++
+[source,java,subs="attributes,specialchars",role="primary"]
+----
+@Enable{store}Repositories(repositoryImplementationPostfix = "MyPostfix")
+class Configuration { … }
+----
+
+XML::
++
+[source,xml,role="secondary"]
+----
+<repositories base-package="com.acme.repository" />
+
+<repositories base-package="com.acme.repository" repository-impl-postfix="MyPostfix" />
+----
+======
+====
+
+Cấu hình đầu tiên trong ví dụ trước cố gắng tìm một class có tên `com.acme.repository.CustomizedUserRepositoryImpl` để làm custom repository implementation.
+Ví dụ thứ hai cố gắng tìm `com.acme.repository.CustomizedUserRepositoryMyPostfix`.
+
+[[repositories.single-repository-behaviour.ambiguity]]
+==== Giải quyết sự mơ hồ
+
+Nếu tìm thấy nhiều implementation có tên class khớp trong các package khác nhau, Spring Data sử dụng bean name để xác định implementation nào cần sử dụng.
+
+Cho hai custom implementation sau đây của `CustomizedUserRepository` được trình bày trước đó, implementation đầu tiên được sử dụng.
+Bean name của nó là `customizedUserRepositoryImpl`, khớp với bean name của fragment interface (`CustomizedUserRepository`) cộng với hậu tố `Impl`.
+
+.Giải quyết các implementation mơ hồ
+====
+[source,java]
+----
+package com.acme.impl.one;
+
+class CustomizedUserRepositoryImpl implements CustomizedUserRepository {
+
+  // Implementation tùy chỉnh của bạn
+}
+----
+
+[source,java]
+----
+package com.acme.impl.two;
+
+@Component("specialCustomImpl")
+class CustomizedUserRepositoryImpl implements CustomizedUserRepository {
+
+  // Implementation tùy chỉnh của bạn
+}
+----
+====
+
+Nếu bạn chú thích `UserRepository` interface bằng `@Component("specialCustom")`, bean name cộng với `Impl` sẽ khớp với tên được định nghĩa cho repository implementation trong `com.acme.impl.two`, và nó được sử dụng thay cho implementation đầu tiên.
+
+[[repositories.manual-wiring]]
+==== Wiring thủ công
+
+Nếu custom implementation của bạn chỉ sử dụng cấu hình dựa trên annotation và autowiring, cách tiếp cận nêu trên hoạt động tốt vì nó được xử lý như mọi Spring bean khác.
+Nếu fragment bean của implementation cần wiring đặc biệt, bạn có thể khai báo bean và đặt tên cho nó theo các quy ước được mô tả trong xref:repositories/custom-implementations.adoc#repositories.single-repository-behaviour.ambiguity[phần trước].
+Sau đó, hạ tầng tham chiếu đến bean definition được định nghĩa thủ công theo tên thay vì tự tạo nó.
+Ví dụ sau đây cho thấy cách wiring thủ công một custom implementation:
+
+.Wiring thủ công các custom implementation
+====
+
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+class MyClass {
+  MyClass(@Qualifier("userRepositoryImpl") UserRepository userRepository) {
+    …
+  }
+}
+----
+
+XML::
++
+[source,xml,role="secondary"]
+----
+<repositories base-package="com.acme.repository" />
+
+<beans:bean id="userRepositoryImpl" class="…">
+  <!-- cấu hình bổ sung -->
+</beans:bean>
+----
+======
+====
+
+[[repositories.spring-factories]]
+==== Đăng ký Fragment bằng spring.factories
+
+Như đã đề cập trong phần <<repositories.configuration>>, hạ tầng chỉ tự động phát hiện fragment trong repository base-package.
+Do đó, fragment nằm ở vị trí khác hoặc được đóng góp bởi một archive bên ngoài sẽ không được tìm thấy nếu chúng không chia sẻ một namespace chung.
+Việc đăng ký fragment trong `spring.factories` cho phép bạn vượt qua hạn chế này như được giải thích trong phần sau.
+
+Giả sử bạn muốn cung cấp một số chức năng search tùy chỉnh có thể sử dụng trên nhiều repository cho tổ chức của mình, dựa trên một text search index.
+
+Trước hết, tất cả những gì bạn cần là fragment interface.
+Lưu ý tham số generic `<T>` để căn chỉnh fragment với repository domain type.
+
+.Interface của Fragment
+[source,java]
+----
+package com.acme.search;
+
+public interface SearchExtension<T> {
+
+    List<T> search(String text, Limit limit);
+}
+----
+
+Giả sử full-text search thực tế có sẵn thông qua một `SearchService` được đăng ký dưới dạng một `Bean` trong context để bạn có thể sử dụng nó trong implementation của `SearchExtension`.
+Tất cả những gì bạn cần để chạy search là tên collection (hoặc index) và một object mapper chuyển đổi kết quả search thành các domain object thực tế như phác thảo bên dưới.
+
+.Implementation của Fragment
+[source,java]
+----
+package com.acme.search;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
+import org.springframework.data.repository.core.RepositoryMethodContext;
+
+class DefaultSearchExtension<T> implements SearchExtension<T> {
+
+    private final SearchService service;
+
+    DefaultSearchExtension(SearchService service) {
+        this.service = service;
+    }
+
+    @Override
+    public List<T> search(String text, Limit limit) {
+        return search(RepositoryMethodContext.getContext(), text, limit);
+    }
+
+    List<T> search(RepositoryMethodContext metadata, String text, Limit limit) {
+
+        Class<T> domainType = metadata.getRepository().getDomainType();
+
+        String indexName = domainType.getSimpleName().toLowerCase();
+        List<String> jsonResult = service.search(indexName, text, 0, limit.max());
+
+        return jsonResult.stream().map(…).collect(toList());
+    }
+}
+----
+
+Trong ví dụ trên, `RepositoryMethodContext.getContext()` được sử dụng để lấy metadata cho lần gọi method thực tế.
+`RepositoryMethodContext` cung cấp thông tin gắn với repository, chẳng hạn như domain type.
+Trong trường hợp này, chúng ta sử dụng repository domain type để xác định tên index cần search.
+
+Việc expose invocation metadata có chi phí, do đó tính năng này bị tắt theo mặc định.
+Để truy cập `RepositoryMethodContext.getContext()`, bạn cần chỉ dẫn repository factory chịu trách nhiệm tạo repository thực tế để expose method metadata.
+
+[[expose-repository-metadata]]
+.Expose Metadata của Repository
+[tabs]
+======
+Marker Interface::
++
+====
+Việc thêm marker interface `RepositoryMetadataAccess` vào implementation của fragment sẽ kích hoạt hạ tầng và bật metadata exposure cho các repository sử dụng fragment đó.
+
+[source,java,role="primary"]
+----
+package com.acme.search;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
+import org.springframework.data.repository.core.support.RepositoryMetadataAccess;
+import org.springframework.data.repository.core.RepositoryMethodContext;
+
+class DefaultSearchExtension<T> implements SearchExtension<T>, RepositoryMetadataAccess {
+
+    // ...
+}
+----
+====
+
+Bean Post Processor::
++
+====
+Cờ `exposeMetadata` có thể được đặt trực tiếp trên repository factory bean thông qua một `BeanPostProcessor`.
+
+[source,java,role="secondary"]
+----
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
+
+@Configuration
+class MyConfiguration {
+
+    @Bean
+    static BeanPostProcessor exposeMethodMetadata() {
+
+        return new BeanPostProcessor() {
+
+            @Override
+            public Object postProcessBeforeInitialization(Object bean, String beanName) {
+
+                if(bean instanceof RepositoryFactoryBeanSupport<?,?,?> factoryBean) {
+                    factoryBean.setExposeMetadata(true);
+                }
+                return bean;
+            }
+        };
+    }
+}
+----
+
+Vui lòng không chỉ sao chép/dán phần trên mà hãy cân nhắc use case thực tế của bạn, vì cách trên sẽ chỉ đơn giản là bật cờ trên mọi repository và có thể cần một cách tiếp cận chi tiết hơn.
+====
+======
+
+Sau khi đã có cả khai báo fragment và implementation, bạn có thể đăng ký extension trong file `META-INF/spring.factories` và đóng gói các thành phần nếu cần.
+
+.Đăng ký fragment trong `META-INF/spring.factories`
+[source,properties]
+----
+com.acme.search.SearchExtension=com.acme.search.DefaultSearchExtension
+----
+
+Bây giờ bạn đã sẵn sàng sử dụng extension của mình; chỉ cần thêm interface vào repository.
+
+.Sử dụng
+[source,java]
+----
+package io.my.movies;
+
+import com.acme.search.SearchExtension;
+import org.springframework.data.repository.CrudRepository;
+
+interface MovieRepository extends CrudRepository<Movie, String>, SearchExtension<Movie> {
+
+}
+----
+
+[[repositories.customize-base-repository]]
+== Tùy chỉnh Base Repository
+
+Cách tiếp cận được mô tả trong xref:repositories/custom-implementations.adoc#repositories.manual-wiring[phần trước] yêu cầu tùy chỉnh từng repository interface khi bạn muốn tùy chỉnh hành vi của base repository để tất cả repository đều bị ảnh hưởng.
+Thay vào đó, để thay đổi hành vi cho tất cả repository, bạn có thể tạo một implementation mở rộng store-specific repository base class.
+Class này sau đó đóng vai trò là custom base class cho repository proxy, như trong ví dụ sau:
+
+.Base class Repository tùy chỉnh
+[source,java]
+----
+class MyRepositoryImpl<T, ID>
+  extends SimpleJpaRepository<T, ID> {
+
+  private final EntityManager entityManager;
+
+  MyRepositoryImpl(JpaEntityInformation entityInformation,
+                          EntityManager entityManager) {
+    super(entityInformation, entityManager);
+
+    // Giữ EntityManager để sử dụng từ các method mới được giới thiệu.
+    this.entityManager = entityManager;
+  }
+
+  @Override
+  @Transactional
+  public <S extends T> S save(S entity) {
+    // implementation đặt tại đây
+  }
+}
+----
+
+CAUTION: Class cần có một constructor của super class mà store-specific repository factory implementation sử dụng.
+Nếu repository base class có nhiều constructor, hãy override constructor nhận một `EntityInformation` cùng với một store-specific infrastructure object (chẳng hạn như một `EntityManager` hoặc một template class).
+
+Bước cuối cùng là giúp Spring Data infrastructure nhận biết custom repository base class.
+Trong cấu hình, bạn có thể thực hiện điều đó bằng cách sử dụng `repositoryBaseClass`, như trong ví dụ sau:
+
+.Cấu hình custom repository base class
+====
+[tabs]
+======
+Java::
++
+[source,java,subs="attributes,specialchars",role="primary"]
+----
+@Configuration
+@Enable{store}Repositories(repositoryBaseClass = MyRepositoryImpl.class)
+class ApplicationConfiguration { … }
+----
+
+XML::
++
+[source,xml,role="secondary"]
+----
+<repositories base-package="com.acme.repository"
+     base-class="….MyRepositoryImpl" />
+----
+======
+====
+
+[[repositories.customize-repository-factory]]
+== Tùy chỉnh Repository Factory
+
+Việc tùy chỉnh {spring-data-commons-docs-url}/api/java/org/springframework/data/repository/core/support/RepositoryFactorySupport.html[repository factory] thông qua {spring-data-commons-docs-url}/api/java/org/springframework/data/repository/core/support/RepositoryFactoryCustomizer.html[`RepositoryFactoryCustomizer`] cung cấp quyền truy cập trực tiếp đến các component liên quan đến việc tạo repository instance.
+Cơ chế này hữu ích khi bạn muốn điều chỉnh các aspect được chọn của proxy creation mà không phải giới thiệu một custom repository factory bean hoàn chỉnh.
+Ví dụ sau minh họa việc đăng ký listener bổ sung và proxy advisor:
+
+[source,java]
+----
+factoryBean.addRepositoryFactoryCustomizer(repositoryFactory -> {
+	repositoryFactory.addInvocationListener(…);
+	repositoryFactory.addQueryCreationListener(…);
+
+	repositoryFactory.addRepositoryProxyPostProcessor((factory, repositoryInformation) -> factory.addAdvice(…));
+});
+----
+
+Một `RepositoryFactoryCustomizer` được liên kết với một repository factory bean cụ thể, lý tưởng nhất là thông qua `BeanPostProcessor` để chỉ các repository cụ thể bị ảnh hưởng.
+Lưu ý rằng customizer bean không được áp dụng tự động nhằm ngăn việc wiring không mong muốn, điều đặc biệt phù hợp trong các arrangement có nhiều repository hoặc khi sử dụng nhiều Spring Data module.
+
+[[repositories.customize-repository-factory-bean]]
+== Tùy chỉnh Repository Factory Bean
+
+Cách mạnh mẽ nhất để tùy chỉnh việc tạo repository là cung cấp một custom repository factory bean, thường là subclass của {spring-data-commons-docs-url}/api/java/org/springframework/data/repository/core/support/RepositoryFactorySupport.html[`RepositoryFactorySupport`],
+{spring-data-commons-docs-url}/api/java/org/springframework/data/repository/core/support/TransactionalRepositoryFactoryBeanSupport.html[`TransactionalRepositoryFactoryBeanSupport`] hoặc store-specific repository factory bean.
+
+Việc tùy chỉnh repository factory bean cho phép bạn thay đổi hoàn toàn việc tạo repository với quyền truy cập đầy đủ vào repository factory bên dưới.
+
+Lưu ý rằng cách tiếp cận này đòi hỏi nhiều công sức nhất và thường chỉ cần thiết khi bạn muốn thay đổi các aspect cốt lõi của việc tạo repository.
+Ngoài ra, bạn cần tính đến việc suy ra repository metadata được sử dụng để xác định query method, base implementation method và custom implementation.
+Tóm tắt sau đây nêu các aspect chính:
+
+* `repositoryBaseClass`: Base class của repository xác định method nào được base class implementation và method nào cần xử lý bổ sung thông qua aspect hoặc custom implementation.
+* `repositoryFragmentsContributor`: Một {spring-data-commons-docs-url}/api/java/org/springframework/data/repository/core/support/RepositoryFragmentsContributor.html[`RepositoryFragmentsContributor`] cho phép đóng góp vào repository composition sau khi tất cả standard fragment đã được thu thập.
+Các store module sử dụng cơ chế này để thêm các tính năng như Querydsl hoặc hỗ trợ Query-by-Example.
+Nó cũng đóng vai trò là một SPI cho third-party extension.
+* `exposeMetadata`: Kiểm soát liệu <<expose-repository-metadata,invocation metadata>> có sẵn thông qua `RepositoryMethodContext.getContext()` hay không.

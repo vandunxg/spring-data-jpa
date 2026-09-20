@@ -1,17 +1,17 @@
 [[jpa.getting-started]]
-= Getting Started
+= Bắt đầu
 
-An easy way to bootstrap setting up a working environment is to create a Spring-based project via https://start.spring.io/#!type=maven-project&dependencies=h2,data-jpa[start.spring.io] or create a Spring project in https://spring.io/tools[Spring Tools].
+Một cách đơn giản để bootstrap việc thiết lập một working environment là tạo một Spring-based project thông qua https://start.spring.io/#!type=maven-project&dependencies=h2,data-jpa[start.spring.io] hoặc tạo một Spring project trong https://spring.io/tools[Spring Tools].
 
 [[jpa.examples-repo]]
-== Examples Repository
+== Repository Ví dụ
 
-The GitHub https://github.com/spring-projects/spring-data-examples[spring-data-examples repository] hosts several examples that you can download and play around with to get a feel for how the library works.
+GitHub https://github.com/spring-projects/spring-data-examples[spring-data-examples repository] chứa nhiều ví dụ mà bạn có thể tải về và thử nghiệm để cảm nhận cách library này hoạt động.
 
 [[jpa.hello-world]]
 == Hello World
 
-Let's start with a simple entity and its corresponding repository:
+Hãy bắt đầu với một entity đơn giản và repository tương ứng của nó:
 
 [source,java]
 ----
@@ -33,7 +33,7 @@ interface PersonRepository extends Repository<Person, Long> {
 }
 ----
 
-Create the main application to run, as the following example shows:
+Tạo main application để chạy, như ví dụ sau đây:
 
 [source,java]
 ----
@@ -58,10 +58,10 @@ public class DemoApplication {
 }
 ----
 
-Even in this simple example, there are a few notable things to point out:
+Ngay cả trong ví dụ đơn giản này, cũng có một vài điểm đáng chú ý:
 
-* Repository instances are automatically implemented.
-When used as parameters of `@Bean` methods, these will be autowired without further need for annotations.
-* The basic repository extends `Repository`.
-We suggest to consider how much API surface you want to expose towards your application.
-More complex repository interfaces are `ListCrudRepository` or `JpaRepository`.
+* Các repository instance được tự động implement.
+Khi được dùng làm parameter của các `@Bean` method, chúng sẽ được autowired mà không cần thêm annotation nào khác.
+* Repository cơ bản extends `Repository`.
+Chúng tôi đề xuất bạn cân nhắc muốn expose bao nhiêu API surface cho ứng dụng của mình.
+Các repository interface phức tạp hơn là `ListCrudRepository` hoặc `JpaRepository`.

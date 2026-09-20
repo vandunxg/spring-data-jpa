@@ -1,9 +1,9 @@
 [[jpd.misc.cdi-integration]]
-= CDI Integration
+= Tích hợp CDI
 
-Instances of the repository interfaces are usually created by a container, for which Spring is the most natural choice when working with Spring Data. Spring offers sophisticated support for creating bean instances, as documented in {spring-data-commons-docs-url}/repositories/create-instances.html[Creating Repository Instances]. As of version 1.1.0, Spring Data JPA ships with a custom CDI extension that allows using the repository abstraction in CDI environments. The extension is part of the JAR. To activate it, include the Spring Data JPA JAR on your classpath.
+Instance của các repository interface thường được tạo bởi một container, và Spring là lựa chọn tự nhiên nhất khi làm việc với Spring Data. Spring cung cấp hỗ trợ tinh vi cho việc tạo bean instance, như đã trình bày tại {spring-data-commons-docs-url}/repositories/create-instances.html[Creating Repository Instances]. Kể từ phiên bản 1.1.0, Spring Data JPA đi kèm một CDI extension tùy chỉnh cho phép sử dụng repository abstraction trong các môi trường CDI. Extension này là một phần của JAR. Để kích hoạt nó, chỉ cần thêm JAR của Spring Data JPA vào classpath của bạn.
 
-You can now set up the infrastructure by implementing a CDI Producer for the `EntityManagerFactory` and `EntityManager`, as shown in the following example:
+Giờ đây bạn có thể thiết lập infrastructure bằng cách triển khai một CDI Producer cho `EntityManagerFactory` và `EntityManager`, như trong ví dụ sau:
 
 [source, java]
 ----
@@ -31,7 +31,7 @@ class EntityManagerFactoryProducer {
 }
 ----
 
-The necessary setup can vary depending on the JavaEE environment. You may need to do nothing more than redeclare a `EntityManager` as a CDI bean, as follows:
+Việc setup cần thiết có thể khác nhau tùy theo môi trường JavaEE. Bạn có thể không cần làm gì thêm ngoài việc khai báo lại một `EntityManager` như một CDI bean, như sau:
 
 [source, java]
 ----
@@ -44,9 +44,9 @@ class CdiConfig {
 }
 ----
 
-In the preceding example, the container has to be capable of creating JPA `EntityManagers` itself. All the configuration does is re-export the JPA `EntityManager` as a CDI bean.
+Trong ví dụ trên, container phải có khả năng tự tạo ra các `EntityManager` của JPA. Toàn bộ đoạn cấu hình chỉ làm một việc là re-export `EntityManager` của JPA thành một CDI bean.
 
-The Spring Data JPA CDI extension picks up all available `EntityManager` instances as CDI beans and creates a proxy for a Spring Data repository whenever a bean of a repository type is requested by the container. Thus, obtaining an instance of a Spring Data repository is a matter of declaring an `@Inject` property, as shown in the following example:
+Spring Data JPA CDI extension sẽ nhận diện tất cả các instance `EntityManager` khả dụng như các CDI bean, và tạo một proxy cho một Spring Data repository bất cứ khi nào container yêu cầu một bean thuộc kiểu repository. Do đó, để lấy được một instance của Spring Data repository, bạn chỉ cần khai báo một property với `@Inject`, như trong ví dụ sau:
 
 [source, java]
 ----

@@ -3,20 +3,20 @@
 = Glossary
 :page-section-summary-toc: 1
 
-AOP :: Aspect oriented programming
+AOP :: Lập trình hướng khía cạnh (Aspect Oriented Programming)
 
-Commons DBCP :: Commons DataBase Connection Pools - a library from the Apache foundation that offers pooling implementations of the DataSource interface.
+Commons DBCP :: Commons DataBase Connection Pools - một thư viện của Apache Foundation cung cấp các pooling implementation của interface DataSource.
 
-CRUD :: Create, Read, Update, Delete - Basic persistence operations.
+CRUD :: Create, Read, Update, Delete - Các thao tác persistence cơ bản.
 
-DAO :: Data Access Object - Pattern to separate persisting logic from the object to be persisted
+DAO :: Data Access Object - Pattern giúp tách biệt persisting logic khỏi object cần được persist
 
-Dependency Injection :: Pattern to hand a component's dependency to the component from outside, freeing the component to lookup the dependent itself. For more information, see link:$$https://en.wikipedia.org/wiki/Dependency_Injection$$[https://en.wikipedia.org/wiki/Dependency_Injection].
+Dependency Injection :: Pattern truyền dependency của một component cho component đó từ bên ngoài, giúp component không cần tự đi lookup dependency của mình. Để biết thêm thông tin, xem link:$$https://en.wikipedia.org/wiki/Dependency_Injection$$[https://en.wikipedia.org/wiki/Dependency_Injection].
 
-EclipseLink :: Object relational mapper implementing JPA - link:$$https://www.eclipse.org/eclipselink/$$[https://www.eclipse.org/eclipselink/]
+EclipseLink :: Object relational mapper triển khai JPA - link:$$https://www.eclipse.org/eclipselink/$$[https://www.eclipse.org/eclipselink/]
 
-Hibernate :: Object relational mapper implementing JPA - link:$$https://hibernate.org/$$[https://hibernate.org/]
+Hibernate :: Object relational mapper triển khai JPA - link:$$https://hibernate.org/$$[https://hibernate.org/]
 
 JPA :: Jakarta Persistence API
 
-Spring :: Java application framework - link:$$https://spring.io/projects/spring-framework/$$[https://spring.io/projects/spring-framework]
+Spring :: Framework ứng dụng Java - link:$$https://spring.io/projects/spring-framework/$$[https://spring.io/projects/spring-framework]

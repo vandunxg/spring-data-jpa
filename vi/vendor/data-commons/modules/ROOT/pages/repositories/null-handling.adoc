@@ -1,0 +1,160 @@
+[[repositories.nullability]]
+= Xử lý null trong các phương thức Repository
+
+Các phương thức CRUD của Repository trả về một instance aggregate riêng lẻ có thể sử dụng `Optional` để biểu thị khả năng không có giá trị.
+Ngoài ra, Spring Data hỗ trợ trả về các wrapper type sau trong query method:
+
+* `com.google.common.base.Optional`
+* `scala.Option`
+* `io.vavr.control.Option`
+
+Ngoài ra, query method có thể chọn không sử dụng wrapper type nào.
+Khi đó, việc không có kết quả query được biểu thị bằng cách trả về `null`.
+Các phương thức Repository trả về collection, các lựa chọn thay thế cho collection, wrapper và stream được đảm bảo không bao giờ trả về `null` mà thay vào đó trả về biểu diễn rỗng tương ứng.
+Xem "`xref:repositories/query-return-types-reference.adoc[Các kiểu trả về query của Repository]`" để biết chi tiết.
+
+[[repositories.nullability.annotations]]
+== Annotation về nullability
+
+=== JSpecify
+
+Kể từ Spring Framework 7 và Spring Data 4, bạn có thể biểu đạt các ràng buộc nullability cho các phương thức Repository bằng https://jspecify.dev/docs/start-here/[JSpecify].
+JSpecify được tích hợp tốt vào IntelliJ và Eclipse để cung cấp một cách tiếp cận thân thiện với công cụ và các kiểm tra `null` tùy chọn trong runtime, như sau:
+
+* https://jspecify.dev/docs/api/org/jspecify/annotations/NullMarked.html[`@NullMarked`]: Được sử dụng ở cấp module, package và class để khai báo rằng hành vi mặc định đối với parameter và giá trị trả về lần lượt là không chấp nhận cũng như không tạo ra giá trị `null`.
+* https://jspecify.dev/docs/api/org/jspecify/annotations/NonNull.html[`@NonNull`]: Được sử dụng ở cấp type cho parameter hoặc giá trị trả về không được là `null` (không cần thiết trên các parameter và giá trị trả về đã được `@NullMarked` bao phủ).
+* https://jspecify.dev/docs/api/org/jspecify/annotations/Nullable.html[`@Nullable`]: Được sử dụng ở cấp type cho parameter hoặc giá trị trả về có thể là `null`.
+* https://jspecify.dev/docs/api/org/jspecify/annotations/NullUnmarked.html[`@NullUnmarked`]: Được sử dụng ở cấp package, class và method để hủy khai báo nullness và loại khỏi một `@NullMarked` trước đó.
+Trong trường hợp như vậy, nullness chuyển thành không xác định.
+
+.`@NullMarked` ở cấp package thông qua file `package-info.java`
+[source,java,subs="verbatim,quotes",chomp="-packages",fold="none"]
+----
+@NullMarked
+package org.springframework.core;
+
+import org.jspecify.annotations.NullMarked;
+----
+
+Trong các file Java thuộc package, việc sử dụng type nullable được định nghĩa rõ ràng bằng
+https://jspecify.dev/docs/api/org/jspecify/annotations/Nullable.html[`@Nullable`].
+Khuyến nghị chỉ định annotation này ngay trước type liên quan.
+
+Ví dụ, với một field:
+
+[source,java,subs="verbatim,quotes"]
+----
+private @Nullable String fileEncoding;
+----
+
+Hoặc với parameter và giá trị trả về của method:
+
+[source,java,subs="verbatim,quotes"]
+----
+public static @Nullable String buildMessage(@Nullable String message,
+                                            @Nullable Throwable cause) {
+    // ...
+}
+----
+
+Khi override một method, các annotation về nullness không được kế thừa từ method của superclass.
+Điều đó có nghĩa là các annotation về nullness nên được lặp lại nếu bạn chỉ muốn override implementation và giữ nguyên nullness của API đó.
+
+Với array và varargs, bạn cần có khả năng phân biệt nullness của các phần tử với nullness của chính array.
+Hãy chú ý đến cú pháp
+https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.7.4[được định nghĩa bởi đặc tả Java], vì ban đầu cú pháp này có thể gây bất ngờ:
+
+- `@Nullable Object[] array` nghĩa là từng phần tử có thể là null nhưng bản thân array thì không.
+- `Object @Nullable [] array` nghĩa là từng phần tử không thể là null nhưng bản thân array thì có thể.
+- `@Nullable Object @Nullable [] array` nghĩa là cả từng phần tử và array đều có thể là null.
+
+Đặc tả Java cũng quy định rằng các annotation được định nghĩa với `@Target(ElementType.TYPE_USE)` như JSpecify
+`@Nullable` nên được chỉ định sau dấu `.` cuối cùng đối với type lồng nhau hoặc được định danh đầy đủ:
+
+- `Cache.@Nullable ValueWrapper`
+- `jakarta.validation.@Nullable Validator`
+
+https://jspecify.dev/docs/api/org/jspecify/annotations/NonNull.html[`@NonNull`] và
+https://jspecify.dev/docs/api/org/jspecify/annotations/NullUnmarked.html[`@NullUnmarked`] hiếm khi cần thiết trong các trường hợp sử dụng thông thường.
+
+=== Annotation về nullability của Spring Framework và JSR-305
+
+Bạn có thể biểu đạt các ràng buộc nullability cho các phương thức Repository bằng cách sử dụng {spring-framework-docs}/core/null-safety.html[annotation về nullability của Spring Framework].
+
+NOTE: Kể từ Spring Framework 7, annotation về nullability của Spring đã bị deprecated để thay thế bằng JSpecify.
+Tham khảo tài liệu framework về {spring-framework-docs}/core/null-safety.html[Di chuyển từ annotation về null-safety của Spring sang JSpecify] để biết thêm thông tin.
+
+Chúng cung cấp một cách tiếp cận thân thiện với công cụ và các kiểm tra `null` tùy chọn trong runtime, như sau:
+
+* {spring-framework-javadoc}/org/springframework/lang/NonNullApi.html[`@NonNullApi`]: Được sử dụng ở cấp package để khai báo rằng hành vi mặc định đối với parameter và giá trị trả về lần lượt là không chấp nhận cũng như không tạo ra giá trị `null`.
+* {spring-framework-javadoc}/org/springframework/lang/NonNull.html[`@NonNull`]: Được sử dụng trên parameter hoặc giá trị trả về không được là `null` (không cần thiết trên parameter và giá trị trả về nơi `@NonNullApi` được áp dụng).
+* {spring-framework-javadoc}/org/springframework/lang/Nullable.html[`@Nullable`]: Được sử dụng trên parameter hoặc giá trị trả về có thể là `null`.
+
+Các annotation của Spring được meta-annotate bằng annotation https://jcp.org/en/jsr/detail?id=305[JSR 305] (một JSR không còn hoạt động nhưng được sử dụng rộng rãi).
+Các meta-annotation JSR 305 cho phép các nhà cung cấp công cụ (chẳng hạn như https://www.jetbrains.com/help/idea/nullable-and-notnull-annotations.html[IDEA], https://help.eclipse.org/latest/index.jsp?topic=/org.eclipse.jdt.doc.user/tasks/task-using_external_null_annotations.htm[Eclipse] và link:https://kotlinlang.org/docs/reference/java-interop.html#null-safety-and-platform-types[Kotlin]) cung cấp hỗ trợ null-safety theo cách tổng quát mà không cần hard-code hỗ trợ cho các annotation của Spring.
+Để bật việc kiểm tra runtime các ràng buộc nullability cho query method, bạn cần kích hoạt tính không nullable ở cấp package bằng cách sử dụng `@NonNullApi` của Spring trong `package-info.java`, như trong ví dụ sau:
+
+.Khai báo tính không nullable trong `package-info.java`
+[source,java]
+----
+@org.springframework.lang.NonNullApi
+package com.acme;
+----
+
+Sau khi thiết lập mặc định không nullable, các lần gọi query method của Repository sẽ được xác thực tại runtime theo các ràng buộc nullability.
+Nếu một kết quả query vi phạm ràng buộc đã định nghĩa, một exception sẽ được ném ra.
+Điều này xảy ra khi method sẽ trả về `null` nhưng được khai báo là không nullable (mặc định khi annotation được định nghĩa trên package chứa Repository).
+Nếu muốn chọn lại kết quả nullable, hãy sử dụng `@Nullable` trên từng method.
+Việc sử dụng các wrapper type kết quả được đề cập ở đầu phần này vẫn hoạt động như mong đợi: một kết quả rỗng được chuyển thành giá trị biểu thị sự vắng mặt.
+
+Ví dụ sau đây cho thấy một số kỹ thuật vừa mô tả:
+
+.Sử dụng các ràng buộc nullability khác nhau
+[source,java]
+----
+package com.acme;                                                       <1>
+
+import org.springframework.lang.Nullable;
+
+interface UserRepository extends Repository<User, Long> {
+
+  User getByEmailAddress(EmailAddress emailAddress);                    <2>
+
+  @Nullable
+  User findByEmailAddress(@Nullable EmailAddress emailAddress);          <3>
+
+  Optional<User> findOptionalByEmailAddress(EmailAddress emailAddress); <4>
+}
+----
+
+<1> Repository nằm trong một package (hoặc sub-package) mà ở đó chúng ta đã định nghĩa hành vi không nullable.
+<2> Ném `EmptyResultDataAccessException` khi query không tạo ra kết quả.
+Ném `IllegalArgumentException` khi `emailAddress` được truyền cho method là `null`.
+<3> Trả về `null` khi query không tạo ra kết quả.
+Cũng chấp nhận `null` làm giá trị của `emailAddress`.
+<4> Trả về `Optional.empty()` khi query không tạo ra kết quả.
+Ném `IllegalArgumentException` khi `emailAddress` được truyền cho method là `null`.
+
+[[repositories.nullability.kotlin]]
+== Nullability trong Repository dựa trên Kotlin
+
+Kotlin tích hợp định nghĩa về https://kotlinlang.org/docs/reference/null-safety.html[ràng buộc nullability] vào ngôn ngữ.
+Code Kotlin được biên dịch thành bytecode, vốn không biểu đạt các ràng buộc nullability thông qua method signature mà thông qua metadata được biên dịch kèm.
+Đảm bảo đưa JAR `kotlin-reflect` vào project để bật khả năng introspection các ràng buộc nullability của Kotlin.
+Repository Spring Data sử dụng cơ chế ngôn ngữ này để định nghĩa các ràng buộc đó nhằm áp dụng cùng các kiểm tra runtime, như sau:
+
+.Sử dụng các ràng buộc nullability trên Repository Kotlin
+[source,kotlin]
+----
+interface UserRepository : Repository<User, String> {
+
+  fun findByUsername(username: String): User     <1>
+
+  fun findByFirstname(firstname: String?): User? <2>
+}
+----
+
+<1> Method định nghĩa cả parameter và kết quả là không nullable (mặc định của Kotlin).
+Compiler Kotlin từ chối các lần gọi method truyền `null` cho method.
+Nếu query cho kết quả rỗng, `EmptyResultDataAccessException` sẽ được ném ra.
+<2> Method này chấp nhận `null` cho parameter `firstname` và trả về `null` nếu query không tạo ra kết quả.

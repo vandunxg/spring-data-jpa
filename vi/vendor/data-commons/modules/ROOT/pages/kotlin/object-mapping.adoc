@@ -1,0 +1,4 @@
+[[kotlin.mapping]]
+= Ánh xạ đối tượng
+
+Xem xref:object-mapping.adoc#mapping.kotlin[Hỗ trợ Kotlin] để biết chi tiết về cách các đối tượng Kotlin được materialize.

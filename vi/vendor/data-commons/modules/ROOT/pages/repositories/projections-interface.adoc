@@ -1,0 +1,178 @@
+ifndef::projection-collection[]
+:projection-collection: Collection
+endif::[]
+
+[[projections.interfaces]]
+= Projection dựa trên interface
+
+Cách dễ nhất để giới hạn kết quả của các query chỉ còn các thuộc tính name là khai báo một interface expose các accessor method cho những property cần đọc, như trong ví dụ sau:
+
+.Một interface projection để lấy một tập con các thuộc tính
+[source,java]
+----
+interface NamesOnly {
+
+  String getFirstname();
+  String getLastname();
+}
+----
+
+Điểm quan trọng ở đây là các property được định nghĩa ở đây phải khớp chính xác với các property trong aggregate root.
+Khi đó, bạn có thể thêm một query method như sau:
+
+.Một repository sử dụng interface projection với query method
+[source,java,subs="+attributes"]
+----
+interface PersonRepository extends Repository<Person, UUID> {
+
+  {projection-collection}<NamesOnly> findByLastname(String lastname);
+}
+----
+
+Engine thực thi query tạo các proxy instance của interface đó tại runtime cho từng phần tử được trả về và chuyển tiếp các lời gọi đến những method được expose tới object đích.
+
+NOTE: Việc khai báo một method trong `Repository` ghi đè một base method (chẳng hạn method được khai báo trong `CrudRepository`, một repository interface dành riêng cho store hoặc `Simple…Repository`) sẽ dẫn đến việc gọi base method bất kể kiểu trả về được khai báo là gì.
+Hãy đảm bảo sử dụng kiểu trả về tương thích vì không thể dùng base method cho projection.
+Một số store module hỗ trợ annotation `@Query` để biến một base method bị ghi đè thành query method, sau đó query method này có thể được dùng để trả về projection.
+
+[[projections.interfaces.nested]]
+Projection có thể được sử dụng đệ quy.
+Nếu muốn đưa vào một phần thông tin của `Address`, hãy tạo một interface projection cho thông tin đó và trả về interface này từ khai báo của `getAddress()`, như trong ví dụ sau:
+
+.Một interface projection để lấy một tập con các thuộc tính
+[source,java]
+----
+interface PersonSummary {
+
+  String getFirstname();
+  String getLastname();
+  AddressSummary getAddress();
+
+  interface AddressSummary {
+    String getCity();
+  }
+}
+----
+
+Khi gọi method, property `address` của target instance được lấy ra và lần lượt được bọc trong một proxy projection.
+
+[[projections.interfaces.closed]]
+== Closed Projections
+
+Một interface projection có tất cả accessor method khớp với các property của aggregate đích được xem là một closed projection.
+Ví dụ sau (cũng đã được sử dụng trước đó trong chương này) là một closed projection:
+
+.Một closed projection
+[source,java]
+----
+interface NamesOnly {
+
+  String getFirstname();
+  String getLastname();
+}
+----
+
+Khi sử dụng closed projection, Spring Data có thể tối ưu hóa việc thực thi query vì chúng ta biết tất cả thuộc tính cần thiết để cung cấp cho proxy projection.
+Để biết thêm chi tiết, hãy xem phần dành riêng cho module trong tài liệu tham khảo.
+
+[[projections.interfaces.open]]
+== Open Projections
+
+Các accessor method trong interface projection cũng có thể được dùng để tính toán các giá trị mới bằng annotation `@Value`, như trong ví dụ sau:
+
+[[projections.interfaces.open.simple]]
+.Một open projection
+[source,java]
+----
+interface NamesOnly {
+
+  @Value("#{target.firstname + ' ' + target.lastname}")
+  String getFullName();
+  …
+}
+----
+
+Aggregate root làm nền cho projection có sẵn trong biến `target`.
+Interface projection sử dụng `@Value` là một open projection.
+Spring Data không thể áp dụng các tối ưu hóa thực thi query trong trường hợp này vì expression SpEL có thể sử dụng bất kỳ property nào của aggregate root.
+
+Các expression được sử dụng trong `@Value` không nên quá phức tạp -- bạn nên tránh việc lập trình trong các biến `String`.
+Đối với các expression rất đơn giản, một lựa chọn là sử dụng default method (được giới thiệu trong Java 8), như trong ví dụ sau:
+
+[[projections.interfaces.open.default]]
+.Một interface projection sử dụng default method cho logic tùy chỉnh
+[source,java]
+----
+interface NamesOnly {
+
+  String getFirstname();
+  String getLastname();
+
+  default String getFullName() {
+    return getFirstname().concat(" ").concat(getLastname());
+  }
+}
+----
+
+Cách tiếp cận này yêu cầu bạn có thể triển khai logic hoàn toàn dựa trên các accessor method khác được expose trên interface projection.
+Một lựa chọn thứ hai, linh hoạt hơn, là triển khai logic tùy chỉnh trong một Spring bean rồi gọi bean đó từ expression SpEL, như trong ví dụ sau:
+
+[[projections.interfaces.open.bean-reference]]
+.Ví dụ về đối tượng Person
+[source,java]
+----
+@Component
+class MyBean {
+
+  String getFullName(Person person) {
+    …
+  }
+}
+
+interface NamesOnly {
+
+  @Value("#{@myBean.getFullName(target)}")
+  String getFullName();
+  …
+}
+----
+
+Lưu ý cách expression SpEL tham chiếu đến `myBean`, gọi method `getFullName(…)` và truyền target của projection làm tham số method.
+Các method được hỗ trợ bởi việc đánh giá expression SpEL cũng có thể sử dụng các tham số method, sau đó các tham số này có thể được tham chiếu từ expression.
+Các tham số method có sẵn thông qua một mảng `Object` có tên `args`.
+Ví dụ sau cho thấy cách lấy một tham số method từ mảng `args`:
+
+.Ví dụ về đối tượng Person
+[source,java]
+----
+interface NamesOnly {
+
+  @Value("#{args[0] + ' ' + target.firstname + '!'}")
+  String getSalutation(String prefix);
+}
+----
+
+Một lần nữa, đối với các expression phức tạp hơn, bạn nên sử dụng một Spring bean và để expression gọi một method, như đã mô tả <<projections.interfaces.open.bean-reference,trước đó>>.
+
+[[projections.interfaces.nullable-wrappers]]
+== Wrapper nullable
+
+Các getter trong interface projection có thể sử dụng wrapper nullable để cải thiện độ an toàn khi xử lý `null`.
+Hiện tại, các wrapper type được hỗ trợ là:
+
+* `java.util.Optional`
+* `com.google.common.base.Optional`
+* `scala.Option`
+* `io.vavr.control.Option`
+
+.Một interface projection sử dụng wrapper nullable
+[source,java]
+----
+interface NamesOnly {
+
+  Optional<String> getFirstname();
+}
+----
+
+Nếu giá trị projection nền không phải là `null`, các giá trị sẽ được trả về bằng biểu diễn có giá trị của wrapper type.
+Nếu giá trị nền là `null`, getter method sẽ trả về biểu diễn rỗng của wrapper type được sử dụng.

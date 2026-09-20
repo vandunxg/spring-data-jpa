@@ -1,0 +1,35 @@
+[[core.domain-events]]
+= Xuất bản event từ Aggregate Root
+
+Các entity được repository quản lý là các aggregate root.
+Trong một ứng dụng Domain-Driven Design, các aggregate root này thường publish domain event.
+Spring Data cung cấp một annotation có tên `@DomainEvents` mà bạn có thể sử dụng trên một method của aggregate root để việc publish đó trở nên dễ dàng nhất có thể, như trong ví dụ sau:
+
+.Hiển thị domain event từ một aggregate root
+[source,java]
+----
+class AnAggregateRoot {
+
+    @DomainEvents <1>
+    Collection<Object> domainEvents() {
+        // … trả về các event bạn muốn được publish tại đây
+    }
+
+    @AfterDomainEventPublication <2>
+    void callbackMethod() {
+       // … có thể dọn dẹp danh sách domain event
+    }
+}
+----
+<1> Method sử dụng `@DomainEvents` có thể trả về một event instance đơn lẻ hoặc một collection các event.
+Method này không được nhận bất kỳ argument nào.
+<2> Sau khi tất cả event đã được publish, chúng ta có một method được annotate bằng `@AfterDomainEventPublication`.
+Bạn có thể sử dụng method này để dọn dẹp danh sách event sẽ được publish (cùng nhiều mục đích sử dụng khác).
+
+Các method này được gọi mỗi khi một trong các method của Spring Data repository sau đây được gọi:
+
+* `save(…)`, `saveAll(…)`
+* `delete(…)`, `deleteAll(…)`, `deleteAllInBatch(…)`, `deleteInBatch(…)`
+
+Lưu ý rằng các method này nhận các aggregate root instance làm argument.
+Đây là lý do `deleteById(…)` đáng chú ý vì không xuất hiện trong danh sách: các implementation có thể chọn phát hành một query để xóa instance và do đó ngay từ đầu chúng ta sẽ không có quyền truy cập vào aggregate instance.

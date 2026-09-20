@@ -2,9 +2,9 @@
 include::{commons}@data-commons::page$query-by-example.adoc[]
 
 [[query-by-example.running]]
-In Spring Data JPA, you can use Query by Example with Repositories, as shown in the following example:
+Trong Spring Data JPA, bạn có thể sử dụng Query by Example với Repository, như minh họa trong ví dụ sau:
 
-.Query by Example using a Repository
+.Query by Example sử dụng Repository
 ====
 [source, java]
 ----
@@ -21,46 +21,46 @@ public class PersonService {
 ----
 ====
 
-The property specifier accepts property names (such as `firstname` and `lastname`). You can navigate by chaining properties together with dots (`address.city`). You can also tune it with matching options and case sensitivity.
+Property specifier chấp nhận các property name (chẳng hạn `firstname` và `lastname`). Bạn có thể điều hướng bằng cách nối chuỗi các property lại với nhau qua dấu chấm (`address.city`). Bạn cũng có thể tinh chỉnh nó bằng matching option và case sensitivity.
 
-The following table shows the various `StringMatcher` options that you can use and the result of using them on a field named `firstname`:
+Bảng sau cho thấy các option `StringMatcher` khác nhau mà bạn có thể sử dụng, cùng kết quả khi áp dụng chúng lên một field tên `firstname`:
 
 [cols="1,2", options="header"]
-.`StringMatcher` options
+.Các option của `StringMatcher`
 |===
 | Matching
-| Logical result
+| Kết quả logic
 
-| `DEFAULT` (case-sensitive)
+| `DEFAULT` (phân biệt hoa/thường)
 | `firstname = ?0`
 
-| `DEFAULT` (case-insensitive)
+| `DEFAULT` (không phân biệt hoa/thường)
 | `LOWER(firstname) = LOWER(?0)`
 
-| `EXACT`  (case-sensitive)
+| `EXACT`  (phân biệt hoa/thường)
 | `firstname = ?0`
 
-| `EXACT` (case-insensitive)
+| `EXACT` (không phân biệt hoa/thường)
 | `LOWER(firstname) = LOWER(?0)`
 
-| `STARTING`  (case-sensitive)
+| `STARTING`  (phân biệt hoa/thường)
 | `firstname like ?0 + '%'`
 
-| `STARTING` (case-insensitive)
+| `STARTING` (không phân biệt hoa/thường)
 | `LOWER(firstname) like LOWER(?0) + '%'`
 
-| `ENDING`  (case-sensitive)
+| `ENDING`  (phân biệt hoa/thường)
 | `firstname like '%' + ?0`
 
-| `ENDING` (case-insensitive)
+| `ENDING` (không phân biệt hoa/thường)
 | `LOWER(firstname) like '%' + LOWER(?0)`
 
-| `CONTAINING`  (case-sensitive)
+| `CONTAINING`  (phân biệt hoa/thường)
 | `firstname like '%' + ?0 + '%'`
 
-| `CONTAINING` (case-insensitive)
+| `CONTAINING` (không phân biệt hoa/thường)
 | `LOWER(firstname) like '%' + LOWER(?0) + '%'`
 
 |===
 
-NOTE: Regex-matching is not supported by JPA.
+NOTE: Regex-matching không được JPA hỗ trợ.

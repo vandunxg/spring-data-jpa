@@ -1,13 +1,13 @@
 include::{commons}@data-commons::page$repositories/custom-implementations.adoc[]
 
 [[jpa.misc.jpa-context]]
-== Using `JpaContext` in Custom Implementations
+== Sử dụng `JpaContext` trong Custom Implementation
 
-When working with multiple `EntityManager` instances and xref:repositories/custom-implementations.adoc#repositories.custom-implementations[custom repository implementations], you need to wire the correct `EntityManager` into the repository implementation class. You can do so by explicitly naming the `EntityManager` in the `@PersistenceContext` annotation or, if the `EntityManager` is `@Autowired`, by using `@Qualifier`.
+Khi làm việc với nhiều instance `EntityManager` và xref:repositories/custom-implementations.adoc#repositories.custom-implementations[custom repository implementation], bạn cần wire đúng `EntityManager` vào repository implementation class. Bạn có thể làm điều này bằng cách đặt tên tường minh cho `EntityManager` trong annotation `@PersistenceContext`, hoặc nếu `EntityManager` được `@Autowired`, bằng cách dùng `@Qualifier`.
 
-As of Spring Data JPA 1.9, Spring Data JPA includes an interface called `JpaContext` that lets you obtain the `EntityManager` by managed domain class, assuming it is managed by only one of the `EntityManager` instances in the application. The following example shows how to use `JpaContext` in a custom repository:
+Từ Spring Data JPA 1.9, Spring Data JPA có một interface tên là `JpaContext` cho phép bạn lấy `EntityManager` theo managed domain class, với điều kiện domain class đó chỉ được quản lý bởi một trong các instance `EntityManager` trong ứng dụng. Ví dụ sau minh họa cách dùng `JpaContext` trong một custom repository:
 
-.Using `JpaContext` in a custom repository implementation
+.Sử dụng `JpaContext` trong một custom repository implementation
 ====
 [source, java]
 ----
@@ -25,5 +25,4 @@ class UserRepositoryImpl implements UserRepositoryCustom {
 ----
 ====
 
-The advantage of this approach is that, if the domain type gets assigned to a different persistence unit, the repository does not have to be touched to alter the reference to the persistence unit.
-
+Ưu điểm của cách tiếp cận này là nếu domain type được gán sang một persistence unit khác, repository không cần phải sửa để thay đổi reference tới persistence unit.

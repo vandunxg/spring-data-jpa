@@ -1,0 +1,46 @@
+[appendix]
+[[repository-query-return-types]]
+= Các kiểu trả về query của repository
+
+[[appendix.query.return.types]]
+== Các kiểu trả về query được hỗ trợ
+
+Bảng sau liệt kê các kiểu trả về thường được các Spring Data repository hỗ trợ.
+Tuy nhiên, hãy tham khảo tài liệu dành riêng cho từng store để biết danh sách chính xác các kiểu trả về được hỗ trợ, vì một số kiểu được liệt kê ở đây có thể không được hỗ trợ trong một store cụ thể.
+
+NOTE: Các kiểu địa không gian (chẳng hạn như `GeoResult`, `GeoResults` và `GeoPage`) chỉ có trong các data store hỗ trợ query địa không gian.
+Một số store module có thể định nghĩa các kiểu wrapper kết quả riêng.
+
+.Các kiểu trả về của query
+[options="header",cols="1,3"]
+|===============
+|Kiểu trả về|Mô tả
+|`void`|Biểu thị không có giá trị trả về.
+|Primitives|Các kiểu nguyên thủy của Java.
+|Wrapper types|Các kiểu wrapper của Java.
+|`T`|Một entity duy nhất. Yêu cầu query method trả về nhiều nhất một kết quả. Nếu không tìm thấy kết quả, `null` được trả về. Nếu có nhiều hơn một kết quả, `IncorrectResultSizeDataAccessException` sẽ được kích hoạt.
+|`Iterator<T>`|Một `Iterator`.
+|`Collection<T>`|Một `Collection`.
+|`List<T>`|Một `List`.
+|`Optional<T>`|Một `Optional` của Java hoặc Guava. Yêu cầu query method trả về nhiều nhất một kết quả. Nếu không tìm thấy kết quả, `Optional.empty()` hoặc `Optional.absent()` được trả về. Nếu có nhiều hơn một kết quả, `IncorrectResultSizeDataAccessException` sẽ được kích hoạt.
+|`Option<T>`|Kiểu `Option` của Scala hoặc Vavr. Về ngữ nghĩa, hành vi giống với `Optional` của Java được mô tả ở trên.
+|`Stream<T>`|Một `Stream` của Java.
+|`Streamable<T>`|Một phần mở rộng thuận tiện của `Iterable`, trực tiếp cung cấp các method để stream, map và filter kết quả, nối chúng lại, v.v.
+|Các kiểu triển khai `Streamable` và nhận đối số constructor hoặc factory method là một `Streamable`|Các kiểu cung cấp constructor hoặc factory method `….of(…)`/`….valueOf(…)` nhận một `Streamable` làm đối số. Xem xref:repositories/query-methods-details.adoc#repositories.collections-and-iterables.streamable-wrapper[Trả về các kiểu wrapper Streamable tùy chỉnh] để biết chi tiết.
+|Vavr `Seq`, `List`, `Map`, `Set`|Các kiểu collection của Vavr, cũng được chấp nhận làm tham số của query method. Xem xref:repositories/query-methods-details.adoc#repositories.collections-and-iterables.vavr[Hỗ trợ các collection của Vavr] để biết chi tiết.
+|`Future<T>`|Một `Future`. Yêu cầu method được chú thích bằng `@Async` và yêu cầu bật khả năng thực thi method bất đồng bộ của Spring.
+|`CompletableFuture<T>`|Một `CompletableFuture`. Yêu cầu method được chú thích bằng `@Async` và yêu cầu bật khả năng thực thi method bất đồng bộ của Spring.
+|`Slice<T>`|Một phần dữ liệu có kích thước cụ thể, kèm chỉ báo cho biết còn dữ liệu hay không. Yêu cầu một tham số method `Pageable`.
+|`Page<T>`|Một `Slice` có thêm thông tin, chẳng hạn như tổng số kết quả. Yêu cầu một tham số method `Pageable`.
+|`Window<T>`|Một `Window` gồm các kết quả thu được từ scroll query. Cung cấp `ScrollPosition` để thực hiện scroll query tiếp theo. Yêu cầu một tham số method `ScrollPosition`.
+|`GeoResult<T>`|Một mục kết quả có thêm thông tin, chẳng hạn như khoảng cách tới vị trí tham chiếu.
+|`GeoResults<T>`|Một danh sách `GeoResult<T>` có thêm thông tin, chẳng hạn như khoảng cách trung bình tới vị trí tham chiếu.
+|`GeoPage<T>`|Một `Page` với `GeoResult<T>`, chẳng hạn như khoảng cách trung bình tới vị trí tham chiếu.
+|`SearchResult<T>`|Một mục kết quả có thêm thông tin, chẳng hạn như điểm số liên quan đến cụm từ tìm kiếm tham chiếu.
+|`SearchResults<T>`|Một danh sách `SearchResult<T>`.
+|`Mono<T>`|Một `Mono` của Project Reactor phát ra không hoặc một phần tử khi sử dụng reactive repository. Yêu cầu query method trả về nhiều nhất một kết quả. Nếu không tìm thấy kết quả, `Mono.empty()` được trả về. Nếu có nhiều hơn một kết quả, `IncorrectResultSizeDataAccessException` sẽ được kích hoạt.
+|`Flux<T>`|Một `Flux` của Project Reactor phát ra không, một hoặc nhiều phần tử khi sử dụng reactive repository. Các query trả về `Flux` cũng có thể phát ra một số lượng phần tử vô hạn.
+|`Single<T>`|Một `Single` của RxJava phát ra một phần tử khi sử dụng reactive repository. Yêu cầu query method trả về nhiều nhất một kết quả. Nếu không tìm thấy kết quả, một error signal (ví dụ: `EmptyResultDataAccessException`) được phát ra. Nếu có nhiều hơn một kết quả, `IncorrectResultSizeDataAccessException` sẽ được kích hoạt.
+|`Maybe<T>`|Một `Maybe` của RxJava phát ra không hoặc một phần tử khi sử dụng reactive repository. Yêu cầu query method trả về nhiều nhất một kết quả. Nếu không tìm thấy kết quả, `Maybe.empty()` được trả về. Nếu có nhiều hơn một kết quả, `IncorrectResultSizeDataAccessException` sẽ được kích hoạt.
+|`Flowable<T>`|Một `Flowable` của RxJava phát ra không, một hoặc nhiều phần tử khi sử dụng reactive repository. Các query trả về `Flowable` cũng có thể phát ra một số lượng phần tử vô hạn.
+|===============

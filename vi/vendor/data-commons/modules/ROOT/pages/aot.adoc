@@ -1,0 +1,160 @@
+[[aot]]
+= Tối ưu hóa Ahead of Time
+
+Chương này trình bày các tối ưu hóa Ahead of Time (AOT) của Spring Data, được xây dựng dựa trên {spring-framework-docs}/core/aot.html[Các tối ưu hóa Ahead of Time của Spring].
+
+[[aot.bestpractices]]
+== Các thực hành tốt nhất
+
+=== Chú thích Domain Type của bạn
+
+Trong quá trình khởi động ứng dụng, Spring quét classpath để tìm các domain class nhằm xử lý entity sớm.
+Bằng cách chú thích domain type của bạn bằng các annotation `@Table`, `@Document` hoặc `@Entity` dành riêng cho Spring Data Store, bạn có thể hỗ trợ việc quét entity ban đầu và đảm bảo các type đó được đăng ký với `ManagedTypes` cho Runtime Hints.
+Không thể quét classpath trong các môi trường Native Image, vì vậy Spring phải sử dụng `ManagedTypes` cho tập entity ban đầu.
+
+[[aot.code-gen]]
+== Tạo mã Ahead of Time
+
+Việc tạo code Ahead of Time không chỉ giới hạn ở việc sử dụng với GraalVM Native Image mà còn mang lại lợi ích khi làm việc với các triển khai thông thường và có thể giúp tối ưu hóa hiệu năng khởi động trên JVM.
+
+[NOTE]
+====
+Với các tối ưu hóa AOT, một số quyết định (chẳng hạn như dialect cơ sở dữ liệu) sẽ được cố định tại thời điểm build và được đưa nguyên trạng vào thiết lập ứng dụng.
+====
+
+Nếu bật biên dịch Ahead of Time, Spring Data có thể đóng góp một số component trong giai đoạn AOT của quá trình build, tùy thuộc vào Module đang được sử dụng.
+
+* Bytecode cho Type/Property Accessor được tạo
+* Source code cho các Repository Interface đã định nghĩa
+* Siêu dữ liệu Repository ở định dạng JSON
+
+Mỗi mục trên đều được bật theo mặc định.
+Tuy nhiên, người dùng có thể tinh chỉnh cấu hình bằng các tùy chọn sau.
+
+[options = "autowidth",cols="1,1"]
+|===
+|`spring.aot.data.accessors.enabled`
+|Cờ Boolean kiểm soát việc đóng góp Bytecode cho Type/Property Accessor được tạo
+
+|`spring.aot.data.accessors.include`
+|Danh sách FQCN phân tách bằng dấu phẩy, chỉ định các type sẽ được đóng góp Bytecode cho Type/Property Accessor được tạo.
+Các pattern include kiểu Ant khớp với tên package (ví dụ: `example.springdata.**`) hoặc việc include tên type.
+Nếu một type khớp với cả include và exclude, include sẽ được ưu tiên và type được xem là đã include.
+
+|`spring.aot.data.accessors.exclude`
+|Danh sách FQCN phân tách bằng dấu phẩy, chỉ định các type sẽ bỏ qua việc đóng góp Bytecode cho Type/Property Accessor được tạo.
+Các pattern exclude kiểu Ant khớp với tên package (ví dụ: `example.springdata.**`) hoặc việc exclude tên type.
+Nếu một type khớp với cả include và exclude, include sẽ được ưu tiên và type được xem là đã include.
+
+|`spring.aot.repositories.enabled`
+|Cờ Boolean kiểm soát việc đóng góp Source Code cho Repository Interface
+
+|`spring.aot.[module-name].repositories.enabled`
+|Cờ Boolean kiểm soát việc đóng góp Source Code cho Repository Interface của một module cụ thể (ví dụ: `cassandra`, `jdbc`, `jpa`, `mongodb`)
+
+|`spring.aot.repositories.metadata.enabled`
+|Cờ Boolean kiểm soát việc đóng góp Repository Metadata dạng JSON, chứa các query method và query string thực tế.
+Yêu cầu phải bật `spring.aot.repositories.enabled`.
+|===
+
+[[aot.repositories]]
+== Repository Ahead of Time
+
+[NOTE]
+====
+Repository Ahead of Time chỉ khả dụng cho các repository interface imperative (không reactive) của một số module.
+Tiêu chí xác định query method đủ điều kiện khác nhau tùy theo module triển khai.
+====
+
+AOT Repository là phần mở rộng của quá trình xử lý AOT, bằng cách tạo trước các implementation cho query method đủ điều kiện.
+Đối với developer, query method không cho biết chi tiết về các query nền tảng được thực thi trong một lời gọi query method.
+AOT Repository đóng góp các implementation cho query method dựa trên derived query, annotated query và named query đã được biết tại thời điểm build.
+Tối ưu hóa này chuyển việc xử lý query method từ runtime sang build-time, có thể mang lại cải thiện hiệu năng đáng kể vì query method không cần được phân tích bằng reflection mỗi khi ứng dụng khởi động.
+
+Fragment AOT Repository tạo ra tuân theo quy ước đặt tên `<Repository FQCN>Impl__AotRepository` và được đặt trong cùng package với repository interface.
+
+[WARNING]
+====
+Hãy xem các class AOT Repository là một tối ưu hóa nội bộ.
+Không sử dụng trực tiếp chúng trong code của bạn vì chi tiết về việc tạo và triển khai có thể thay đổi trong các bản phát hành tương lai.
+====
+
+[[aot.repositories.json]]
+=== Siêu dữ liệu Repository
+
+Quá trình xử lý AOT thực hiện introspection trên các query method và thu thập siêu dữ liệu về các query của repository.
+Spring Data lưu siêu dữ liệu này trong các file JSON được đặt tên theo repository nguồn và nằm trong cùng package.
+Siêu dữ liệu JSON của Repository chứa thông tin chi tiết về các query và fragment.
+Ví dụ cho repository sau được trình bày bên dưới:
+
+[tabs]
+======
+Siêu dữ liệu::
++
+[source,json,role="primary"]
+----
+{
+  "name": "example.springdata.UserRepository",
+  "module": "JDBC",
+  "type": "IMPERATIVE",
+  "methods": [
+    {
+      "name": "findBy",
+      "signature": "public abstract java.util.List<example.springdata.User> example.springdata.UserRepository.findBy()",
+      "query": {
+        "query": "SELECT * FROM User"
+      }
+    },
+    {
+      "name": "findByLastnameStartingWith",
+      "signature": "public abstract org.springframework.data.domain.Page<example.springdata.User> example.springdata.UserRepository.findByLastnameStartingWith(java.lang.String,org.springframework.data.domain.Pageable)",
+      "query": {
+        "query": "SELECT * FROM User u WHERE lastname LIKE :lastname",
+        "count-query": "SELECT COUNT(*) FROM User WHERE lastname LIKE :lastname"
+      }
+    },
+    {
+      "name": "findByEmailAddress",
+      "signature": "public abstract example.springdata.User example.springdata.UserRepository.findByEmailAddress(java.lang.String)",
+      "query": {
+        "query": "select * from User where emailAddress = ?1"
+      }
+    },
+----
+
+Repository::
++
+[source,java,subs="attributes,specialchars",role="secondary"]
+----
+interface UserRepository extends CrudRepository<User, Integer> {
+
+  List<User> findBy();
+
+  Page<User> findByLastnameStartingWith(String lastname, Pageable page);
+
+  @Query("select * from User where emailAddress = ?1")
+  User findByEmailAddress(String username);
+}
+----
+======
+
+[NOTE]
+====
+Việc tạo siêu dữ liệu JSON có thể được kiểm soát thông qua cờ `spring.aot.repositories.metadata.enabled`.
+====
+
+[[aot.hints]]
+== Runtime Hints cho Native Image
+
+Việc chạy ứng dụng dưới dạng Native Image yêu cầu thêm thông tin so với runtime JVM thông thường.
+Spring Data đóng góp {spring-framework-docs}/core/aot.html#aot.hints[Runtime Hints] trong quá trình xử lý AOT để sử dụng với Native Image.
+Cụ thể, đây là các hint cho:
+
+* Auditing
+* `ManagedTypes` để ghi nhận kết quả của các lần quét classpath
+* Repository
+** Reflection hint cho entity, kiểu trả về và annotation của Spring Data
+** Repository fragment
+** Class `Q` của Querydsl
+** Hỗ trợ Kotlin Coroutine
+ * Hỗ trợ Web (Jackson Hint cho `PagedModel`)

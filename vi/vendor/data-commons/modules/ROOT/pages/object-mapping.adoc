@@ -1,0 +1,449 @@
+[[mapping.fundamentals]]
+= Các nguyên tắc cơ bản về Object Mapping
+
+Phần này trình bày các nguyên tắc cơ bản của object mapping trong Spring Data, việc tạo object, truy cập field và property, tính mutable và immutable.
+Lưu ý rằng phần này chỉ áp dụng cho các module Spring Data không sử dụng object mapping của data store bên dưới (như JPA).
+Bạn cũng nên tham khảo các phần dành riêng cho từng store để biết về object mapping đặc thù của store, chẳng hạn như index, tùy chỉnh tên column hoặc field, và các nội dung tương tự.
+
+Trách nhiệm cốt lõi của object mapping trong Spring Data là tạo các instance của domain object và map các cấu trúc dữ liệu native của store vào những instance đó.
+Điều này có nghĩa là chúng ta cần hai bước cơ bản:
+
+1. Tạo instance bằng một trong các constructor được cung cấp.
+2. Nạp instance để materialize tất cả property được cung cấp.
+
+[[mapping.object-creation]]
+== Tạo object
+
+Spring Data tự động cố gắng phát hiện constructor của persistent entity để sử dụng khi materialize object thuộc kiểu đó.
+Thuật toán phân giải hoạt động như sau:
+
+1. Nếu có đúng một static factory method được annotate bằng `@PersistenceCreator` thì sử dụng method đó.
+2. Nếu chỉ có một constructor thì sử dụng constructor đó.
+3. Nếu có nhiều constructor và chính xác một constructor được annotate bằng `@PersistenceCreator` thì sử dụng constructor đó.
+4. Nếu type là một Java `Record` thì sử dụng canonical constructor.
+5. Nếu có no-argument constructor thì sử dụng constructor đó.
+Các constructor khác sẽ bị bỏ qua.
+
+Việc phân giải value giả định rằng tên argument của constructor/factory method khớp với tên property của entity, tức là việc phân giải sẽ được thực hiện như thể property sắp được nạp, bao gồm tất cả tùy chỉnh trong mapping (tên column hoặc field khác trong datastore, v.v.).
+Điều này cũng yêu cầu thông tin về tên parameter có sẵn trong class file hoặc constructor phải có annotation `@ConstructorProperties`.
+
+Có thể tùy chỉnh việc phân giải value bằng annotation value `@Value` của Spring Framework, sử dụng một SpEL expression đặc thù của store.
+Vui lòng tham khảo phần về mapping đặc thù của store để biết thêm chi tiết.
+
+[[mapping.object-creation.details]]
+.Nội bộ việc tạo object
+****
+Để tránh overhead của reflection, theo mặc định Spring Data sử dụng một factory class được generate tại runtime để tạo object, factory này sẽ gọi trực tiếp constructor của domain class.
+Ví dụ, với type sau:
+
+[source,java]
+----
+class Person {
+  Person(String firstname, String lastname) { … }
+}
+----
+
+Tại runtime, chúng ta sẽ tạo một factory class tương đương về mặt ngữ nghĩa với class sau:
+
+[source, java]
+----
+class PersonObjectInstantiator implements ObjectInstantiator {
+
+  Object newInstance(Object... args) {
+    return new Person((String) args[0], (String) args[1]);
+  }
+}
+----
+
+Điều này mang lại mức tăng hiệu năng khoảng 10% so với reflection.
+Để domain class đủ điều kiện cho tối ưu hóa này, class đó phải tuân thủ một số ràng buộc:
+
+- class không được là private class
+- class không được là non-static inner class
+- class không được là CGLib proxy class
+- constructor được Spring Data sử dụng không được là private
+
+Nếu bất kỳ tiêu chí nào trong số này khớp, Spring Data sẽ fallback sang việc khởi tạo entity bằng reflection.
+****
+
+[[mapping.property-population]]
+== Nạp property
+
+Sau khi một instance của entity được tạo, Spring Data nạp tất cả persistent property còn lại của class đó.
+Trừ khi đã được nạp bởi constructor của entity (tức là đã được tiêu thụ qua danh sách argument của constructor), identifier property sẽ được nạp trước để cho phép phân giải các cyclic object reference.
+Sau đó, tất cả non-transient property chưa được constructor nạp sẽ được set trên entity instance.
+Chúng ta sử dụng thuật toán sau cho việc này:
+
+1. Nếu property là immutable nhưng cung cấp method `with…` (xem bên dưới), chúng ta sử dụng method `with…` để tạo một entity instance mới với property value mới.
+2. Nếu đã định nghĩa property access (tức là truy cập thông qua getter và setter), chúng ta gọi setter method.
+3. Nếu property là mutable, chúng ta set trực tiếp field.
+4. Nếu property là immutable, chúng ta sử dụng constructor dành cho các persistence operation (xem <<mapping.object-creation,Tạo object>>) để tạo một bản sao của instance.
+5. Theo mặc định, chúng ta set trực tiếp field value.
+
+[[mapping.property-population.details]]
+.Nội bộ việc nạp property
+****
+Tương tự như <<mapping.object-creation.details,các tối ưu hóa trong việc tạo object>>, chúng ta cũng sử dụng các accessor class được generate tại runtime bởi Spring Data để tương tác với entity instance.
+
+[source,java]
+----
+class Person {
+
+  private final Long id;
+  private String firstname;
+  private @AccessType(Type.PROPERTY) String lastname;
+
+  Person() {
+    this.id = null;
+  }
+
+  Person(Long id, String firstname, String lastname) {
+    // Gán field
+  }
+
+  Person withId(Long id) {
+    return new Person(id, this.firstname, this.lastname);
+  }
+
+  void setLastname(String lastname) {
+    this.lastname = lastname;
+  }
+}
+----
+
+.Một Property Accessor được generate
+[source, java]
+----
+class PersonPropertyAccessor implements PersistentPropertyAccessor {
+
+  private static final MethodHandle firstname;              <2>
+
+  private Person person;                                    <1>
+
+  public void setProperty(PersistentProperty property, Object value) {
+
+    String name = property.getName();
+
+    if ("firstname".equals(name)) {
+      firstname.invoke(person, (String) value);             <2>
+    } else if ("id".equals(name)) {
+      this.person = person.withId((Long) value);             <3>
+    } else if ("lastname".equals(name)) {
+      this.person.setLastname((String) value);               <4>
+    }
+  }
+}
+----
+<1> PropertyAccessor giữ một instance mutable của object bên dưới. Điều này cho phép mutation các property vốn immutable.
+<2> Theo mặc định, Spring Data sử dụng field-access để đọc và ghi property value. Theo các quy tắc visibility của field `private`, `MethodHandles` được sử dụng để tương tác với field.
+<3> Class cung cấp method `withId(…)`, được sử dụng để set identifier, ví dụ khi một instance được insert vào datastore và một identifier đã được generate. Việc gọi `withId(…)` tạo một object `Person` mới. Tất cả mutation tiếp theo sẽ diễn ra trên instance mới, giữ nguyên instance trước đó.
+<4> Sử dụng property-access cho phép gọi method trực tiếp mà không sử dụng `MethodHandles`.
+
+Điều này mang lại mức tăng hiệu năng khoảng 25% so với reflection.
+Để domain class đủ điều kiện cho tối ưu hóa này, class đó phải tuân thủ một số ràng buộc:
+
+- Type không được nằm trong default package hoặc package `java`.
+- Type và constructor của chúng phải là `public`.
+- Type là inner class phải là `static`.
+- Java Runtime được sử dụng phải cho phép khai báo class trong `ClassLoader` gốc. Java 9 trở lên áp đặt một số giới hạn nhất định.
+
+Theo mặc định, Spring Data cố gắng sử dụng các property accessor được generate và fallback sang các accessor dựa trên reflection nếu phát hiện một giới hạn.
+****
+
+Hãy xem entity sau:
+
+.Một entity mẫu
+[source,java]
+----
+class Person {
+
+  private final @Id Long id;                                                <1>
+  private final String firstname, lastname;                                 <2>
+  private final LocalDate birthday;
+  private final int age;                                                    <3>
+
+  private String comment;                                                   <4>
+  private @AccessType(Type.PROPERTY) String remarks;                        <5>
+  private @Transient String summary;                                        <6>
+
+  static Person of(String firstname, String lastname, LocalDate birthday) { <7>
+
+    return new Person(null, firstname, lastname, birthday,
+      Period.between(birthday, LocalDate.now()).getYears());
+  }
+
+  Person(Long id, String firstname, String lastname, LocalDate birthday, int age) { <7>
+
+    this.id = id;
+    this.firstname = firstname;
+    this.lastname = lastname;
+    this.birthday = birthday;
+    this.age = age;
+  }
+
+  Person withId(Long id) {                                                  <1>
+    return new Person(id, this.firstname, this.lastname, this.birthday, this.age);
+  }
+
+  void setRemarks(String remarks) {                                         <5>
+    this.remarks = remarks;
+  }
+}
+----
+<1> Identifier property là final nhưng được set thành `null` trong constructor.
+Class cung cấp method `withId(…)`, được sử dụng để set identifier, ví dụ khi một instance được insert vào datastore và một identifier đã được generate.
+Instance `Person` ban đầu không thay đổi vì một instance mới được tạo.
+Pattern tương tự thường được áp dụng cho các property khác do store quản lý nhưng có thể phải thay đổi trong các persistence operation.
+Method wither là tùy chọn vì persistence constructor (xem 6) thực chất là một copy constructor và việc set property sẽ được chuyển thành việc tạo một instance mới với identifier value mới được áp dụng.
+<2> Các property `firstname` và `lastname` là những immutable property thông thường, có khả năng được cung cấp qua getter.
+<3> Property `age` là immutable nhưng được derive từ property `birthday`.
+Với thiết kế trên, database value sẽ thắng giá trị mặc định vì Spring Data sử dụng constructor duy nhất được khai báo.
+Ngay cả khi mục đích là ưu tiên phép tính, điều quan trọng là constructor này cũng nhận `age` làm parameter (để có thể bỏ qua nó), vì nếu không thì bước nạp property sẽ cố set field age và thất bại do field này immutable và không có method `with…`.
+<4> Property `comment` là mutable và được nạp bằng cách set trực tiếp field.
+<5> Property `remarks` là mutable và được nạp bằng cách gọi setter method.
+<6> Property `summary` là transient và sẽ không được persist vì được annotate bằng `@Transient`.
+Spring Data không sử dụng keyword `transient` của Java để loại property khỏi việc persist, vì `transient` thuộc Java Serialization Framework.
+Lưu ý rằng property này có thể được sử dụng với persistence constructor, nhưng value của nó sẽ mặc định là `null` (hoặc initial value tương ứng của primitive nếu kiểu property là primitive).
+<7> Class cung cấp một factory method và một constructor để tạo object.
+Ý tưởng cốt lõi ở đây là sử dụng factory method thay cho các constructor bổ sung để tránh cần phân giải constructor thông qua `@PersistenceCreator`.
+Thay vào đó, việc đặt giá trị mặc định cho property được xử lý bên trong factory method.
+Nếu muốn Spring Data sử dụng factory method để khởi tạo object, hãy annotate method đó bằng `@PersistenceCreator`.
+
+[[mapping.general-recommendations]]
+== Khuyến nghị chung
+
+* _Cố gắng sử dụng immutable object_ -- Immutable object dễ tạo vì khi materialize một object, việc cần làm chỉ là gọi constructor của object đó.
+Điều này cũng tránh việc rải các setter method trong domain object, cho phép client code thao túng state của object.
+Nếu cần các method đó, hãy ưu tiên để chúng package protected để chỉ một số lượng giới hạn các type cùng package mới có thể gọi.
+Việc materialize chỉ bằng constructor nhanh hơn tối đa 30% so với nạp property.
+* _Cung cấp all-args constructor_ -- Ngay cả khi không thể hoặc không muốn model entity dưới dạng immutable value, việc cung cấp một constructor nhận tất cả property của entity làm argument, bao gồm cả property mutable, vẫn có giá trị vì điều này cho phép object mapping bỏ qua việc nạp property để đạt hiệu năng tối ưu.
+* _Sử dụng factory method thay cho overloaded constructor để tránh ``@PersistenceCreator``_ -- Vì cần all-argument constructor để đạt hiệu năng tối ưu, thông thường chúng ta vẫn muốn cung cấp thêm các constructor dành riêng cho từng application use case, lược bỏ những thứ như identifier được auto-generate, v.v.
+Một pattern phổ biến là sử dụng static factory method để cung cấp các biến thể này của all-args constructor.
+* _Đảm bảo tuân thủ các ràng buộc cho phép sử dụng instantiator và property accessor class được generate_ --
+* _Để generate identifier, vẫn sử dụng final field kết hợp với all-arguments persistence constructor (được ưu tiên) hoặc method `with…`_ --
+* _Sử dụng Lombok để tránh boilerplate code_ -- Vì các persistence operation thường yêu cầu constructor nhận tất cả argument, việc khai báo chúng trở thành sự lặp lại tẻ nhạt của boilerplate về việc gán parameter cho field, điều có thể tránh tốt nhất bằng cách sử dụng `@AllArgsConstructor` của Lombok.
+
+[[mapping.general-recommendations.override.properties]]
+=== Ghi đè Property
+
+Java cho phép thiết kế domain class linh hoạt, trong đó subclass có thể định nghĩa một property đã được khai báo với cùng tên trong superclass.
+Xét ví dụ sau:
+
+[source,java]
+----
+public class SuperType {
+
+   private CharSequence field;
+
+   public SuperType(CharSequence field) {
+      this.field = field;
+   }
+
+   public CharSequence getField() {
+      return this.field;
+   }
+
+   public void setField(CharSequence field) {
+      this.field = field;
+   }
+}
+
+public class SubType extends SuperType {
+
+   private String field;
+
+   public SubType(String field) {
+      super(field);
+      this.field = field;
+   }
+
+   @Override
+   public String getField() {
+      return this.field;
+   }
+
+   public void setField(String field) {
+      this.field = field;
+
+      // tùy chọn
+      super.setField(field);
+   }
+}
+----
+
+Cả hai class đều định nghĩa một `field` bằng các type có thể assign được. Tuy nhiên, `SubType` che khuất `SuperType.field`.
+Tùy thuộc vào thiết kế class, sử dụng constructor có thể là cách mặc định duy nhất để set `SuperType.field`.
+Ngoài ra, gọi `super.setField(…)` trong setter có thể set `field` trong `SuperType`.
+Tất cả cơ chế này đều tạo ra xung đột ở một mức độ nhất định vì các property có cùng tên nhưng có thể biểu diễn hai value riêng biệt.
+Spring Data bỏ qua các property của super-type nếu các type không assign được.
+Nói cách khác, type của property bị ghi đè phải assign được cho type property của super-type thì mới được đăng ký là override; nếu không, property của super-type được xem là transient.
+Nhìn chung, chúng tôi khuyến nghị sử dụng các tên property khác nhau.
+
+Các module Spring Data nhìn chung hỗ trợ các property bị ghi đè chứa những value khác nhau.
+Từ góc nhìn của programming model, có một số điểm cần cân nhắc:
+
+1. Property nào nên được persist (mặc định là tất cả property được khai báo)?
+Bạn có thể loại property bằng cách annotate property đó với `@Transient`.
+2. Biểu diễn property trong data store như thế nào?
+Sử dụng cùng field/column name cho các value khác nhau thường dẫn đến dữ liệu bị hỏng, vì vậy bạn nên annotate ít nhất một trong các property bằng một field/column name tường minh.
+3. Không thể sử dụng `@AccessType(PROPERTY)` vì nhìn chung không thể set super-property nếu không đưa ra thêm giả định về implementation của setter.
+
+[[mapping.kotlin]]
+== Hỗ trợ Kotlin
+
+Spring Data điều chỉnh các đặc điểm riêng của Kotlin để cho phép tạo object và mutation.
+
+[[mapping.kotlin.creation]]
+=== Tạo object Kotlin
+
+Kotlin hỗ trợ instantiate các class; theo mặc định, tất cả class đều immutable và cần khai báo property tường minh để định nghĩa property mutable.
+
+Spring Data tự động cố gắng phát hiện constructor của persistent entity để sử dụng khi materialize object thuộc kiểu đó.
+Thuật toán phân giải hoạt động như sau:
+
+1. Nếu có constructor được annotate bằng `@PersistenceCreator` thì sử dụng constructor đó.
+2. Nếu type là một <<mapping.kotlin,Kotlin data class>> thì sử dụng primary constructor.
+3. Nếu có đúng một static factory method được annotate bằng `@PersistenceCreator` thì sử dụng method đó.
+4. Nếu chỉ có một constructor thì sử dụng constructor đó.
+5. Nếu có nhiều constructor và chính xác một constructor được annotate bằng `@PersistenceCreator` thì sử dụng constructor đó.
+6. Nếu type là một Java `Record` thì sử dụng canonical constructor.
+7. Nếu có no-argument constructor thì sử dụng constructor đó.
+Các constructor khác sẽ bị bỏ qua.
+
+Xét `data` class `Person` sau:
+
+[source,kotlin]
+----
+data class Person(val id: String, val name: String)
+----
+
+Class trên được compile thành một class điển hình với constructor tường minh. Chúng ta có thể tùy chỉnh class này bằng cách thêm constructor khác và annotate nó bằng `@PersistenceCreator` để chỉ ra constructor được ưu tiên:
+
+[source,kotlin]
+----
+data class Person(var id: String, val name: String) {
+
+    @PersistenceCreator
+    constructor(id: String) : this(id, "unknown")
+}
+----
+
+Kotlin hỗ trợ tính tùy chọn của parameter bằng cách cho phép sử dụng default value khi không cung cấp parameter.
+Khi Spring Data phát hiện một constructor có default parameter, Spring Data sẽ bỏ qua các parameter này nếu data store không cung cấp value (hoặc đơn giản trả về `null`) để Kotlin có thể áp dụng default parameter. Xét class sau, class này áp dụng default parameter cho `name`:
+
+[source,kotlin]
+----
+data class Person(var id: String, val name: String = "unknown")
+----
+
+Mỗi khi parameter `name` không nằm trong result hoặc value của nó là `null`, `name` sẽ mặc định là `unknown`.
+
+NOTE: Delegated property không được Spring Data hỗ trợ. Metadata mapping sẽ lọc delegated property khỏi Kotlin Data class.
+Trong mọi trường hợp khác, bạn có thể loại synthetic field cho delegated property bằng cách annotate property với {spring-data-commons-javadoc-base}/org/springframework/data/annotation/Transient.html[`@Transient`].
+
+[[property-population-of-kotlin-data-classes]]
+=== Nạp property của Kotlin data class
+
+Trong Kotlin, theo mặc định, tất cả class đều immutable và cần khai báo property tường minh để định nghĩa property mutable.
+Xét `data` class `Person` sau:
+
+[source,kotlin]
+----
+data class Person(val id: String, val name: String)
+----
+
+Class này về bản chất là immutable.
+Class cho phép tạo instance mới vì Kotlin generate method `copy(…)`, method này tạo các object instance mới bằng cách copy tất cả property value từ object hiện tại và áp dụng các property value được cung cấp dưới dạng argument cho method.
+
+[[mapping.kotlin.override.properties]]
+=== Ghi đè Property trong Kotlin
+
+Kotlin cho phép khai báo https://kotlinlang.org/docs/inheritance.html#overriding-properties[property override] để thay đổi property trong subclass.
+
+[source,kotlin]
+----
+open class SuperType(open var field: Int)
+
+class SubType(override var field: Int = 1) :
+ SuperType(field) {
+}
+----
+
+Cách sắp xếp này tạo ra hai property có tên `field`.
+Kotlin generate property accessor (getter và setter) cho từng property trong mỗi class.
+Về bản chất, code có dạng như sau:
+
+[source,java]
+----
+public class SuperType {
+
+   private int field;
+
+   public SuperType(int field) {
+      this.field = field;
+   }
+
+   public int getField() {
+      return this.field;
+   }
+
+   public void setField(int field) {
+      this.field = field;
+   }
+}
+
+public final class SubType extends SuperType {
+
+   private int field;
+
+   public SubType(int field) {
+      super(field);
+      this.field = field;
+   }
+
+   public int getField() {
+      return this.field;
+   }
+
+   public void setField(int field) {
+      this.field = field;
+   }
+}
+----
+
+Getter và setter trên `SubType` chỉ set `SubType.field`, không set `SuperType.field`.
+Trong cách sắp xếp này, sử dụng constructor là cách mặc định duy nhất để set `SuperType.field`.
+Có thể thêm method vào `SubType` để set `SuperType.field` thông qua `this.SuperType.field = …`, nhưng cách này nằm ngoài các convention được hỗ trợ.
+Property override tạo ra xung đột ở một mức độ nhất định vì các property có cùng tên nhưng có thể biểu diễn hai value riêng biệt.
+Nhìn chung, chúng tôi khuyến nghị sử dụng các tên property khác nhau.
+
+Các module Spring Data nhìn chung hỗ trợ các property bị ghi đè chứa những value khác nhau.
+Từ góc nhìn của programming model, có một số điểm cần cân nhắc:
+
+1. Property nào nên được persist (mặc định là tất cả property được khai báo)?
+Bạn có thể loại property bằng cách annotate property đó với `@Transient`.
+2. Biểu diễn property trong data store như thế nào?
+Sử dụng cùng field/column name cho các value khác nhau thường dẫn đến dữ liệu bị hỏng, vì vậy bạn nên annotate ít nhất một trong các property bằng một field/column name tường minh.
+3. Không thể sử dụng `@AccessType(PROPERTY)` vì không thể set super-property.
+
+[[mapping.kotlin.value.classes]]
+=== Kotlin Value Class
+
+Kotlin Value Class được thiết kế để tạo domain model giàu tính biểu đạt hơn, giúp các concept bên dưới trở nên tường minh.
+Spring Data có thể đọc và ghi các type định nghĩa property bằng Value Class.
+
+Xét domain model sau:
+
+[source,kotlin]
+----
+@JvmInline
+value class EmailAddress(val theAddress: String)                                    <1>
+
+data class Contact(val id: String, val name:String, val emailAddress: EmailAddress) <2>
+----
+
+<1> Một value class đơn giản với value type non-nullable.
+<2> Data class định nghĩa một property sử dụng value class `EmailAddress`.
+
+NOTE: Property non-nullable sử dụng non-primitive value type được flatten trong class đã compile thành value type.
+Primitive value type nullable hoặc value-in-value type nullable được biểu diễn bằng wrapper type và điều đó ảnh hưởng đến cách value type được biểu diễn trong database.

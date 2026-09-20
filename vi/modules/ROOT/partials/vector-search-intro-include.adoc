@@ -1,6 +1,6 @@
-To use Hibernate Vector Search, you need to add the following dependencies to your project.
+Để dùng Hibernate Vector Search, bạn cần thêm các dependency sau vào project của mình.
 
-The following example shows how to set up dependencies in Maven and Gradle:
+Ví dụ sau minh họa cách thiết lập dependency trong Maven và Gradle:
 
 [tabs]
 ======
@@ -29,4 +29,4 @@ dependencies {
 ====
 ======
 
-NOTE: While you can use `Vector` as type for queries, you cannot use it in your domain model as Hibernate requires float or double arrays as vector types.
+NOTE: Bạn có thể dùng `Vector` làm type cho query, nhưng bạn không thể dùng nó trong domain model của mình vì Hibernate yêu cầu vector type phải là mảng float hoặc double.

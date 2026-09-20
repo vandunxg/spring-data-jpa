@@ -1,14 +1,14 @@
 [[envers.introduction]]
-= Introduction
+= Giới thiệu
 
 [[envers.what.is.spring.data]]
-== What is Spring Data Envers?
+== Spring Data Envers là gì?
 
-Spring Data Envers makes typical Envers queries available in repositories for Spring Data JPA.
-It differs from other Spring Data modules in that it is always used in combination with another Spring Data Module: Spring Data JPA.
+Spring Data Envers giúp các query Envers thông dụng có thể sử dụng được trong repository của Spring Data JPA.
+Nó khác với các module Spring Data khác ở điểm: nó luôn được dùng kết hợp với một Spring Data module khác, đó là Spring Data JPA.
 
 [[envers.what]]
-== What is Envers?
+== Envers là gì?
 
-Envers is a https://hibernate.org/orm/envers/[Hibernate module] that adds auditing capabilities to JPA entities.
-This documentation assumes you are familiar with Envers, just as Spring Data Envers relies on Envers being properly configured.
+Envers là một https://hibernate.org/orm/envers/[module của Hibernate] bổ sung khả năng auditing cho các entity JPA.
+Tài liệu này giả định bạn đã quen thuộc với Envers, cũng như Spring Data Envers phụ thuộc vào việc Envers đã được cấu hình đúng cách.

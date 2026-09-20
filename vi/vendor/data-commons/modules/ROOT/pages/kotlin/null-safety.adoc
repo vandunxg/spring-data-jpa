@@ -1,0 +1,21 @@
+[[kotlin.null-safety]]
+= Tính an toàn với null
+
+Một trong những tính năng then chốt của Kotlin là https://kotlinlang.org/docs/null-safety.html[tính an toàn với null], giúp xử lý rõ ràng các giá trị `null` tại thời điểm biên dịch.
+Điều này giúp ứng dụng an toàn hơn nhờ các khai báo về khả năng null và cách biểu đạt ngữ nghĩa "`value or no value`" mà không phải trả chi phí cho các wrapper như `Optional`.
+(Kotlin cho phép sử dụng các cấu trúc hàm với các giá trị có thể là null. Xem https://www.baeldung.com/kotlin/null-safety[hướng dẫn toàn diện về tính an toàn với null của Kotlin] này.)
+
+[NOTE]
+====
+Kể từ Spring Framework 7 và Spring Data 4, Spring Data sử dụng https://jspecify.dev/docs/start-here/[JSpecify] cho các annotation về khả năng null.
+Các annotation `org.springframework.lang` dựa trên https://jcp.org/en/jsr/detail?id=305[JSR-305]-based trước đây đã bị deprecated và không nên tiếp tục dựa vào chúng.
+Xem xref:repositories/null-handling.adoc[Xử lý null của các phương thức Repository] để biết cách tiếp cận được khuyến nghị hiện nay.
+====
+
+Mặc dù Java không cho phép biểu đạt tính an toàn với null trong hệ thống kiểu của mình, Spring Data API được chú thích bằng các annotation JSpecify.
+Theo mặc định, các kiểu từ Java API được sử dụng trong Kotlin được nhận diện là https://kotlinlang.org/docs/reference/java-interop.html#null-safety-and-platform-types[platform types], trong đó các phép kiểm tra null được nới lỏng.
+Các annotation JSpecify cung cấp tính an toàn với null cho toàn bộ Spring Data API đối với các nhà phát triển Kotlin, đồng thời giúp xử lý các vấn đề liên quan đến `null` tại thời điểm biên dịch.
+
+Xem xref:repositories/null-handling.adoc[Xử lý null của các phương thức Repository] để biết chi tiết về cách tính an toàn với null được áp dụng cho các repository Spring Data.
+
+NOTE: Các đối số kiểu generic, varargs và khả năng null của phần tử mảng hiện chưa được hỗ trợ, nhưng có thể sẽ được hỗ trợ trong một bản phát hành sắp tới.

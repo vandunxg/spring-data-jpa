@@ -1,12 +1,12 @@
 [[jpa.stored-procedures]]
 = Stored Procedures
 
-The JPA 2.1 specification introduced support for calling stored procedures via the `StoredProcedureQuery` API.
-We Introduced the `@Procedure` annotation for declaring stored procedure metadata on a repository method.
+Đặc tả JPA 2.1 giới thiệu khả năng gọi stored procedure thông qua API `StoredProcedureQuery`.
+Chúng tôi đã giới thiệu annotation `@Procedure` để khai báo metadata của stored procedure trên một repository method.
 
-The examples to follow use the following stored procedure:
+Các ví dụ dưới đây sử dụng stored procedure sau:
 
-.The definition of the `plus1inout` procedure in HSQL DB.
+.Định nghĩa procedure `plus1inout` trong HSQL DB.
 ====
 [source, sql]
 ----
@@ -21,10 +21,10 @@ END
 ----
 ====
 
-Metadata for stored procedures can be configured by using the `NamedStoredProcedureQuery` annotation on an entity type.
+Metadata cho stored procedure có thể được cấu hình bằng cách dùng annotation `NamedStoredProcedureQuery` trên một entity type.
 
 [[jpa.stored-procedure-entity-metadata]]
-.StoredProcedure metadata definitions on an entity.
+.Định nghĩa StoredProcedure metadata trên một entity.
 ====
 [source, java]
 ----
@@ -36,20 +36,20 @@ public class User {}
 ----
 ====
 
-Note that `@NamedStoredProcedureQuery` has two different names for the stored procedure.
-`name` is the name JPA uses. `procedureName` is the name the stored procedure has in the database.
+Lưu ý rằng `@NamedStoredProcedureQuery` có hai tên khác nhau cho stored procedure.
+`name` là tên mà JPA sử dụng. `procedureName` là tên của stored procedure trong database.
 
-You can reference stored procedures from a repository method in multiple ways.
-The stored procedure to be called can either be defined directly by using the `value` or `procedureName` attribute of the `@Procedure` annotation.
-This refers directly to the stored procedure in the database and ignores any configuration via `@NamedStoredProcedureQuery`.
+Bạn có thể tham chiếu đến stored procedure từ một repository method theo nhiều cách.
+Stored procedure cần được gọi có thể được định nghĩa trực tiếp bằng cách dùng attribute `value` hoặc `procedureName` của annotation `@Procedure`.
+Cách này tham chiếu trực tiếp đến stored procedure trong database và bỏ qua mọi cấu hình thông qua `@NamedStoredProcedureQuery`.
 
-Alternatively you may specify the `@NamedStoredProcedureQuery.name` attribute as the `@Procedure.name` attribute.
-If neither `value`, `procedureName` nor `name` is configured, the name of the repository method is used as the `name` attribute.
+Ngoài ra, bạn có thể chỉ định attribute `@NamedStoredProcedureQuery.name` làm attribute `@Procedure.name`.
+Nếu không có `value`, `procedureName` hay `name` nào được cấu hình, tên của repository method sẽ được dùng làm attribute `name`.
 
-The following example shows how to reference an explicitly mapped procedure:
+Ví dụ sau minh họa cách tham chiếu đến một procedure được mapping tường minh:
 
 [[jpa.stored-procedure-reference]]
-.Referencing explicitly mapped procedure with name "plus1inout" in database.
+.Tham chiếu procedure được mapping tường minh với tên "plus1inout" trong database.
 ====
 [source, java]
 ----
@@ -58,9 +58,9 @@ Integer explicitlyNamedPlus1inout(Integer arg);
 ----
 ====
 
-The following example is equivalent to the previous one but uses the `procedureName` alias:
+Ví dụ sau tương đương với ví dụ trước nhưng dùng alias `procedureName`:
 
-.Referencing implicitly mapped procedure with name "plus1inout" in database via `procedureName` alias.
+.Tham chiếu procedure được mapping ngầm định với tên "plus1inout" trong database qua alias `procedureName`.
 ====
 [source, java]
 ----
@@ -69,9 +69,9 @@ Integer callPlus1InOut(Integer arg);
 ----
 ====
 
-The following is again equivalent to the previous two but using the method name instead of an explicit annotation attribute.
+Ví dụ sau tương đương với hai ví dụ trước nhưng dùng tên method thay vì attribute annotation tường minh.
 
-.Referencing implicitly mapped named stored procedure "User.plus1" in `EntityManager` by using the method name.
+.Tham chiếu named stored procedure được mapping ngầm định "User.plus1" trong `EntityManager` bằng cách dùng tên method.
 ====
 [source, java]
 ----
@@ -80,9 +80,9 @@ Integer plus1inout(@Param("arg") Integer arg);
 ----
 ====
 
-The following example shows how to reference a stored procedure by referencing the `@NamedStoredProcedureQuery.name` attribute.
+Ví dụ sau minh họa cách tham chiếu đến một stored procedure bằng cách tham chiếu attribute `@NamedStoredProcedureQuery.name`.
 
-.Referencing explicitly mapped named stored procedure "User.plus1" in `EntityManager`.
+.Tham chiếu named stored procedure được mapping tường minh "User.plus1" trong `EntityManager`.
 ====
 [source, java]
 ----
@@ -91,14 +91,14 @@ Integer entityAnnotatedCustomNamedProcedurePlus1(@Param("arg") Integer arg);
 ----
 ====
 
-If the stored procedure getting called has a single out parameter that parameter may be returned as the return value of the method.
-If there are multiple out parameters specified in a `@NamedStoredProcedureQuery` annotation those can be returned as a `Map` with the key being the parameter name given in the `@NamedStoredProcedureQuery` annotation.
+Nếu stored procedure được gọi chỉ có một out parameter, parameter đó có thể được trả về làm giá trị trả về của method.
+Nếu có nhiều out parameter được chỉ định trong annotation `@NamedStoredProcedureQuery`, các parameter đó có thể được trả về dưới dạng `Map` với key là tên parameter được đặt trong annotation `@NamedStoredProcedureQuery`.
 
-NOTE: Note that if the stored procedure returns a `ResultSet` then any `OUT` parameters are omitted as Java can only return a single method return value unless the method declares a `Map` return type.
+NOTE: Lưu ý rằng nếu stored procedure trả về một `ResultSet` thì mọi `OUT` parameter sẽ bị bỏ qua, vì Java chỉ có thể trả về một giá trị trả về duy nhất cho method trừ khi method khai báo kiểu trả về là `Map`.
 
-The following example shows how to obtain multiple `OUT` parameters if the stored procedure has multiple `OUT` parameters and is registered as `@NamedStoredProcedureQuery`. `@NamedStoredProcedureQuery` registration is required to provide parameter metadata.
+Ví dụ sau minh họa cách lấy nhiều `OUT` parameter nếu stored procedure có nhiều `OUT` parameter và được đăng ký dưới dạng `@NamedStoredProcedureQuery`. Việc đăng ký `@NamedStoredProcedureQuery` là bắt buộc để cung cấp metadata của parameter.
 
-.StoredProcedure metadata definitions on an entity.
+.Định nghĩa StoredProcedure metadata trên một entity.
 ====
 [source,java]
 ----
@@ -111,7 +111,7 @@ public class User {}
 ----
 ====
 
-.Returning multiple OUT parameters
+.Trả về nhiều OUT parameter
 ====
 [source,java]
 ----

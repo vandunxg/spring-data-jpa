@@ -1,0 +1,87 @@
+[[repositories.query-methods]]
+= Query Methods
+
+Các repository cung cấp chức năng CRUD tiêu chuẩn thường có các query trên datastore bên dưới.
+Với Spring Data, việc khai báo các query đó gồm bốn bước:
+
+. Khai báo một interface mở rộng Repository hoặc một subinterface của nó, đồng thời định kiểu cho interface đó theo domain class và ID type mà nó cần xử lý, như trong ví dụ sau:
++
+[source,java]
+----
+interface PersonRepository extends Repository<Person, Long> { … }
+----
+
+. Khai báo các query method trên interface.
++
+[source,java]
+----
+interface PersonRepository extends Repository<Person, Long> {
+  List<Person> findByLastname(String lastname);
+}
+----
+
+. Thiết lập Spring để tạo các proxy instance cho những interface đó, bằng xref:repositories/create-instances.adoc#repositories.create-instances.java-config[JavaConfig] hoặc bằng xref:repositories/create-instances.adoc[cấu hình XML].
++
+[tabs]
+======
+Java::
++
+[source,java,subs="attributes,specialchars",role="primary"]
+----
+import org.springframework.data.….repository.config.Enable{store}Repositories;
+
+@Enable{store}Repositories
+class Config { … }
+----
+
+XML::
++
+[source,xml,role="secondary"]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+   xsi:schemaLocation="http://www.springframework.org/schema/beans
+     https://www.springframework.org/schema/beans/spring-beans.xsd
+     http://www.springframework.org/schema/data/jpa
+     https://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+   <repositories base-package="com.acme.repositories"/>
+
+</beans>
+----
+======
++
+ifeval::[{include-xml-namespaces} != false]
+Ví dụ này sử dụng JPA namespace.
+Nếu sử dụng repository abstraction cho bất kỳ datastore nào khác, bạn cần thay đổi nó thành namespace declaration phù hợp của store module đó.
+Nói cách khác, bạn nên thay `jpa` bằng, chẳng hạn, `mongodb`.
+endif::[]
++
+Lưu ý rằng biến thể JavaConfig không cấu hình package một cách tường minh, vì package của class được gắn annotation được sử dụng theo mặc định.
+Để tùy chỉnh package cần scan, hãy sử dụng một trong các thuộc tính `basePackage…` của annotation `@Enable{store}Repositories` dành riêng cho repository của data store.
+. Inject repository instance và sử dụng nó, như trong ví dụ sau:
++
+[source,java]
+----
+class SomeClient {
+
+  private final PersonRepository repository;
+
+  SomeClient(PersonRepository repository) {
+    this.repository = repository;
+  }
+
+  void doSomething() {
+    List<Person> persons = repository.findByLastname("Matthews");
+  }
+}
+----
+
+Các phần sau giải thích chi tiết từng bước:
+
+* xref:repositories/definition.adoc[Định nghĩa Repository Interface]
+* xref:repositories/query-methods-details.adoc[Định nghĩa Query Method]
+* xref:repositories/create-instances.adoc[Tạo Repository Instance]
+* xref:repositories/custom-implementations.adoc[Các triển khai tùy chỉnh cho Spring Data Repository]

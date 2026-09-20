@@ -1,0 +1,121 @@
+[[auditing]]
+= Auditing
+
+[[auditing.basics]]
+== Cơ bản
+Spring Data cung cấp khả năng hỗ trợ chuyên sâu để theo dõi một cách minh bạch ai đã tạo hoặc thay đổi một entity và thay đổi đó xảy ra khi nào.
+Để tận dụng chức năng này, bạn phải bổ sung metadata auditing cho các class entity của mình, có thể được định nghĩa bằng annotation hoặc bằng cách triển khai một interface.
+Ngoài ra, auditing phải được bật thông qua cấu hình bằng annotation hoặc cấu hình XML để đăng ký các component hạ tầng cần thiết.
+Vui lòng tham khảo phần dành riêng cho store để xem các mẫu cấu hình.
+
+[NOTE]
+====
+Các ứng dụng chỉ theo dõi ngày tạo và ngày sửa đổi không bắt buộc phải cho entity của mình triển khai <<auditing.auditor-aware,`AuditorAware`>>.
+====
+
+[[auditing.annotations]]
+=== Metadata Auditing dựa trên annotation
+Chúng tôi cung cấp `@CreatedBy` và `@LastModifiedBy` để ghi nhận người đã tạo hoặc sửa đổi entity, cũng như `@CreatedDate` và `@LastModifiedDate` để ghi nhận thời điểm thay đổi xảy ra.
+
+.Entity có metadata auditing
+[source,java]
+----
+class Customer {
+
+  @CreatedBy
+  private User user;
+
+  @CreatedDate
+  private Instant createdDate;
+
+  // … further properties omitted
+}
+----
+
+Như bạn có thể thấy, các annotation có thể được áp dụng có chọn lọc, tùy thuộc vào thông tin bạn muốn ghi nhận.
+Các annotation dùng để ghi nhận thời điểm thực hiện thay đổi có thể được sử dụng trên các kiểu ngày và giờ JDK8, `long`, `Long` và `Date`, `Calendar` Java cũ.
+
+Đối tượng cung cấp thời gian là một `org.springframework.data.auditing.DateTimeProvider`.
+Mặc định, đó là một `CurrentDateTimeProvider`.
+Có thể thay đổi điều này thông qua thuộc tính `dateTimeProviderRef` khi bật auditing, hoặc khi một bean `AuditingHandler` hay `DateTimeProvider` chuyên dụng hiện diện trong `ApplicationContext`.
+
+
+Metadata auditing không nhất thiết phải nằm ở entity cấp root mà có thể được thêm vào một entity nhúng (tùy thuộc vào store thực tế đang được sử dụng), như trong đoạn mã dưới đây.
+
+.Metadata auditing trong entity nhúng
+[source,java]
+----
+class Customer {
+
+  private AuditMetadata auditingMetadata;
+
+  // … further properties omitted
+}
+
+class AuditMetadata {
+
+  @CreatedBy
+  private User user;
+
+  @CreatedDate
+  private Instant createdDate;
+
+}
+----
+
+[[auditing.interfaces]]
+=== Metadata Auditing dựa trên interface
+Nếu không muốn sử dụng annotation để định nghĩa metadata auditing, bạn có thể cho domain class triển khai interface `Auditable`. Interface này cung cấp các phương thức setter cho tất cả property auditing.
+
+[[auditing.auditor-aware]]
+=== `AuditorAware`
+
+Khi sử dụng `@CreatedBy` hoặc `@LastModifiedBy`, hạ tầng auditing bằng cách nào đó cần nhận biết principal hiện tại. Để thực hiện việc đó, chúng tôi cung cấp interface SPI `AuditorAware<T>` mà bạn phải triển khai để cho hạ tầng biết người dùng hiện tại hoặc hệ thống đang tương tác với ứng dụng là ai. Kiểu generic `T` xác định kiểu mà các property được chú thích bằng `@CreatedBy` hoặc `@LastModifiedBy` phải có.
+
+Ví dụ sau cho thấy một triển khai của interface sử dụng đối tượng `Authentication` của Spring Security:
+
+.Triển khai `AuditorAware` dựa trên Spring Security
+[source, java]
+----
+class SpringSecurityAuditorAware implements AuditorAware<User> {
+
+  @Override
+  public Optional<User> getCurrentAuditor() {
+
+    return Optional.ofNullable(SecurityContextHolder.getContext())
+            .map(SecurityContext::getAuthentication)
+            .filter(Authentication::isAuthenticated)
+            .map(Authentication::getPrincipal)
+            .map(User.class::cast);
+  }
+}
+----
+
+Triển khai này truy cập đối tượng `Authentication` do Spring Security cung cấp và tra cứu instance `UserDetails` tùy chỉnh mà bạn đã tạo trong triển khai `UserDetailsService`. Ở đây, chúng tôi giả định bạn đang cung cấp domain user thông qua triển khai `UserDetails`, nhưng dựa trên `Authentication` được tìm thấy, bạn cũng có thể tra cứu user đó từ bất kỳ đâu.
+
+[[auditing.reactive-auditor-aware]]
+=== `ReactiveAuditorAware`
+
+Khi sử dụng hạ tầng reactive, bạn có thể muốn sử dụng thông tin ngữ cảnh để cung cấp thông tin `@CreatedBy` hoặc `@LastModifiedBy`.
+Chúng tôi cung cấp interface SPI `ReactiveAuditorAware<T>` mà bạn phải triển khai để cho hạ tầng biết người dùng hiện tại hoặc hệ thống đang tương tác với ứng dụng là ai. Kiểu generic `T` xác định kiểu mà các property được chú thích bằng `@CreatedBy` hoặc `@LastModifiedBy` phải có.
+
+Ví dụ sau cho thấy một triển khai của interface sử dụng đối tượng `Authentication` của Spring Security reactive:
+
+.Triển khai `ReactiveAuditorAware` dựa trên Spring Security
+[source, java]
+----
+class SpringSecurityAuditorAware implements ReactiveAuditorAware<User> {
+
+  @Override
+  public Mono<User> getCurrentAuditor() {
+
+    return ReactiveSecurityContextHolder.getContext()
+                .mapNotNull(SecurityContext::getAuthentication)
+                .filter(Authentication::isAuthenticated)
+                .mapNotNull(Authentication::getPrincipal)
+                .map(User.class::cast);
+  }
+}
+----
+
+Triển khai này truy cập đối tượng `Authentication` do Spring Security cung cấp và tra cứu instance `UserDetails` tùy chỉnh mà bạn đã tạo trong triển khai `UserDetailsService`. Ở đây, chúng tôi giả định bạn đang cung cấp domain user thông qua triển khai `UserDetails`, nhưng dựa trên `Authentication` được tìm thấy, bạn cũng có thể tra cứu user đó từ bất kỳ đâu.

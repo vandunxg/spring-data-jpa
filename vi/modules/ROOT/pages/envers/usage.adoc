@@ -1,7 +1,7 @@
 [[envers.usage]]
-= Usage
+= Sử dụng
 
-You can now use the methods from `RevisionRepository` to query the revisions of the entity, as the following test case shows:
+Giờ đây bạn có thể sử dụng các method của `RevisionRepository` để truy vấn các revision của entity, như test case sau đây minh họa:
 
 ====
 [source,java]
@@ -78,16 +78,16 @@ class EnversIntegrationTests {
 	}
 }
 ----
-<1> This references the application context configuration presented earlier (in the xref:envers/configuration.adoc#envers.configuration[Configuration] section).
+<1> Dòng này tham chiếu đến cấu hình application context đã trình bày trước đó (trong phần xref:envers/configuration.adoc#envers.configuration[Cấu hình]).
 ====
 
 [[envers.resources]]
-== Further Resources
+== Tài nguyên bổ sung
 
-You can download the https://github.com/spring-projects/spring-data-examples[Spring Data Envers example in the Spring Data Examples repository] and play around with to get a feel for how the library works.
+Bạn có thể tải https://github.com/spring-projects/spring-data-examples[ví dụ Spring Data Envers trong repository Spring Data Examples] về và thử nghiệm để có cảm nhận về cách thư viện này hoạt động.
 
-You should also check out the {spring-data-commons-javadoc-base}/org/springframework/data/repository/history/RevisionRepository.html[Javadoc for `RevisionRepository`] and related classes.
+Bạn cũng nên tham khảo {spring-data-commons-javadoc-base}/org/springframework/data/repository/history/RevisionRepository.html[Javadoc của `RevisionRepository`] và các class liên quan.
 
-You can ask questions at https://stackoverflow.com/questions/tagged/spring-data-envers[Stackoverflow by using the `spring-data-envers` tag].
+Bạn có thể đặt câu hỏi tại https://stackoverflow.com/questions/tagged/spring-data-envers[Stackoverflow bằng cách sử dụng tag `spring-data-envers`].
 
-The https://github.com/spring-projects/spring-data-jpa[source code and issue tracker for Spring Data Envers is hosted at GitHub] (as a module of Spring Data JPA).
+https://github.com/spring-projects/spring-data-jpa[Source code và issue tracker của Spring Data Envers được lưu trữ tại GitHub] (như một module của Spring Data JPA).

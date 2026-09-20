@@ -1,0 +1,26 @@
+[[is-new-state-detection]]
+= Các chiến lược phát hiện entity state
+
+Bảng sau đây mô tả các chiến lược mà Spring Data cung cấp để phát hiện một entity có mới hay không:
+
+.Các tùy chọn để phát hiện entity mới trong Spring Data
+[options = "autowidth",cols="1,1"]
+|===
+|Kiểm tra property `@Id` (mặc định)
+|Theo mặc định, Spring Data kiểm tra property định danh của entity đã cho.
+Nếu property định danh là `null` hoặc `0` trong trường hợp kiểu primitive, entity được coi là mới.
+Nếu không, entity được coi là không mới.
+
+|Kiểm tra property `@Version`
+|Nếu có property được chú thích bằng `@Version` và có giá trị `null`, hoặc trong trường hợp property version có kiểu primitive là `0`, entity được coi là mới.
+Nếu property version tồn tại nhưng có giá trị khác, entity được coi là không mới.
+Nếu không có property version, Spring Data chuyển sang kiểm tra property định danh.
+
+|Triển khai `Persistable`
+|Nếu một entity triển khai `Persistable`, Spring Data ủy quyền việc phát hiện entity mới cho method `isNew(…)` của entity.
+Xem {spring-data-commons-javadoc-base}/org/springframework/data/domain/Persistable.html[Javadoc] để biết chi tiết.
+
+_Note: Các property của `Persistable` sẽ được phát hiện và persist nếu bạn sử dụng `AccessType.PROPERTY`.
+Để tránh điều đó, hãy sử dụng `@Transient`._
+
+|===

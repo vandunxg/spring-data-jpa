@@ -1,21 +1,21 @@
 [[core.extensions]]
-= Spring Data Extensions
+= Extension của Spring Data
 
-This section documents a set of Spring Data extensions that enable Spring Data usage in a variety of contexts.
-Currently, most of the integration is targeted towards Spring MVC.
+Phần này trình bày một tập các Spring Data extension giúp việc sử dụng Spring Data trở nên khả thi trong nhiều ngữ cảnh khác nhau.
+Hiện tại, phần lớn các tích hợp này tập trung vào Spring MVC.
 
 include::{commons}@data-commons::page$repositories/core-extensions-querydsl.adoc[leveloffset=1]
 
 [[jpa.repositories.queries.type-safe.apt]]
-=== Setting up Annotation Processing
+=== Thiết lập Annotation Processing
 
-To use Querydsl with Spring Data JPA, you need to set up annotation processing in your build system that generates the `Q` classes.
-While you could write the `Q` classes by hand, it is recommended to use the Querydsl annotation processor to generate them for you to keep your `Q` classes in sync with your domain model.
+Để sử dụng Querydsl với Spring Data JPA, bạn cần thiết lập annotation processing trong build system để sinh ra các class `Q`.
+Mặc dù có thể tự viết các class `Q` bằng tay, nhưng nên dùng Querydsl annotation processor để sinh chúng tự động, giúp các class `Q` luôn đồng bộ với domain model của bạn.
 
-Most Spring Data users do not use Querydsl, so it does not make sense to require additional mandatory dependencies for projects that would not benefit from Querydsl.
-Hence, you need to activate annotation processing in your build system.
+Hầu hết người dùng Spring Data không sử dụng Querydsl, nên việc bắt buộc thêm dependency cho các project không được lợi từ Querydsl là không hợp lý.
+Vì vậy, bạn cần tự kích hoạt annotation processing trong build system của mình.
 
-The following example shows how to set up annotation processing by mentioning dependencies and compiler config changes in Maven and Gradle:
+Ví dụ sau minh họa cách thiết lập annotation processing thông qua các dependency và thay đổi cấu hình compiler trong Maven và Gradle:
 
 [tabs]
 ======
@@ -138,7 +138,7 @@ dependencies {
 ====
 ======
 
-Note that the setup above shows the simplemost usage omitting any other options or dependencies that your project might require.
+Lưu ý rằng phần thiết lập ở trên chỉ minh họa cách dùng đơn giản nhất, không đề cập đến các option hoặc dependency khác mà project của bạn có thể cần.
 
 include::{commons}@data-commons::page$repositories/core-extensions-web.adoc[leveloffset=1]
 

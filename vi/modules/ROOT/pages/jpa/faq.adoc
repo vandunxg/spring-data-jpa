@@ -1,12 +1,12 @@
 [appendix]
 [[faq]]
-= Frequently Asked Questions
+= Câu hỏi thường gặp
 
 [[faq.common]]
-== Common
+== Chung
 
 [qanda]
-I'd like to get more detailed logging information on what methods are called inside `JpaRepository` for example. How can I gain them? :: You can make use of `CustomizableTraceInterceptor` provided by Spring, as shown in the following example:
+Tôi muốn có thông tin logging chi tiết hơn về những method nào được gọi bên trong `JpaRepository`, chẳng hạn. Làm thế nào để có được thông tin này? :: Bạn có thể sử dụng `CustomizableTraceInterceptor` do Spring cung cấp, như trong ví dụ sau:
 +
 [source, xml]
 ----
@@ -26,11 +26,11 @@ I'd like to get more detailed logging information on what methods are called ins
 == Auditing
 
 [qanda]
-I want to use Spring Data JPA auditing capabilities but have my database already configured to set modification and creation date on entities. How can I prevent Spring Data from setting the date programmatically? :: Set the `set-dates` attribute of the `auditing` namespace element to `false`.
+Tôi muốn sử dụng khả năng auditing của Spring Data JPA nhưng database của tôi đã được cấu hình sẵn để tự set modification date và creation date trên entity. Làm sao để ngăn Spring Data tự set date theo cách lập trình? :: Set attribute `set-dates` của namespace element `auditing` thành `false`.
 
 
 [[faq.hibernate]]
 == Hibernate
 
 [qanda]
-Can I use Hibernate 8 with Spring Data JPA? :: Spring Data JPA currently relies on JPA 3.2 and Hibernate 7, but offers best-effort support for preview releases of Hibernate 8 (Beta1) and Jakarta Persistence 4.0 (M5).
+Tôi có thể dùng Hibernate 8 với Spring Data JPA không? :: Spring Data JPA hiện đang phụ thuộc vào JPA 3.2 và Hibernate 7, nhưng cung cấp hỗ trợ best-effort cho các preview release của Hibernate 8 (Beta1) và Jakarta Persistence 4.0 (M5).

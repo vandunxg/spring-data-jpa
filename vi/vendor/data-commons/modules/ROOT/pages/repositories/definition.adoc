@@ -1,0 +1,169 @@
+[[repositories.definition]]
+= Định nghĩa các Repository Interface
+
+Để định nghĩa một repository interface, trước hết bạn cần định nghĩa một repository interface dành riêng cho một domain class.
+Interface này phải mở rộng `Repository` và được tham số hóa bằng domain class cùng kiểu ID.
+Nếu muốn cung cấp các phương thức CRUD cho domain type đó, bạn có thể mở rộng `CrudRepository`, hoặc một biến thể của nó, thay vì `Repository`.
+
+[[repositories.definition-tuning]]
+== Tinh chỉnh định nghĩa Repository
+
+Có một số cách để bắt đầu với repository interface của bạn.
+
+Cách tiếp cận điển hình là mở rộng `CrudRepository`, cung cấp các phương thức cho chức năng CRUD.
+CRUD là viết tắt của Create, Read, Update, Delete.
+Trong version 3.0, chúng tôi cũng giới thiệu `ListCrudRepository`, rất tương tự `CrudRepository`, nhưng đối với các phương thức trả về nhiều entity, nó trả về một `List` thay vì một `Iterable`, có thể dễ sử dụng hơn.
+
+Nếu đang sử dụng một reactive store, bạn có thể chọn `ReactiveCrudRepository` hoặc `RxJava3CrudRepository`, tùy thuộc vào reactive framework bạn đang sử dụng.
+
+Nếu đang sử dụng Kotlin, bạn có thể chọn `CoroutineCrudRepository`, sử dụng coroutine của Kotlin.
+
+Ngoài ra, bạn có thể mở rộng `PagingAndSortingRepository`, `ReactiveSortingRepository`, `RxJava3SortingRepository` hoặc `CoroutineSortingRepository` nếu cần các phương thức cho phép chỉ định một abstraction `Sort`, hoặc trong trường hợp đầu tiên là một abstraction `Pageable`.
+Lưu ý rằng các sorting repository khác nhau không còn mở rộng CRUD repository tương ứng như trước đây trong các version Spring Data trước 3.0.
+Do đó, bạn cần mở rộng cả hai interface nếu muốn có chức năng của cả hai.
+
+Nếu không muốn mở rộng các interface của Spring Data, bạn cũng có thể chú thích repository interface của mình bằng `@RepositoryDefinition`.
+Việc mở rộng một trong các CRUD repository interface sẽ cung cấp đầy đủ các phương thức để thao tác với các entity của bạn.
+Nếu muốn chọn lọc các phương thức được cung cấp, hãy sao chép các phương thức muốn cung cấp từ CRUD repository vào domain repository.
+Khi làm vậy, bạn có thể thay đổi kiểu trả về của các phương thức.
+Spring Data sẽ tôn trọng kiểu trả về nếu có thể.
+Ví dụ, đối với các phương thức trả về nhiều entity, bạn có thể chọn `Iterable<T>`, `List<T>`, `Collection<T>` hoặc một VAVR list.
+
+Nếu nhiều repository trong ứng dụng cần cùng một tập hợp phương thức, bạn có thể định nghĩa interface cơ sở của riêng mình để kế thừa.
+Interface đó phải được chú thích bằng `@NoRepositoryBean`.
+Điều này ngăn Spring Data cố gắng trực tiếp tạo một instance của interface đó và thất bại vì không thể xác định entity cho repository, do interface vẫn chứa một generic type variable.
+
+Ví dụ sau đây cho thấy cách cung cấp có chọn lọc các phương thức CRUD (`findById` và `save`, trong trường hợp này):
+
+.Cung cấp có chọn lọc các phương thức CRUD
+[source,java]
+----
+@NoRepositoryBean
+interface MyBaseRepository<T, ID> extends Repository<T, ID> {
+
+  Optional<T> findById(ID id);
+
+  <S extends T> S save(S entity);
+}
+
+interface UserRepository extends MyBaseRepository<User, Long> {
+  User findByEmailAddress(EmailAddress emailAddress);
+}
+----
+
+Trong ví dụ trước, bạn đã định nghĩa một interface cơ sở chung cho tất cả domain repository và cung cấp `findById(…)` cũng như `save(…)`. Các phương thức này được chuyển đến phần triển khai repository cơ sở của store do bạn chọn, được Spring Data cung cấp (ví dụ, nếu sử dụng JPA, phần triển khai là `SimpleJpaRepository`), vì chúng khớp với các chữ ký phương thức trong `CrudRepository`.
+Vì vậy, `UserRepository` hiện có thể lưu user, tìm từng user theo ID và kích hoạt một query để tìm `Users` theo địa chỉ email.
+
+NOTE: Repository interface trung gian được chú thích bằng `@NoRepositoryBean`.
+Hãy bảo đảm thêm annotation đó vào tất cả repository interface mà Spring Data không được tạo instance tại runtime.
+
+[[repositories.multiple-modules]]
+== Sử dụng Repository với nhiều Spring Data Module
+
+Việc sử dụng một Spring Data module duy nhất trong ứng dụng giúp mọi thứ đơn giản, vì tất cả repository interface trong scope đã định nghĩa đều được liên kết với Spring Data module đó.
+Đôi khi, ứng dụng cần sử dụng nhiều hơn một Spring Data module.
+Trong những trường hợp đó, một repository definition phải phân biệt giữa các công nghệ persistence.
+Khi phát hiện nhiều repository factory trên class path, Spring Data chuyển sang strict repository configuration mode.
+Strict configuration sử dụng thông tin chi tiết trên repository hoặc domain class để quyết định việc liên kết Spring Data module cho một repository definition:
+
+. Nếu repository definition <<repositories.multiple-modules.types,mở rộng repository dành riêng cho module>>, đó là một candidate hợp lệ cho Spring Data module tương ứng.
+. Nếu domain class <<repositories.multiple-modules.annotations,được chú thích bằng type annotation dành riêng cho module>>, đó là một candidate hợp lệ cho Spring Data module tương ứng.
+Spring Data module chấp nhận annotation của bên thứ ba (chẳng hạn `@Entity` của JPA) hoặc cung cấp annotation riêng (chẳng hạn `@Document` cho Spring Data MongoDB và Spring Data Elasticsearch).
+
+Ví dụ sau đây cho thấy một repository sử dụng các interface dành riêng cho module (trong trường hợp này là JPA):
+
+[[repositories.multiple-modules.types]]
+.Định nghĩa repository sử dụng interface dành riêng cho module
+====
+[source,java]
+----
+interface MyRepository extends JpaRepository<User, Long> { }
+
+@NoRepositoryBean
+interface MyBaseRepository<T, ID> extends JpaRepository<T, ID> { … }
+
+interface UserRepository extends MyBaseRepository<User, Long> { … }
+----
+
+`MyRepository` và `UserRepository` mở rộng `JpaRepository` trong hệ thống phân cấp type của chúng.
+Chúng là các candidate hợp lệ cho Spring Data JPA module.
+====
+
+Ví dụ sau đây cho thấy một repository sử dụng các interface generic:
+
+.Định nghĩa repository sử dụng interface generic
+====
+[source,java]
+----
+interface AmbiguousRepository extends Repository<User, Long> { … }
+
+@NoRepositoryBean
+interface MyBaseRepository<T, ID> extends CrudRepository<T, ID> { … }
+
+interface AmbiguousUserRepository extends MyBaseRepository<User, Long> { … }
+----
+
+`AmbiguousRepository` và `AmbiguousUserRepository` chỉ mở rộng `Repository` và `CrudRepository` trong hệ thống phân cấp type của chúng.
+Điều này không có vấn đề gì khi sử dụng một Spring Data module duy nhất, nhưng nhiều module không thể phân biệt các repository này nên được liên kết với Spring Data cụ thể nào.
+====
+
+Ví dụ sau đây cho thấy một repository sử dụng domain class có annotation:
+
+[[repositories.multiple-modules.annotations]]
+.Định nghĩa repository sử dụng domain class có annotation
+====
+[source,java]
+----
+interface PersonRepository extends Repository<Person, Long> { … }
+
+@Entity
+class Person { … }
+
+interface UserRepository extends Repository<User, Long> { … }
+
+@Document
+class User { … }
+----
+
+`PersonRepository` tham chiếu đến `Person`, được chú thích bằng annotation JPA `@Entity`, vì vậy repository này rõ ràng thuộc về Spring Data JPA. `UserRepository` tham chiếu đến `User`, được chú thích bằng annotation `@Document` của Spring Data MongoDB.
+====
+
+Ví dụ không hợp lệ sau đây cho thấy một repository sử dụng domain class có các annotation trộn lẫn:
+
+.Định nghĩa repository sử dụng domain class có các annotation trộn lẫn
+====
+[source,java]
+----
+interface JpaPersonRepository extends Repository<Person, Long> { … }
+
+interface MongoDBPersonRepository extends Repository<Person, Long> { … }
+
+@Entity
+@Document
+class Person { … }
+----
+
+Ví dụ này cho thấy một domain class sử dụng cả annotation JPA và Spring Data MongoDB.
+Nó định nghĩa hai repository là `JpaPersonRepository` và `MongoDBPersonRepository`.
+Một repository được dự định dùng cho JPA, repository còn lại dùng cho MongoDB.
+Spring Data không còn có thể phân biệt hai repository, dẫn đến hành vi không xác định.
+====
+
+<<repositories.multiple-modules.types,Chi tiết về repository type>> và <<repositories.multiple-modules.annotations,phân biệt annotation của domain class>> được sử dụng trong strict repository configuration để xác định các repository candidate cho một Spring Data module cụ thể.
+Việc sử dụng nhiều annotation dành riêng cho công nghệ persistence trên cùng một domain type là khả thi và cho phép tái sử dụng domain type trên nhiều công nghệ persistence.
+Tuy nhiên, khi đó Spring Data không còn có thể xác định một module duy nhất để liên kết repository.
+
+Cách cuối cùng để phân biệt các repository là giới hạn phạm vi của repository base package.
+Base package xác định điểm bắt đầu để quét các repository interface definition, đồng nghĩa với việc repository definition phải nằm trong các package phù hợp.
+Theo mặc định, cấu hình dựa trên annotation sử dụng package của configuration class.
+xref:repositories/create-instances.adoc#repositories.create-instances.xml[base package trong cấu hình dựa trên XML] là bắt buộc.
+
+Ví dụ sau đây cho thấy cấu hình base package dựa trên annotation:
+
+.Cấu hình base package dựa trên annotation
+[source,java]
+----
+@EnableJpaRepositories(basePackages = "com.acme.repositories.jpa")
+@EnableMongoRepositories(basePackages = "com.acme.repositories.mongo")
+class Configuration { … }
+----

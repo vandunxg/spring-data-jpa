@@ -1,9 +1,9 @@
-Hibernate translates distance function calls to native database functions for PGvector and Oracle.
-Their result is typically a distance.
-When using `Similarity` instead of `Score`, Spring Data normalizes distance scores into a similarity score between 0 and 1. The higher the score, the more similar the two vectors are.
+Hibernate dịch các lời gọi distance function thành các native database function cho PGvector và Oracle.
+Kết quả của chúng thường là một distance.
+Khi dùng `Similarity` thay vì `Score`, Spring Data chuẩn hóa các distance score thành một similarity score trong khoảng từ 0 đến 1. Score càng cao thì hai vector càng tương đồng.
 // END
 
-.Using `Score` and `Similarity` in a Repository Search Method
+.Dùng `Score` và `Similarity` trong một Repository Search Method
 ====
 [source,java]
 ----
@@ -27,12 +27,12 @@ repository.searchByEmbeddingNear(Vector.of(…), Similarity.of(0.9, ScoringFunct
 repository.searchByEmbeddingNear(Vector.of(…), Similarity.between(0.5, 1, ScoringFunction.euclidean()));<4>
 ----
 
-<1> Run a search and return results that are similar to the given `Vector` applying Cosine scoring.
-<2> Run a search and return results with a score of `0.9` or smaller using the Cosine distance.
-<3> Run a search and normalize the score into a similarity value.
-Return results with a similarity of `0.9`  or greater using Cosine scoring.
-<4> Run a search and normalize the score into a similarity value.
-Return results with a similarity between `0.5` and `1.0` using Euclidean scoring.
+<1> Chạy một search và trả về các kết quả tương đồng với `Vector` đã cho, áp dụng Cosine scoring.
+<2> Chạy một search và trả về các kết quả có score bằng hoặc nhỏ hơn `0.9`, dùng Cosine distance.
+<3> Chạy một search và chuẩn hóa score thành một giá trị similarity.
+Trả về các kết quả có similarity từ `0.9` trở lên, dùng Cosine scoring.
+<4> Chạy một search và chuẩn hóa score thành một giá trị similarity.
+Trả về các kết quả có similarity nằm trong khoảng từ `0.5` đến `1.0`, dùng Euclidean scoring.
 ====
 
-NOTE: JPA requires a `ScoringFunction` to be provided when creating `Score` or `Similarity` instances to select a scoring function.
+NOTE: JPA yêu cầu phải cung cấp một `ScoringFunction` khi tạo instance `Score` hoặc `Similarity` để chọn một scoring function.

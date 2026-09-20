@@ -1,4 +1,4 @@
-.Using `Near` and `Within` Keywords in Repository Search Methods
+.Dùng từ khóa `Near` và `Within` trong Repository Search Method
 ====
 [source,java]
 ----
@@ -13,4 +13,4 @@ interface CommentRepository extends Repository<Comment, String> {
 ----
 ====
 
-Derived search methods can declare predicates on domain model attributes and Vector parameters.
+Derived search method có thể khai báo predicate trên các attribute của domain model và các parameter Vector.

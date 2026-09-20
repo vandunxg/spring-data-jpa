@@ -3,12 +3,12 @@ include::{commons}@data-commons::page$repositories/query-return-types-reference.
 [[return-type.stream]]
 == Java `Stream`
 
-Using a Java `Stream` requires additional consideration.
-A `Stream` implies operating on a stateful resource that is associated with closeable resources (such as a JDBC `ResultSet` or `Statement`).
-Those resources are typically bound to the stream itself and a surrounding transaction.
-Returning a `Stream<T>` therefore requires a surrounding transaction to ensure proper contextual availability of resources (the same applies when returning a JDBC `ResultSet`).
+Sử dụng Java `Stream` đòi hỏi phải cân nhắc thêm.
+`Stream` ngụ ý việc thao tác trên một stateful resource gắn liền với các closeable resource (chẳng hạn như JDBC `ResultSet` hoặc `Statement`).
+Các resource này thường gắn với chính stream và với transaction bao quanh nó.
+Vì vậy, trả về `Stream<T>` yêu cầu phải có một transaction bao quanh để đảm bảo các resource luôn khả dụng đúng ngữ cảnh (điều này cũng áp dụng tương tự khi trả về JDBC `ResultSet`).
 
-Make sure to close the `Stream` after usage, for example:
+Hãy nhớ đóng `Stream` sau khi sử dụng, ví dụ:
 
 ====
 [source,java]
@@ -22,6 +22,6 @@ public void processUsers() {
 ----
 ====
 
-Note that using a `Stream<T>` does not guarantee incremental fetching by your JPA provider or JDBC driver.
-For memory-efficient processing of large result sets, use query hints to apply provider-specific fetch-size settings and check your JPA provider and JDBC driver documentation for supported values and behavior that is associated with these.
-Consuming objects from a `Stream` associates entities with the session cache and is no different from any collection type in that regard.
+Lưu ý rằng việc dùng `Stream<T>` không đảm bảo JPA provider hoặc JDBC driver của bạn sẽ fetch dữ liệu theo kiểu incremental (tăng dần).
+Để xử lý result set lớn một cách tiết kiệm bộ nhớ, hãy dùng query hint để áp dụng cấu hình fetch-size đặc thù của provider, đồng thời kiểm tra tài liệu của JPA provider và JDBC driver để biết các giá trị và hành vi được hỗ trợ liên quan đến việc này.
+Việc consume object từ `Stream` sẽ gắn các entity vào session cache, không khác gì so với bất kỳ collection type nào khác về mặt này.

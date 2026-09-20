@@ -1,0 +1,274 @@
+[[valueexpressions.fundamentals]]
+= Cơ sở về Value Expressions
+
+Value Expressions là sự kết hợp giữa {spring-framework-docs}/core/expressions.html[Spring Expression Language (SpEL)] và {spring-framework-docs}/core/beans/annotation-config/value-annotations.html[Property Placeholder Resolution].
+Chúng kết hợp khả năng đánh giá mạnh mẽ của các biểu thức mang tính lập trình với sự đơn giản của việc sử dụng Property Placeholder Resolution để lấy các giá trị từ `Environment`, chẳng hạn như các thuộc tính cấu hình.
+
+Các biểu thức nên được định nghĩa từ một nguồn đầu vào đáng tin cậy, chẳng hạn như giá trị của annotation, thay vì được xác định từ đầu vào của người dùng.
+
+== Phạm vi
+
+Value Expressions được sử dụng trong các ngữ cảnh của annotation.
+Spring Data cung cấp khả năng đánh giá Value Expression trong hai ngữ cảnh chính:
+
+* *Annotation mô hình ánh xạ*: chẳng hạn như `@Document`, `@Field`, `@Value` và các annotation khác trong những module Spring Data đi kèm với mô hình ánh xạ riêng cùng Entity Reader tương ứng, như MongoDB, Elasticsearch, Cassandra, Neo4j.
+Các module xây dựng trên các thư viện cung cấp mô hình ánh xạ riêng (JPA, LDAP) không hỗ trợ Value Expressions trong các annotation ánh xạ.
++
+Đoạn mã sau minh họa cách sử dụng các biểu thức trong ngữ cảnh của annotation mô hình ánh xạ.
++
+.Cách sử dụng annotation `@Document`
+====
+[source,java]
+----
+@Document("orders-#{tenantService.getOrderCollection()}-${tenant-config.suffix}")
+class Order {
+  // …
+}
+----
+====
+
+* *Các query method của repository*: chủ yếu thông qua `@Query`.
++
+Đoạn mã sau minh họa cách sử dụng các biểu thức trong ngữ cảnh của các query method của repository.
++
+.Cách sử dụng annotation `@Query`
+====
+[source,java]
+----
+class OrderRepository extends Repository<Order, String> {
+
+  @Query("select u from User u where u.tenant = ?${spring.application.name:unknown} and u.firstname like %?#{escape([0])}% escape ?#{escapeCharacter()}")
+  List<Order> findContainingEscaped(String namePart);
+}
+----
+====
+
+NOTE: Tham khảo tài liệu của module để xác định cú pháp binding tham số theo tên/theo chỉ mục thực tế.
+Thông thường, các biểu thức được thêm tiền tố bằng `:#{…}`/`:${…}` hoặc `?#{…}`/`?${…}`.
+
+== Cú pháp biểu thức
+
+Value Expressions có thể được định nghĩa từ một SpEL Expression đơn lẻ, một Property Placeholder hoặc một biểu thức kết hợp nhiều loại biểu thức, bao gồm cả literal.
+
+.Các ví dụ về biểu thức
+====
+[source]
+----
+#{tenantService.getOrderCollection()}                          <1>
+#{(1+1) + '-hello-world'}                                      <2>
+${tenant-config.suffix}                                        <3>
+orders-${tenant-config.suffix}                                 <4>
+#{tenantService.getOrderCollection()}-${tenant-config.suffix}  <5>
+----
+
+<1> Value Expression sử dụng một SpEL Expression đơn lẻ.
+<2> Value Expression sử dụng một SpEL Expression tĩnh, được đánh giá thành `2-hello-world`.
+<3> Value Expression sử dụng một Property Placeholder đơn lẻ.
+<4> Biểu thức kết hợp bao gồm literal `orders-` và Property Placeholder `${tenant-config.suffix}`.
+<5> Biểu thức kết hợp sử dụng SpEL, Property Placeholder và literal.
+====
+
+NOTE: Việc sử dụng Value Expressions mang lại rất nhiều tính linh hoạt cho mã của bạn.
+Tuy nhiên, việc này yêu cầu biểu thức phải được đánh giá trong mỗi lần sử dụng và do đó, việc đánh giá Value Expression ảnh hưởng đến đặc tính hiệu năng.
+
+{spring-framework-docs}/core/expressions/language-ref.html[Spring Expression Language (SpEL)] và {spring-framework-docs}/core/beans/annotation-config/value-annotations.html[Property Placeholder Resolution] giải thích chi tiết cú pháp và khả năng của SpEL và Property Placeholder.
+
+[[valueexpressions.api]]
+== Phân tích cú pháp và đánh giá
+
+Value Expressions được phân tích cú pháp bởi API `ValueExpressionParser`.
+Các instance của `ValueExpression` an toàn khi được sử dụng đồng thời giữa nhiều thread và có thể được lưu vào cache để dùng sau, nhằm tránh phải phân tích cú pháp lặp lại.
+
+Ví dụ sau minh họa cách sử dụng API của Value Expression:
+
+.Phân tích cú pháp và đánh giá
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+ValueParserConfiguration configuration = SpelExpressionParser::new;
+ValueEvaluationContext context = ValueEvaluationContext.of(environment, evaluationContext);
+
+ValueExpressionParser parser = ValueExpressionParser.create(configuration);
+ValueExpression expression = parser.parse("Hello, World");
+Object result = expression.evaluate(context);
+----
+
+Kotlin::
++
+[source,kotlin,role="secondary"]
+----
+val configuration = ValueParserConfiguration { SpelExpressionParser() }
+val context = ValueEvaluationContext.of(environment, evaluationContext)
+
+val parser = ValueExpressionParser.create(configuration)
+val expression: ValueExpression = parser.parse("Hello, World")
+val result: Any = expression.evaluate(context)
+----
+======
+
+[[valueexpressions.spel]]
+== Biểu thức SpEL
+
+{spring-framework-docs}/core/expressions.html[Biểu thức SpEL] tuân theo kiểu Template, trong đó biểu thức được kỳ vọng nằm trong định dạng `#{…}`.
+Các biểu thức được đánh giá bằng một `EvaluationContext` do `EvaluationContextProvider` cung cấp.
+Bản thân context là một `StandardEvaluationContext` mạnh mẽ, cho phép thực hiện nhiều loại thao tác, truy cập các static type và các context extension.
+
+NOTE: Đảm bảo chỉ phân tích cú pháp và đánh giá các biểu thức từ những nguồn đáng tin cậy, chẳng hạn như annotation.
+Việc chấp nhận các biểu thức do người dùng cung cấp có thể tạo ra một đường vào để khai thác application context và hệ thống của bạn, dẫn đến một lỗ hổng bảo mật tiềm ẩn.
+
+=== Mở rộng Evaluation Context
+
+`EvaluationContextProvider` và biến thể reactive của nó là `ReactiveEvaluationContextProvider` cung cấp quyền truy cập vào một `EvaluationContext`.
+`ExtensionAwareEvaluationContextProvider` và biến thể reactive của nó là `ReactiveExtensionAwareEvaluationContextProvider` là các triển khai mặc định xác định các context extension từ application context, cụ thể là `ListableBeanFactory`.
+
+Các extension triển khai `EvaluationContextExtension` hoặc `ReactiveEvaluationContextExtension` để bổ sung cho một `EvaluationContext` các thành phần sau: root object, named property và function (method cấp cao nhất).
+
+Ví dụ sau minh họa một context extension cung cấp root object, property, function và một function có bí danh.
+
+.Triển khai một `EvaluationContextExtension`
+[tabs]
+======
+Java::
++
+[source,java,role="primary"]
+----
+@Component
+public class MyExtension implements EvaluationContextExtension {
+
+    @Override
+    public String getExtensionId() {
+        return "my-extension";
+    }
+
+    @Override
+    public Object getRootObject() {
+        return new CustomExtensionRootObject();
+    }
+
+    @Override
+    public Map<String, Object> getProperties() {
+
+        Map<String, Object> properties = new HashMap<>();
+
+        properties.put("key", "Hello");
+
+        return properties;
+    }
+
+    @Override
+    public Map<String, Function> getFunctions() {
+
+        Map<String, Function> functions = new HashMap<>();
+
+        try {
+            functions.put("aliasedMethod", new Function(getClass().getMethod("extensionMethod")));
+            return functions;
+        } catch (Exception o_O) {
+            throw new RuntimeException(o_O);
+        }
+    }
+
+    public static String extensionMethod() {
+        return "Hello World";
+    }
+
+    public static int add(int i1, int i2) {
+        return i1 + i2;
+    }
+
+}
+
+public class CustomExtensionRootObject {
+
+	public boolean rootObjectInstanceMethod() {
+		return true;
+	}
+
+}
+----
+
+Kotlin::
++
+[source,kotlin,role="secondary"]
+----
+@Component
+class MyExtension : EvaluationContextExtension {
+
+    override fun getExtensionId(): String {
+        return "my-extension"
+    }
+
+    override fun getRootObject(): Any? {
+        return CustomExtensionRootObject()
+    }
+
+    override fun getProperties(): Map<String, Any> {
+        val properties: MutableMap<String, Any> = HashMap()
+
+        properties["key"] = "Hello"
+
+        return properties
+    }
+
+    override fun getFunctions(): Map<String, Function> {
+        val functions: MutableMap<String, Function> = HashMap()
+
+        try {
+            functions["aliasedMethod"] = Function(javaClass.getMethod("extensionMethod"))
+            return functions
+        } catch (o_O: Exception) {
+            throw RuntimeException(o_O)
+        }
+    }
+
+    companion object {
+        fun extensionMethod(): String {
+            return "Hello World"
+        }
+
+        fun add(i1: Int, i2: Int): Int {
+            return i1 + i2
+        }
+    }
+}
+
+class CustomExtensionRootObject {
+	fun rootObjectInstanceMethod(): Boolean {
+		return true
+	}
+}
+----
+======
+
+Sau khi extension ở trên được đăng ký, bạn có thể sử dụng các method, property và root object mà nó cung cấp để đánh giá các biểu thức SpEL:
+
+.Các ví dụ về đánh giá biểu thức
+====
+[source]
+----
+#{add(1, 2)}                                             <1>
+#{extensionMethod()}                                     <2>
+#{aliasedMethod()}                                       <3>
+#{key}                                                   <4>
+#{rootObjectInstanceMethod()}                            <5>
+----
+
+<1> Gọi method `add` được khai báo bởi `MyExtension`, cho kết quả là `3` vì method này cộng hai tham số số học và trả về tổng.
+<2> Gọi method `extensionMethod` được khai báo bởi `MyExtension`, cho kết quả là `Hello World`.
+<3> Gọi method `aliasedMethod`.
+Method này được cung cấp dưới dạng function và chuyển tiếp đến method `extensionMethod` được khai báo bởi `MyExtension`, cho kết quả là `Hello World`.
+<4> Đánh giá property `key`, cho kết quả là `Hello`.
+<5> Gọi method `rootObjectInstanceMethod` trên instance root object `CustomExtensionRootObject`.
+====
+
+Bạn có thể tìm thấy các context extension trong thực tế tại https://github.com/spring-projects/spring-security/blob/main/data/src/main/java/org/springframework/security/data/repository/query/SecurityEvaluationContextExtension.java[`SecurityEvaluationContextExtension`].
+
+[[valueexpressions.property-placeholders]]
+== Property Placeholder
+
+Các Property Placeholder có dạng `${…}` thường tham chiếu đến những property được cung cấp bởi một `PropertySource` thông qua `Environment`.
+Các property hữu ích khi được phân giải dựa trên system property, file cấu hình ứng dụng, cấu hình môi trường hoặc các property source do hệ thống quản lý secret đóng góp.
+Bạn có thể tìm thêm chi tiết về Property Placeholder trong {spring-framework-docs}/core/beans/annotation-config/value-annotations.html#page-title[tài liệu Spring Framework về cách sử dụng `@Value`].

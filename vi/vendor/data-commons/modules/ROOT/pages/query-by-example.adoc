@@ -1,0 +1,252 @@
+ifndef::support-qbe-collection[]
+:support-qbe-collection: true
+endif::[]
+
+[[query-by-example]]
+= Query by Example
+
+[[query-by-example.introduction]]
+== Giới thiệu
+
+Chương này giới thiệu về Query by Example và giải thích cách sử dụng.
+
+Query by Example (QBE) là một kỹ thuật truy vấn thân thiện với người dùng, có interface đơn giản.
+Kỹ thuật này cho phép tạo query động và không yêu cầu bạn viết các query chứa tên field.
+Trên thực tế, Query by Example hoàn toàn không yêu cầu bạn viết query bằng các ngôn ngữ query dành riêng cho từng store.
+
+NOTE: Chương này giải thích các khái niệm cốt lõi của Query by Example.
+Thông tin được lấy từ module Spring Data Commons.
+Tùy thuộc vào database, khả năng hỗ trợ matching chuỗi có thể bị giới hạn.
+
+[[query-by-example.usage]]
+== Cách sử dụng
+
+API Query by Example gồm bốn phần:
+
+* Probe: Ví dụ thực tế của một domain object có các field đã được điền giá trị.
+* `ExampleMatcher`: `ExampleMatcher` chứa thông tin chi tiết về cách match các field cụ thể.
+Có thể tái sử dụng `ExampleMatcher` cho nhiều Example.
+* `Example`: Một `Example` gồm probe và `ExampleMatcher`.
+Được dùng để tạo query.
+* `FetchableFluentQuery`: Một `FetchableFluentQuery` cung cấp fluent API, cho phép tùy chỉnh thêm một query được suy ra từ một `Example`.
+Sử dụng fluent API cho phép bạn chỉ định thứ tự, projection và việc xử lý kết quả cho query.
+
+Query by Example phù hợp với một số trường hợp sử dụng:
+
+* Truy vấn data store bằng một tập các ràng buộc tĩnh hoặc động.
+* Thường xuyên refactor domain object mà không phải lo lắng về việc làm hỏng các query hiện có.
+* Làm việc độc lập với API của data store bên dưới.
+
+Query by Example cũng có một số hạn chế:
+
+* Không hỗ trợ các ràng buộc property lồng nhau hoặc được nhóm, chẳng hạn như `firstname = ?0 or (firstname = ?1 and lastname = ?2)`.
+ifeval::[{support-qbe-collection} != true]
+* Không hỗ trợ matching collection hoặc map.
+endif::[]
+* Hỗ trợ matching chuỗi phụ thuộc vào từng store.
+Tùy thuộc vào database, matching chuỗi có thể hỗ trợ starts/contains/ends/regex cho các chuỗi.
+* Matching chính xác đối với các loại property khác.
+
+Trước khi bắt đầu với Query by Example, bạn cần có một domain object.
+Để bắt đầu, hãy tạo một interface cho repository của bạn, như trong ví dụ sau:
+
+.Ví dụ domain object Person
+[source,java]
+----
+public class Person {
+
+  @Id
+  private String id;
+  private String firstname;
+  private String lastname;
+  private Address address;
+
+  // … đã lược bỏ getters và setters
+}
+----
+
+Ví dụ trước cho thấy một domain object đơn giản.
+Bạn có thể dùng nó để tạo một `Example`.
+Theo mặc định, các field có giá trị `null` sẽ bị bỏ qua và các chuỗi được match bằng các giá trị mặc định dành riêng cho store.
+
+NOTE: Việc đưa các property vào tiêu chí Query by Example dựa trên khả năng nullable.
+Các property sử dụng primitive type (`int`, `double`, …) luôn được đưa vào, trừ khi <<query-by-example.matchers,`ExampleMatcher` bỏ qua property path>>.
+
+Bạn có thể xây dựng Example bằng cách sử dụng factory method `of` hoặc bằng cách sử dụng <<query-by-example.matchers,`ExampleMatcher`>>. `Example` là immutable.
+Danh sách sau cho thấy một Example đơn giản:
+
+.Example đơn giản
+====
+[source,java]
+----
+Person person = new Person();                         <1>
+person.setFirstname("Dave");                          <2>
+
+Example<Person> example = Example.of(person);         <3>
+----
+
+<1> Tạo một instance mới của domain object.
+<2> Thiết lập các property cần query.
+<3> Tạo `Example`.
+====
+
+Bạn có thể chạy các query ví dụ bằng repository.
+Để làm vậy, hãy để repository interface của bạn mở rộng `QueryByExampleExecutor<T>`.
+Danh sách sau cho thấy một phần của interface `QueryByExampleExecutor`:
+
+.Interface `QueryByExampleExecutor`
+[source,java]
+----
+public interface QueryByExampleExecutor<T> {
+
+  <S extends T> S findOne(Example<S> example);
+
+  <S extends T> Iterable<S> findAll(Example<S> example);
+
+  // … đã lược bỏ các chức năng khác.
+}
+----
+
+[[query-by-example.matchers]]
+== Example Matcher
+
+Example không bị giới hạn ở các thiết lập mặc định.
+Bạn có thể chỉ định các thiết lập mặc định của riêng mình cho việc matching chuỗi, xử lý null và các thiết lập dành riêng cho property bằng cách sử dụng `ExampleMatcher`, như trong ví dụ sau:
+
+.ExampleMatcher với matching được tùy chỉnh
+====
+[source,java]
+----
+Person person = new Person();                          <1>
+person.setFirstname("Dave");                           <2>
+
+ExampleMatcher matcher = ExampleMatcher.matching()     <3>
+  .withIgnorePaths("lastname")                         <4>
+  .withIncludeNullValues()                             <5>
+  .withStringMatcher(StringMatcher.ENDING);            <6>
+
+Example<Person> example = Example.of(person, matcher); <7>
+
+----
+
+<1> Tạo một instance mới của domain object.
+<2> Thiết lập các property.
+<3> Tạo một `ExampleMatcher` để yêu cầu tất cả các giá trị match.
+Nó có thể được sử dụng ngay ở bước này mà không cần cấu hình thêm.
+<4> Tạo một `ExampleMatcher` mới để bỏ qua property path `lastname`.
+<5> Tạo một `ExampleMatcher` mới để bỏ qua property path `lastname` và đưa các giá trị null vào.
+<6> Tạo một `ExampleMatcher` mới để bỏ qua property path `lastname`, đưa các giá trị null vào và thực hiện matching chuỗi theo hậu tố.
+<7> Tạo một `Example` dựa trên domain object và `ExampleMatcher` đã được cấu hình.
+====
+
+Theo mặc định, `ExampleMatcher` yêu cầu tất cả các giá trị được thiết lập trên probe phải match.
+Nếu muốn nhận các kết quả match bất kỳ predicate nào được định nghĩa ngầm, hãy sử dụng `ExampleMatcher.matchingAny()`.
+
+Bạn có thể chỉ định behavior cho từng property (chẳng hạn như "firstname" và "lastname", hoặc đối với property lồng nhau là "address.city").
+Bạn có thể điều chỉnh bằng các tùy chọn matching và việc phân biệt chữ hoa chữ thường, như trong ví dụ sau:
+
+.Cấu hình các tùy chọn matcher
+[source,java]
+----
+ExampleMatcher matcher = ExampleMatcher.matching()
+  .withMatcher("firstname", endsWith())
+  .withMatcher("lastname", startsWith().ignoreCase());
+}
+----
+
+Một cách khác để cấu hình các tùy chọn matcher là sử dụng lambda (được giới thiệu trong Java 8).
+Cách tiếp cận này tạo một callback yêu cầu implementor sửa đổi matcher.
+Bạn không cần trả về matcher, vì các tùy chọn cấu hình được lưu trong instance matcher.
+Ví dụ sau cho thấy một matcher sử dụng lambda:
+
+.Cấu hình các tùy chọn matcher bằng lambda
+[source,java]
+----
+ExampleMatcher matcher = ExampleMatcher.matching()
+  .withMatcher("firstname", match -> match.endsWith())
+  .withMatcher("firstname", match -> match.startsWith());
+}
+----
+
+Các query được tạo bởi `Example` sử dụng một view hợp nhất của cấu hình.
+Các thiết lập matching mặc định có thể được đặt ở cấp `ExampleMatcher`, còn các thiết lập riêng lẻ có thể được áp dụng cho các property path cụ thể.
+Các thiết lập được đặt trên `ExampleMatcher` được kế thừa bởi các thiết lập của property path, trừ khi chúng được định nghĩa một cách tường minh.
+Các thiết lập trên property path có độ ưu tiên cao hơn các thiết lập mặc định.
+Bảng sau mô tả phạm vi của các thiết lập `ExampleMatcher` khác nhau:
+
+[cols="1,2",options="header"]
+.Phạm vi của các thiết lập `ExampleMatcher`
+|===
+| Thiết lập
+| Phạm vi
+
+| Xử lý null
+| `ExampleMatcher`
+
+| Matching chuỗi
+| `ExampleMatcher` và property path
+
+| Bỏ qua property
+| Property path
+
+| Phân biệt chữ hoa chữ thường
+| `ExampleMatcher` và property path
+
+| Chuyển đổi giá trị
+| Property path
+
+|===
+
+[[query-by-example.fluent]]
+== Fluent API
+
+`QueryByExampleExecutor` định nghĩa các phương thức query fluent để thực thi linh hoạt các query dựa trên các instance `Example` thông qua `findBy(Example<S> example, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction)`.
+
+Cũng như các phương thức khác, phương thức này thực thi một query được suy ra từ một `Example`.
+Tuy nhiên, query function cho phép bạn kiểm soát các khía cạnh của việc thực thi query mà nếu không thì bạn không thể kiểm soát một cách động.
+Bạn thực hiện điều đó bằng cách gọi các phương thức trung gian và kết thúc khác nhau của `FetchableFluentQuery`.
+
+**Các phương thức trung gian**
+
+* `sortBy`: Áp dụng thứ tự cho kết quả.
+Các lần gọi phương thức lặp lại sẽ nối thêm từng `Sort` (lưu ý rằng `page(Pageable)` sử dụng một `Pageable` đã được sắp xếp sẽ ghi đè mọi thứ tự sắp xếp trước đó).
+* `limit`: Giới hạn số lượng kết quả.
+* `as`: Chỉ định type cần đọc hoặc projection đến.
+* `project`: Giới hạn các property của query.
+
+**Các phương thức kết thúc**
+
+* `first`, `firstValue`: Trả về giá trị đầu tiên. `first` trả về một `Optional<T>` hoặc `Optional.empty()` nếu query không trả về kết quả nào. `firstValue` là biến thể nullable của nó, không cần sử dụng `Optional`.
+* `one`, `oneValue`: Trả về một giá trị duy nhất. `one` trả về một `Optional<T>` hoặc `Optional.empty()` nếu query không trả về kết quả nào. `oneValue` là biến thể nullable của nó, không cần sử dụng `Optional`.
+Ném `IncorrectResultSizeDataAccessException` nếu tìm thấy nhiều hơn một kết quả match.
+* `all`: Trả về tất cả kết quả dưới dạng `List<T>`.
+* `page(Pageable)`: Trả về tất cả kết quả dưới dạng `Page<T>`.
+* `slice(Pageable)`: Trả về tất cả kết quả dưới dạng `Slice<T>`.
+* `scroll(ScrollPosition)`: Sử dụng scrolling (offset, keyset) để lấy kết quả dưới dạng `Window<T>`.
+* `stream()`: Trả về một `Stream<T>` để xử lý kết quả một cách lazy.
+Stream có state và phải được đóng sau khi sử dụng.
+* `count` và `exists`: Trả về số lượng entity match hoặc cho biết có tồn tại kết quả match nào hay không.
+
+NOTE: Các phương thức trung gian và kết thúc phải được gọi bên trong query function.
+
+.Sử dụng fluent API để nhận một `Page` projection được sắp xếp theo `lastname`
+====
+[source,java]
+----
+Page<CustomerProjection> page = repository.findBy(example,
+    q -> q.as(CustomerProjection.class)
+          .page(PageRequest.of(0, 20, Sort.by("lastname")))
+);
+----
+====
+
+.Sử dụng fluent API để nhận kết quả cuối cùng trong số nhiều kết quả có thể có, được sắp xếp theo `lastname`
+====
+[source,java]
+----
+Optional<Customer> match = repository.findBy(example,
+    q -> q.sortBy(Sort.by("lastname").descending())
+          .first()
+);
+----
+====

@@ -1,0 +1,14 @@
+[[kotlin.extensions]]
+= Extension
+:page-section-summary-toc: 1
+
+Các https://kotlinlang.org/docs/reference/extensions.html[extension của Kotlin] cho phép mở rộng các class hiện có bằng chức năng bổ sung. Các API Kotlin của Spring Data sử dụng những extension này để bổ sung các tiện ích dành riêng cho Kotlin vào các API Spring hiện có.
+
+[NOTE]
+====
+Cần lưu ý rằng phải import các extension của Kotlin thì mới sử dụng được.
+Tương tự như static import, trong hầu hết trường hợp, IDE sẽ tự động đề xuất import.
+====
+
+Ví dụ, https://kotlinlang.org/docs/reference/inline-functions.html#reified-type-parameters[tham số kiểu reified của Kotlin] cung cấp một cách khắc phục hiện tượng type erasure của generics trên JVM, và Spring Data cung cấp một số extension để tận dụng tính năng này.
+Điều này cho phép có một API Kotlin tốt hơn.

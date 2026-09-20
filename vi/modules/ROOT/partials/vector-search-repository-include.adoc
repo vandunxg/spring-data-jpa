@@ -1,4 +1,4 @@
-.Using `SearchResults<T>` in a Repository Search Method
+.Dùng `SearchResults<T>` trong một Repository Search Method
 ====
 [source,java]
 ----

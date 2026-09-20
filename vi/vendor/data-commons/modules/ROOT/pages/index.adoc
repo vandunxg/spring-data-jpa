@@ -1,0 +1,23 @@
+[[spring-data-commons-reference-documentation]]
+= Spring Data Commons
+Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Pollack; Thomas Risberg; Mark Paluch; Jay Bryant
+:revnumber: {version}
+:revdate: {localdate}
+
+(C) 2008-{copyright-year} Các tác giả ban đầu.
+
+NOTE: Bạn có thể sao chép tài liệu này cho mục đích sử dụng riêng và phân phối cho người khác, với điều kiện bạn không thu bất kỳ khoản phí nào cho các bản sao đó và mỗi bản sao đều chứa Thông báo bản quyền này, dù được phân phối dưới dạng bản in hay điện tử.
+
+[[preface]]
+== Lời nói đầu
+
+Dự án Spring Data Commons áp dụng các khái niệm cốt lõi của Spring vào việc phát triển các giải pháp sử dụng nhiều kho dữ liệu quan hệ và phi quan hệ.
+
+[[project]]
+== Siêu dữ liệu dự án
+
+* Quản lý phiên bản: https://github.com/spring-projects/spring-data-commons
+* Trình theo dõi lỗi: https://github.com/spring-projects/spring-data-commons/issues
+* Repository bản phát hành: https://repo1.maven.org/maven2/
+* Repository milestone: https://repo.spring.io/milestone/
+* Repository snapshot: https://repo.spring.io/snapshot/

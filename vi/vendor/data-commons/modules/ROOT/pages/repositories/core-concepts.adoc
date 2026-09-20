@@ -1,0 +1,118 @@
+[[repositories.core-concepts]]
+= Các khái niệm cốt lõi
+:feature-scroll:
+
+Interface trung tâm trong repository abstraction của Spring Data là `Repository`.
+Interface này nhận lớp domain cần quản lý cũng như kiểu identifier của lớp domain làm các type argument.
+Interface này chủ yếu đóng vai trò là một marker interface để nắm bắt các type cần làm việc cùng và giúp bạn phát hiện các interface mở rộng interface này.
+
+[TIP]
+====
+Spring Data coi domain type là entity, cụ thể hơn là aggregate.
+Vì vậy, bạn sẽ thấy thuật ngữ "entity" được dùng xuyên suốt tài liệu và có thể thay thế cho thuật ngữ "domain type" hoặc "aggregate".
+
+Như bạn có thể đã nhận thấy, phần giới thiệu đã gợi ý về các khái niệm domain-driven.
+Chúng tôi xem xét domain object theo nghĩa của DDD.
+Domain object có identifier (nếu không, chúng sẽ là value object không có identity), và khi làm việc với một số pattern để truy cập dữ liệu, bằng cách nào đó chúng ta cần tham chiếu tới các identifier.
+Việc tham chiếu tới identifier sẽ trở nên có ý nghĩa hơn khi chúng ta trao đổi về repository và query method.
+====
+
+Các interface {spring-data-commons-javadoc-base}/org/springframework/data/repository/CrudRepository.html[`CrudRepository`] và {spring-data-commons-javadoc-base}/org/springframework/data/repository/ListCrudRepository.html[`ListCrudRepository`] cung cấp chức năng CRUD phong phú cho entity class đang được quản lý.
+
+[[repositories.repository]]
+.`CrudRepository` Interface
+[source,java]
+----
+public interface CrudRepository<T, ID> extends Repository<T, ID> {
+
+  <S extends T> S save(S entity);      <1>
+
+  Optional<T> findById(ID primaryKey); <2>
+
+  Iterable<T> findAll();               <3>
+
+  long count();                        <4>
+
+  void delete(T entity);               <5>
+
+  boolean existsById(ID primaryKey);   <6>
+
+  // … lược bỏ các chức năng khác.
+}
+----
+<1> Lưu entity đã cho.
+<2> Trả về entity được xác định bởi ID đã cho.
+<3> Trả về tất cả entity.
+<4> Trả về số lượng entity.
+<5> Xóa entity đã cho.
+<6> Cho biết entity có ID đã cho có tồn tại hay không.
+
+Các method được khai báo trong interface này thường được gọi là CRUD method.
+`ListCrudRepository` cung cấp các method tương đương, nhưng trả về `List` trong khi các method của `CrudRepository` trả về một `Iterable`.
+
+[IMPORTANT]
+====
+Repository interface ngầm định một số reserved method, chẳng hạn như `findById(ID identifier)`, nhắm tới identifier property của domain type bất kể tên property đó là gì.
+Đọc thêm về nội dung này trong "`xref:repositories/query-methods-details.adoc#repositories.query-methods.reserved-methods[Định nghĩa Query Method]`".
+
+Bạn có thể annotate query method bằng `@Query` để cung cấp query tùy chỉnh nếu một property có tên `Id` không tham chiếu tới identifier.
+Theo hướng đó có thể dễ dàng dẫn đến nhầm lẫn và không được khuyến khích, vì bạn sẽ nhanh chóng gặp giới hạn về type nếu type `ID` và type của property `Id` khác nhau.
+====
+
+NOTE: Chúng tôi cũng cung cấp các abstraction dành riêng cho persistence technology, chẳng hạn như `JpaRepository` hoặc `MongoRepository`.
+Các interface đó mở rộng `CrudRepository` và expose các capability của persistence technology underlying, bên cạnh các interface persistence technology-agnostic khá tổng quát như `CrudRepository`.
+
+Ngoài `CrudRepository`, còn có {spring-data-commons-javadoc-base}/org/springframework/data/repository/PagingAndSortingRepository.html[`PagingAndSortingRepository`] và {spring-data-commons-javadoc-base}/org/springframework/data/repository/ListPagingAndSortingRepository.html[`ListPagingAndSortingRepository`], bổ sung các method giúp truy cập entity theo trang dễ dàng hơn:
+
+.`PagingAndSortingRepository` interface
+[source,java]
+----
+interface PagingAndSortingRepository<T, ID> extends Repository<T, ID> {
+
+  Iterable<T> findAll(Sort sort);
+
+  Page<T> findAll(Pageable pageable);
+}
+----
+
+NOTE: Việc hỗ trợ các extension interface phụ thuộc vào store module thực tế.
+Mặc dù tài liệu này giải thích scheme tổng quát, hãy đảm bảo store module của bạn hỗ trợ các interface mà bạn muốn sử dụng.
+
+Để truy cập trang thứ hai của `User` với page size là 20, bạn có thể viết như sau:
+
+[source,java]
+----
+PagingAndSortingRepository<User, Long> repository = // … truy cập một bean
+Page<User> users = repository.findAll(PageRequest.of(1, 20));
+----
+
+`ListPagingAndSortingRepository` cung cấp các method tương đương, nhưng trả về một `List` trong khi các method của `PagingAndSortingRepository` trả về một `Iterable`.
+
+ifdef::feature-scroll[]
+Ngoài pagination, scrolling cung cấp cách truy cập chi tiết hơn để lặp qua các phần của những result set lớn hơn.
+endif::[]
+
+Ngoài query method, derived query cho cả count query và delete query đều khả dụng.
+Danh sách sau đây cho thấy định nghĩa interface cho một derived count query:
+
+.Một derived count query
+[source,java]
+----
+interface UserRepository extends CrudRepository<User, Long> {
+
+  long countByLastname(String lastname);
+}
+----
+
+Danh sách sau đây cho thấy định nghĩa interface cho một derived delete query:
+
+.Một derived delete query
+[source,java]
+----
+interface UserRepository extends CrudRepository<User, Long> {
+
+  long deleteByLastname(String lastname);
+
+  List<User> removeByLastname(String lastname);
+}
+----
