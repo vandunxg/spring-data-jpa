@@ -4,7 +4,7 @@
 Phần này trình bày một tập các Spring Data extension giúp việc sử dụng Spring Data trở nên khả thi trong nhiều ngữ cảnh khác nhau.
 Hiện tại, phần lớn các tích hợp này tập trung vào Spring MVC.
 
-include::{commons}@data-commons::page$repositories/core-extensions-querydsl.adoc[leveloffset=1]
+include::{commons}@data-commons-vi::page$repositories/core-extensions-querydsl.adoc[leveloffset=1]
 
 [[jpa.repositories.queries.type-safe.apt]]
 === Thiết lập Annotation Processing
@@ -140,6 +140,6 @@ dependencies {
 
 Lưu ý rằng phần thiết lập ở trên chỉ minh họa cách dùng đơn giản nhất, không đề cập đến các option hoặc dependency khác mà project của bạn có thể cần.
 
-include::{commons}@data-commons::page$repositories/core-extensions-web.adoc[leveloffset=1]
+include::{commons}@data-commons-vi::page$repositories/core-extensions-web.adoc[leveloffset=1]
 
-include::{commons}@data-commons::page$repositories/core-extensions-populators.adoc[leveloffset=1]
+include::{commons}@data-commons-vi::page$repositories/core-extensions-populators.adoc[leveloffset=1]

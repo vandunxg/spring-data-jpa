@@ -42,16 +42,23 @@ Không tự đổi API cũ sang API mới nếu source chưa đổi. Nội dung 
 
 ## Nội dung từ Spring Data Commons
 
-Spring Data JPA tái sử dụng nhiều trang từ component `data-commons` thông qua các include dạng:
+Spring Data JPA tái sử dụng nhiều trang từ component Commons thông qua các include dạng:
 
 `include::{commons}@data-commons::page$...`
 
+Trong source English, component là `data-commons`. Trong source tiếng Việt,
+component tương ứng là `data-commons-vi` và nội dung được dịch dưới
+`vi/vendor/data-commons/`.
+
 Quy tắc:
 
-- Không xóa hoặc thay target include.
+- Không xóa target page hoặc resource family của include. Source English giữ
+  target `data-commons`; source tiếng Việt dùng target tương ứng
+  `data-commons-vi` để render bản dịch.
 - Không tự copy nội dung Spring Data Commons vào trang JPA để "làm đầy" tài liệu.
 - Nếu trang JPA chỉ include toàn bộ nội dung từ Commons và không có prose JPA bổ sung, ghi rõ trong `PROGRESS.md` rằng nội dung phụ thuộc `vendor/data-commons/`.
-- Nếu cần dịch phần Commons để website tiếng Việt hiển thị đầy đủ, phải xử lý như một scope riêng, không trộn vào prose JPA mà không ghi nhận.
+- Bản dịch Commons dành cho website tiếng Việt phải nằm trong component
+  `data-commons-vi`, không trộn trực tiếp vào prose JPA.
 - Không suy diễn nội dung khi include chưa resolve được.
 
 ## AsciiDoc và Antora

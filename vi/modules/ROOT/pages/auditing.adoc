@@ -1,4 +1,4 @@
-include::{commons}@data-commons::page$auditing.adoc[]
+include::{commons}@data-commons-vi::page$auditing.adoc[]
 
 Ngoài ra còn có một convenience base class, `AbstractAuditable`, mà bạn có thể extend để tránh phải tự implement thủ công các interface method. Tuy nhiên, làm vậy sẽ làm tăng sự coupling giữa domain class của bạn với Spring Data, điều mà bạn có thể muốn tránh. Thông thường, cách định nghĩa auditing metadata bằng annotation được ưa chuộng hơn vì nó ít invasive hơn và linh hoạt hơn.
 
@@ -70,4 +70,3 @@ Nếu bạn expose một bean kiểu `AuditorAware` cho `ApplicationContext`, au
 // FIXME: does this need to exist?
 // [[jpa.misc]]
 // = Miscellaneous Considerations
-

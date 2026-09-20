@@ -2,8 +2,9 @@
 #
 # Builds a single site from the three components kept in this repository:
 #   docs/               -> data-jpa     (English, synced from spring-projects/spring-data-jpa)
-#   vi/                 -> vi           (Vietnamese translation)
-#   vendor/data-commons -> data-commons (vendored, needed so `include::{commons}@data-commons::` resolves)
+#   vi/                         -> vi               (Vietnamese translation)
+#   vi/vendor/data-commons     -> data-commons-vi  (translated Commons includes)
+#   vendor/data-commons        -> data-commons     (English Commons includes)
 #
 # Upstream builds these attributes with Maven resource filtering (see
 # docs/resources/antora-resources/antora.yml). This repository has no Maven build,
@@ -21,6 +22,7 @@ content:
       start_paths:
         - docs
         - vi
+        - vi/vendor/data-commons
         - vendor/data-commons
 
 output:

@@ -1,5 +1,5 @@
 :support-qbe-collection: false
-include::{commons}@data-commons::page$query-by-example.adoc[]
+include::{commons}@data-commons-vi::page$query-by-example.adoc[]
 
 [[query-by-example.running]]
 Trong Spring Data JPA, bạn có thể sử dụng Query by Example với Repository, như minh họa trong ví dụ sau:

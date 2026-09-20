@@ -7,6 +7,7 @@ Bản dịch không chính thức từ tài liệu Spring Data JPA chính thức
 - Thuật ngữ: [GLOSSARY.md](GLOSSARY.md)
 - Navigation: [modules/ROOT/nav.adoc](modules/ROOT/nav.adoc)
 - Trang bắt đầu: [modules/ROOT/pages/index.adoc](modules/ROOT/pages/index.adoc)
+- Commons translation component: `vi/vendor/data-commons/` (`data-commons-vi`)
 
 Mapping:
 
@@ -18,6 +19,6 @@ Mapping:
 
 `docs/` là English source được đồng bộ từ official Spring Data JPA upstream. `vi/` giữ bản dịch tiếng Việt.
 
-Một phần reference documentation của Spring Data JPA include nội dung từ Spring Data Commons. Dependency đó được mirror riêng dưới `vendor/data-commons/`; không chỉnh sửa trực tiếp nội dung mirror trong quá trình dịch JPA.
+Một phần reference documentation của Spring Data JPA include nội dung từ Spring Data Commons. English dependency được mirror riêng dưới `vendor/data-commons/`, còn bản dịch được build từ component `data-commons-vi` dưới `vi/vendor/data-commons/`.
 
 Giữ nguyên cấu trúc AsciiDoc/Antora, anchor, xref, include, JPQL/SQL và code sample để English/Vietnamese có thể build chung.

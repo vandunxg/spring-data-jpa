@@ -1,1 +1,1 @@
-include::{commons}@data-commons::page$repositories/core-concepts.adoc[]
+include::{commons}@data-commons-vi::page$repositories/core-concepts.adoc[]

@@ -67,7 +67,7 @@ Các trang sau chỉ chứa `include::{commons}@data-commons::page$...[]` (khôn
 
 - **Nhất quán nhãn xref (`xref:...[Label]`)**: đã rà soát toàn bộ 26 trang. Kết luận: nhãn xref trỏ tới trang đã dịch (nằm trong 26 trang ở trên) phải dịch sang tiếng Việt; nhãn trỏ tới trang phụ thuộc Commons chưa dịch (`repositories/core-concepts.adoc`, `repositories/query-methods-details.adoc`, `repositories/custom-implementations.adoc` — trang này bản thân chỉ include Commons rồi thêm một section JPA nhỏ, tiêu đề trang vẫn là tiếng Anh) thì giữ nguyên nhãn tiếng Anh cho khớp với heading thật sự sẽ hiển thị khi click qua. Đã sửa 1 chỗ lệch thật sự: `jpa/query-methods.adoc` dòng 15, nhãn tự tham chiếu `[Using Value Expressions]` → `[Sử dụng Value Expression]` (trỏ tới heading `== Templated Query và Expression` đã dịch trong cùng file). Không còn trường hợp nhãn tiếng Anh trỏ tới trang đã dịch.
 - Đã dịch đủ 41/41 file Commons vào `vi/vendor/data-commons/modules/ROOT/pages/`.
-- Batch Commons hiện chưa được wire vào các `include::{commons}@data-commons::...`; cần một scope integration riêng nếu muốn website tiếng Việt render các bản dịch Commons này.
+- Đã wire 20 Commons include của source tiếng Việt sang component `data-commons-vi`; English source vẫn dùng component `data-commons`.
 
 ## Kiểm tra chất lượng
 

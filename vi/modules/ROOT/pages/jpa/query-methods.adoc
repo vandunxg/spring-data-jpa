@@ -878,4 +878,4 @@ public interface GroupRepository extends CrudRepository<GroupInfo, String> {
 ----
 ====
 
-include::{commons}@data-commons::page$repositories/scrolling.adoc[leveloffset=+1]
+include::{commons}@data-commons-vi::page$repositories/scrolling.adoc[leveloffset=+1]

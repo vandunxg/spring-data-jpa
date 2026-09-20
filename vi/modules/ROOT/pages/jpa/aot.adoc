@@ -1,4 +1,4 @@
-include::{commons}@data-commons::page$aot.adoc[]
+include::{commons}@data-commons-vi::page$aot.adoc[]
 
 [[aot.repositories.jpa]]
 == JPA Ahead of Time Repositories

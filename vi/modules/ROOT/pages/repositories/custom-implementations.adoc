@@ -1,4 +1,4 @@
-include::{commons}@data-commons::page$repositories/custom-implementations.adoc[]
+include::{commons}@data-commons-vi::page$repositories/custom-implementations.adoc[]
 
 [[jpa.misc.jpa-context]]
 == Sử dụng `JpaContext` trong Custom Implementation
