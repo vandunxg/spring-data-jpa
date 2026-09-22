@@ -18,11 +18,32 @@ Kế thừa cấu trúc và nguyên tắc từ `vandunxg/spring-security/vi/CLAU
 1. Đọc toàn bộ file gốc trước khi dịch. Không dịch từ tiêu đề, snippet rời rạc hoặc kiến thức nhớ lại.
 2. Dịch đầy đủ, không tóm tắt, không thêm ý, không bỏ ví dụ, cảnh báo, điều kiện, bảng hoặc danh sách.
 3. Văn phong kỹ thuật, trực tiếp, tự nhiên; không kéo dài câu không cần thiết.
-4. Giữ thuật ngữ chuyên ngành bằng tiếng Anh theo `GLOSSARY.md`; dịch phần diễn giải xung quanh.
+4. Ưu tiên giữ technical/domain terms bằng tiếng Anh theo ngữ cảnh. `GLOSSARY.md` là baseline, không phải whitelist; term chưa có trong glossary vẫn giữ English nếu đó là cách viết tự nhiên và chính xác hơn trong tài liệu kỹ thuật.
 5. Giữ nguyên tên API, class, interface, method, package, annotation, property, identifier, command, URL, số liệu và version.
 6. Dịch heading, prose, nhãn link, caption, alt text, text trong bảng và comment giải thích.
 7. Không dịch executable code, output log, JPQL/SQL query, configuration key hoặc sample value có ý nghĩa kỹ thuật.
 8. Không thêm tutorial, bài tập, lời bình hoặc nội dung do AI tự suy diễn vào bản dịch.
+
+## English-first theo ngữ cảnh
+
+Mục tiêu: bản dịch phải đọc giống tài liệu kỹ thuật do developer Việt viết, không phải bản Việt hóa từng từ.
+
+- `GLOSSARY.md` là baseline, không phải whitelist. Term chưa có trong glossary vẫn giữ English nếu đó là technical/domain concept và cách dùng English tự nhiên, chính xác hơn trong ngữ cảnh.
+- Không ép dịch một term chỉ vì có từ tiếng Việt tương đương. Ưu tiên giữ English cho các concept trong architecture, runtime, workflow và domain model như `system`, `backend`, `frontend`, `service`, `module`, `request`, `response`, `payload`, `repository`, `entity`, `transaction`, `query`, `filter`, `handler`, `listener`, `message`, `event`, `job`, `task`, `workflow`, `upstream`, `downstream`, `sync`, `async`, `batch`, `retry`, `timeout`, `fallback`, `cache`, `validation`, `mapping`, `binding`, `build`, `deploy`.
+- Với domain/business workflow, ưu tiên term mà system/team dùng như một concept: `order`, `approval`, `inventory`, `fulfillment`, `procurement`, `finance`, `payment`, `price`, ... nếu Việt hóa làm mất tính nhất quán với model/API/flow.
+- Technical verbs có thể giữ English khi cách đó tự nhiên và chính xác hơn: `validate`, `map`, `bind`, `serialize`, `deserialize`, `persist`, `flush`, `commit`, `rollback`, `retry`, `resolve`, `reserve`, `publish`, `consume`, `mock`, `override`.
+- Dịch phần ngữ pháp, liên từ và diễn giải thông thường sang tiếng Việt. Mục tiêu là một câu tiếng Việt có English technical terms đúng chỗ, không phải biến cả câu thành English.
+- Quyết định theo meaning trong câu, không theo token. Ví dụ: `request` là HTTP/domain object thì giữ `request`; “request access” dùng như động từ thông thường có thể dịch là “yêu cầu quyền truy cập”. `order` là domain entity thì giữ `order`; “in order to” phải dịch theo nghĩa ngữ pháp.
+- Một concept dùng một term nhất quán trong cùng file/section. Không xen kẽ `request`/“yêu cầu”, `transaction`/“giao dịch”, `repository`/“kho lưu trữ” nếu đang nói cùng technical concept.
+- Không tự thêm bản dịch tiếng Việt trong ngoặc sau mỗi English term. Chỉ giải thích ở lần đầu nếu concept khó và source/ngữ cảnh thực sự cần làm rõ.
+- API/type/identifier giữ đúng casing gốc như `Authentication`, `JpaRepository`; prose term dùng casing thông thường như `request`, `transaction`, `repository`.
+
+Ví dụ style mục tiêu:
+
+> System chủ yếu phục vụ nhân viên procurement và finance, phụ trách tra cứu sản phẩm, tạo order, approval, đồng bộ trạng thái thanh toán và tra cứu fulfillment. Backend được tách thành các module order, inventory và approval; khi tạo order, trước tiên sẽ validate request và price, sau đó tạo order và reserve inventory. Sau khi thành công, system gửi message để downstream hoàn thành các task async như thông báo approval.
+
+Không sửa meaning của source chỉ để làm câu “kỹ thuật hơn”; chỉ giữ English khi term đó thực sự là technical/domain concept trong ngữ cảnh.
+
 
 ## Spring Data JPA
 
