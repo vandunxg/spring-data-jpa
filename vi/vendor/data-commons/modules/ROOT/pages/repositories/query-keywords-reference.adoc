@@ -1,33 +1,33 @@
 [[repository-query-keywords]]
 [appendix]
-= Từ khóa query của Repository
+= Query keywords của repository
 
 [[appendix.query.method.subject]]
-== Các từ khóa subject được hỗ trợ của query method
+== Các subject keyword được hỗ trợ của query method
 
-Bảng sau liệt kê các từ khóa subject thường được cơ chế derived query của Spring Data repository hỗ trợ để biểu diễn Predicate.
-Tham khảo tài liệu dành riêng cho từng store để biết danh sách chính xác các từ khóa được hỗ trợ, vì một số từ khóa được liệt kê ở đây có thể không được hỗ trợ trong một store cụ thể.
+Bảng sau liệt kê các subject keyword mà cơ chế derived query của Spring Data repository thường hỗ trợ để biểu diễn predicate.
+Tham khảo tài liệu theo từng store để biết danh sách chính xác các keyword được hỗ trợ, vì một số keyword được liệt kê ở đây có thể không được hỗ trợ trong một store cụ thể.
 
-.Từ khóa subject của query
+.Subject keywords của query
 [options="header",cols="1,3"]
 |===============
-|Từ khóa | Mô tả
-|`find…By`, `read…By`, `get…By`, `query…By`, `search…By`, `stream…By`| Query method tổng quát thường trả về kiểu repository, một subtype của `Collection` hoặc `Streamable`, hoặc một result wrapper như `Page`, `GeoResults` hay bất kỳ result wrapper nào khác dành riêng cho store. Có thể được dùng dưới dạng `findBy…`, `findMyDomainTypeBy…` hoặc kết hợp với các từ khóa bổ sung.
-|`exists…By`| Projection kiểm tra sự tồn tại, thường trả về kết quả `boolean`.
-|`count…By`| Projection đếm, trả về kết quả dạng số.
-|`delete…By`, `remove…By`| Query method xóa, trả về không có kết quả (`void`) hoặc số lượng bản ghi đã xóa.
-|`…First<number>…`, `…Top<number>…`| Giới hạn kết quả query ở `<number>` kết quả đầu tiên. Từ khóa này có thể xuất hiện ở bất kỳ vị trí nào trong subject, giữa `find` (và các từ khóa khác) với `by`.
-|`…Distinct…`| Sử dụng query distinct để chỉ trả về các kết quả duy nhất. Tham khảo tài liệu dành riêng cho từng store để biết tính năng đó có được hỗ trợ hay không. Từ khóa này có thể xuất hiện ở bất kỳ vị trí nào trong subject, giữa `find` (và các từ khóa khác) với `by`.
+|Keyword | Mô tả
+|`find…By`, `read…By`, `get…By`, `query…By`, `search…By`, `stream…By`| Query method tổng quát, thường trả về repository type, một subtype của `Collection` hoặc `Streamable`, hoặc một result wrapper như `Page`, `GeoResults` hay bất kỳ result wrapper nào khác dành riêng cho store. Có thể được dùng dưới dạng `findBy…`, `findMyDomainTypeBy…` hoặc kết hợp với các keyword bổ sung.
+|`exists…By`| Exists projection, thường trả về kết quả `boolean`.
+|`count…By`| Count projection, trả về kết quả dạng số.
+|`delete…By`, `remove…By`| Query method xóa, trả về không có kết quả (`void`) hoặc delete count.
+|`…First<number>…`, `…Top<number>…`| Giới hạn query result ở `<number>` result đầu tiên. Keyword này có thể xuất hiện ở bất kỳ vị trí nào trong subject, giữa `find` (và các keyword khác) với `by`.
+|`…Distinct…`| Sử dụng distinct query để chỉ trả về các result duy nhất. Tham khảo tài liệu theo từng store để biết tính năng này có được hỗ trợ hay không. Keyword này có thể xuất hiện ở bất kỳ vị trí nào trong subject, giữa `find` (và các keyword khác) với `by`.
 |===============
 
 [[appendix.query.method.reserved]]
-== Các method dành riêng
+== Các reserved method
 
-Bảng sau liệt kê các method dành riêng sử dụng chức năng được định nghĩa trước (như được định nghĩa trong `CrudRepository`).
-Các method này được gọi trực tiếp trên implementation dành riêng cho store hỗ trợ repository proxy.
-Xem thêm "`xref:repositories/query-methods-details.adoc#repositories.query-methods.reserved-methods[Định nghĩa Query Method]`".
+Bảng sau liệt kê các reserved method sử dụng chức năng được định nghĩa sẵn (như được định nghĩa trong `CrudRepository`).
+Các method này được gọi trực tiếp trên implementation theo từng store đứng sau repository proxy.
+Xem thêm "`xref:repositories/query-methods-details.adoc#repositories.query-methods.reserved-methods[Định nghĩa query method]`".
 
-.Các method dành riêng
+.Reserved methods
 |===============
 |`deleteAllById(Iterable<ID> identifiers)`
 |`deleteById(ID identifier)`
@@ -37,15 +37,15 @@ Xem thêm "`xref:repositories/query-methods-details.adoc#repositories.query-meth
 |===============
 
 [[appendix.query.method.predicate]]
-== Các từ khóa predicate và modifier được hỗ trợ của query method
+== Các predicate keyword và modifier được hỗ trợ của query method
 
-Bảng sau liệt kê các từ khóa predicate thường được cơ chế derived query của Spring Data repository hỗ trợ.
-Tuy nhiên, hãy tham khảo tài liệu dành riêng cho từng store để biết danh sách chính xác các từ khóa được hỗ trợ, vì một số từ khóa được liệt kê ở đây có thể không được hỗ trợ trong một store cụ thể.
+Bảng sau liệt kê các predicate keyword mà cơ chế derived query của Spring Data repository thường hỗ trợ.
+Tuy nhiên, hãy tham khảo tài liệu theo từng store để biết danh sách chính xác các keyword được hỗ trợ, vì một số keyword được liệt kê ở đây có thể không được hỗ trợ trong một store cụ thể.
 
-.Từ khóa predicate của query
+.Predicate keywords của query
 [options="header",cols="1,3"]
 |===============
-|Từ khóa logic|Biểu thức từ khóa
+|Logical keyword|Keyword expressions
 |`AND`|`And`
 |`OR`|`Or`
 |`AFTER`|`After`, `IsAfter`
@@ -76,13 +76,13 @@ Tuy nhiên, hãy tham khảo tài liệu dành riêng cho từng store để bi�
 |`WITHIN`|`Within`, `IsWithin`
 |===============
 
-Ngoài các predicate dùng để lọc, danh sách modifier sau được hỗ trợ:
+Ngoài các filter predicate, danh sách modifier sau được hỗ trợ:
 
-.Từ khóa modifier của predicate query
+.Modifier keyword của query predicate
 [options="header",cols="1,3"]
 |===============
-|Từ khóa | Mô tả
-|`IgnoreCase`, `IgnoringCase`| Được dùng với một predicate keyword để so sánh không phân biệt hoa thường.
-|`AllIgnoreCase`, `AllIgnoringCase`| Bỏ qua phân biệt hoa thường cho mọi property phù hợp. Được dùng ở đâu đó trong predicate của query method.
-|`OrderBy…`| Chỉ định thứ tự sắp xếp tĩnh, theo sau là property path và hướng (ví dụ: `OrderByFirstnameAscLastnameDesc`).
+|Keyword | Mô tả
+|`IgnoreCase`, `IgnoringCase`| Được dùng với một predicate keyword để so sánh không phân biệt hoa/chữ thường.
+|`AllIgnoreCase`, `AllIgnoringCase`| Bỏ qua phân biệt hoa thường cho mọi property phù hợp. Được dùng ở một vị trí bất kỳ trong predicate của query method.
+|`OrderBy…`| Chỉ định thứ tự sort tĩnh, theo sau là property path và direction (ví dụ: `OrderByFirstnameAscLastnameDesc`).
 |===============

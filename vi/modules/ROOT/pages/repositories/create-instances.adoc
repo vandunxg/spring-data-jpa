@@ -8,7 +8,7 @@ Phần này mô tả cách cấu hình Spring Data JPA thông qua một trong ha
 
 [[jpa.java-config]]
 == Cấu hình dựa trên Annotation
-Spring Data JPA repositories support có thể được kích hoạt thông qua cả JavaConfig và một custom XML namespace, như ví dụ sau:
+Tính năng hỗ trợ repository của Spring Data JPA có thể được kích hoạt thông qua cả JavaConfig và một custom XML namespace, như trong ví dụ sau:
 
 .Spring Data JPA repositories sử dụng JavaConfig
 ====
@@ -51,7 +51,7 @@ class ApplicationConfig {
 ====
 NOTE: Bạn phải tạo `LocalContainerEntityManagerFactoryBean` chứ không tạo trực tiếp `EntityManagerFactory`, vì `LocalContainerEntityManagerFactoryBean` còn tham gia vào cơ chế exception translation bên cạnh việc tạo `EntityManagerFactory`.
 
-Configuration class ở trên thiết lập một embedded HSQL database bằng `EmbeddedDatabaseBuilder` API của `spring-jdbc`. Sau đó Spring Data thiết lập một `EntityManagerFactory` và dùng Hibernate làm persistence provider mẫu. Infrastructure component cuối cùng được khai báo ở đây là `JpaTransactionManager`. Cuối cùng, ví dụ này kích hoạt Spring Data JPA repositories bằng annotation `@EnableJpaRepositories`, về cơ bản mang các attribute giống như XML namespace. Nếu không cấu hình base package, nó sẽ dùng package chứa configuration class.
+Class cấu hình ở trên thiết lập một embedded HSQL database bằng API `EmbeddedDatabaseBuilder` của `spring-jdbc`. Sau đó, Spring Data thiết lập một `EntityManagerFactory` và dùng Hibernate làm persistence provider được dùng trong ví dụ. Infrastructure component cuối cùng được khai báo ở đây là `JpaTransactionManager`. Cuối cùng, ví dụ này kích hoạt các repository của Spring Data JPA bằng annotation `@EnableJpaRepositories`, về cơ bản có cùng các attribute với XML namespace. Nếu không cấu hình base package, nó sẽ dùng package chứa class cấu hình.
 
 [[repositories.create-instances.xml]]
 == Spring Namespace
@@ -77,25 +77,25 @@ Module JPA của Spring Data chứa một custom namespace cho phép định ngh
 ----
 ====
 
-TIP: Nên dùng JavaConfig hay XML? XML là cách Spring được cấu hình từ thời xưa. Trong thời đại Java phát triển nhanh hiện nay, với record type, annotation và nhiều tính năng khác, các dự án mới thường dùng càng nhiều pure Java càng tốt. Dù chưa có kế hoạch loại bỏ XML support ngay, một số tính năng mới nhất CÓ THỂ không khả dụng qua XML.
+TIP: Nên dùng JavaConfig hay XML? XML là cách Spring từng được cấu hình trong quá khứ. Trong thời đại Java phát triển nhanh hiện nay, với record type, annotation và nhiều tính năng khác, các dự án mới thường dùng càng nhiều pure Java càng tốt. Dù chưa có kế hoạch loại bỏ XML support ngay, một số tính năng mới nhất CÓ THỂ không khả dụng qua XML.
 
-Khi dùng element `repositories`, nó kích hoạt persistence exception translation cho tất cả bean được annotate bằng `@Repository`, để các exception do JPA persistence provider ném ra được convert sang hierarchy `DataAccessException` của Spring.
+Việc sử dụng element `repositories` kích hoạt persistence exception translation cho tất cả bean được annotate bằng `@Repository`, để các exception do các JPA persistence provider ném ra được chuyển thành các exception thuộc hierarchy `DataAccessException` của Spring.
 
 [[jpa.namespace.custom-namespace-attributes]]
-=== Custom Namespace Attributes
+=== Các attribute của custom namespace
 Ngoài các attribute mặc định của element `repositories`, JPA namespace còn cung cấp thêm các attribute để bạn kiểm soát chi tiết hơn việc thiết lập repositories:
 
-.Custom JPA-specific attributes của element `repositories`
+.Các attribute dành riêng cho JPA của element `repositories`
 [options = "autowidth"]
 |===============
-|`entity-manager-factory-ref`|Wire tường minh `EntityManagerFactory` sẽ được dùng với các repositories được phát hiện bởi element `repositories`. Thường dùng khi ứng dụng có nhiều bean `EntityManagerFactory`. Nếu không cấu hình, Spring Data sẽ tự động tìm bean `EntityManagerFactory` có tên `entityManagerFactory` trong `ApplicationContext`.
-|`transaction-manager-ref`|Wire tường minh `PlatformTransactionManager` sẽ được dùng với các repositories được phát hiện bởi element `repositories`. Thường chỉ cần thiết khi có nhiều transaction manager hoặc nhiều bean `EntityManagerFactory` được cấu hình. Mặc định dùng `PlatformTransactionManager` duy nhất được định nghĩa trong `ApplicationContext` hiện tại.
+|`entity-manager-factory-ref`|Cấu hình tường minh `EntityManagerFactory` sẽ được dùng với các repositories được phát hiện bởi element `repositories`. Thường dùng khi ứng dụng có nhiều bean `EntityManagerFactory`. Nếu không cấu hình, Spring Data sẽ tự động tìm bean `EntityManagerFactory` có tên `entityManagerFactory` trong `ApplicationContext`.
+|`transaction-manager-ref`|Cấu hình tường minh `PlatformTransactionManager` sẽ được dùng với các repositories được phát hiện bởi element `repositories`. Thường chỉ cần thiết khi có nhiều transaction manager hoặc nhiều bean `EntityManagerFactory` được cấu hình. Mặc định dùng `PlatformTransactionManager` duy nhất được định nghĩa trong `ApplicationContext` hiện tại.
 |===============
 
 NOTE: Spring Data JPA yêu cầu phải có một bean `PlatformTransactionManager` tên là `transactionManager` nếu không định nghĩa tường minh `transaction-manager-ref`.
 
 [[jpa.bootstrap-mode]]
-== Bootstrap Mode
+== Chế độ bootstrap
 
 Mặc định, Spring Data JPA repositories là các Spring bean thông thường.
 Chúng có scope singleton và được khởi tạo eager.
@@ -106,7 +106,7 @@ Spring Framework hỗ trợ khởi tạo JPA `EntityManagerFactory` trong một 
 Từ Spring Data JPA 2.1, bạn có thể cấu hình `BootstrapMode` (thông qua annotation `@EnableJpaRepositories` hoặc XML namespace) với các giá trị sau:
 
 * `DEFAULT` (mặc định) -- Repositories được khởi tạo eager trừ khi được annotate tường minh bằng `@Lazy`.
-Việc lazify này chỉ có tác dụng nếu không có client bean nào cần một instance của repository, vì điều đó sẽ yêu cầu khởi tạo repository bean.
+Việc chuyển sang lazy chỉ có tác dụng nếu không có client bean nào cần một instance của repository, vì điều đó sẽ yêu cầu khởi tạo repository bean.
 * `LAZY` -- Ngầm định khai báo tất cả repository bean là lazy và cũng khiến các lazy initialization proxy được tạo ra để inject vào client bean.
 Điều đó có nghĩa là repositories sẽ không được khởi tạo nếu client bean chỉ đơn giản lưu instance vào một field mà không sử dụng repository trong lúc khởi tạo.
 Repository instance sẽ được khởi tạo và verify khi có tương tác đầu tiên với repository.
@@ -115,11 +115,11 @@ Repository instance sẽ được khởi tạo và verify khi có tương tác �
 [[jpa.bootstrap-mode.recommendations]]
 === Khuyến nghị
 
-Nếu bạn không dùng JPA bootstrap bất đồng bộ (asynchronous), hãy giữ nguyên bootstrap mode mặc định.
+Nếu bạn không dùng JPA bootstrap bất đồng bộ, hãy giữ nguyên bootstrap mode mặc định.
 
 Trong trường hợp bạn bootstrap JPA bất đồng bộ, `DEFERRED` là lựa chọn mặc định hợp lý vì nó đảm bảo Spring Data JPA bootstrap chỉ chờ việc thiết lập `EntityManagerFactory` nếu bản thân việc đó mất nhiều thời gian hơn việc khởi tạo tất cả các application component khác.
 Dù vậy, nó vẫn đảm bảo repositories được khởi tạo và validate đúng cách trước khi ứng dụng báo hiệu đã sẵn sàng.
 
 `LAZY` là lựa chọn khá tốt cho các kịch bản testing và local development.
 Khi bạn đã khá chắc chắn rằng repositories có thể bootstrap đúng cách, hoặc trong trường hợp bạn đang test các phần khác của ứng dụng, việc chạy verification cho tất cả repositories có thể làm tăng thời gian startup một cách không cần thiết.
-Điều tương tự cũng áp dụng cho local development, khi bạn chỉ truy cập các phần của ứng dụng cần khởi tạo một repository duy nhất.
+Điều tương tự cũng áp dụng cho local development, khi bạn chỉ truy cập các phần của ứng dụng có thể cần khởi tạo một repository duy nhất.

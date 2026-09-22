@@ -2,7 +2,7 @@
 = JPA
 :page-section-summary-toc: 1
 
-Chương này trình bày những đặc thù trong repository support dành cho JPA.
-Trước khi đi vào các chi tiết cụ thể của JPA, hãy đảm bảo bạn đã hiểu rõ các khái niệm cơ bản được trình bày ở xref:repositories/core-concepts.adoc[Working with Spring Data Repositories].
+Chương này trình bày những điểm đặc thù của repository support cho JPA.
+Trước khi đi vào các chi tiết cụ thể của JPA, hãy đảm bảo bạn đã nắm vững các khái niệm cơ bản được trình bày trong xref:repositories/core-concepts.adoc[Làm việc với Spring Data Repositories].
 
-Mục tiêu của repository abstraction trong Spring Data là giảm đáng kể lượng boilerplate code cần thiết để implement data access layer cho nhiều loại persistence store khác nhau.
+Mục tiêu của repository abstraction trong Spring Data là giảm đáng kể lượng boilerplate code cần thiết để implement data access layer cho nhiều persistence store khác nhau.

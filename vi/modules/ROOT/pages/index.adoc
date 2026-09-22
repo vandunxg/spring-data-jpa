@@ -4,17 +4,16 @@
 :revdate: {localdate}
 
 _Spring Data JPA cung cấp repository support cho Jakarta Persistence API (JPA).
-Nó giúp việc phát triển ứng dụng cần truy cập JPA data source trở nên dễ dàng hơn nhờ một programming model nhất quán._
+Nó giúp việc phát triển các ứng dụng cần truy cập các JPA data sources trở nên dễ dàng hơn nhờ một programming model nhất quán._
 
 [horizontal]
-xref:jpa.adoc[JPA] :: JPA và JPA Repository
-xref:envers.adoc[Envers] :: Hỗ trợ Envers Revision Repository
+xref:jpa.adoc[JPA] :: JPA và JPA Repositories
+xref:envers.adoc[Envers] :: Hỗ trợ Envers Revision Repositories
 https://github.com/spring-projects/spring-data-commons/wiki[Wiki] :: Những điểm mới,
-Ghi chú nâng cấp, các phiên bản được hỗ trợ, thông tin bổ sung giữa các phiên bản.
+ghi chú nâng cấp, các phiên bản được hỗ trợ và thông tin bổ sung giữa các phiên bản.
 
 Oliver Gierke, Thomas Darimont, Christoph Strobl, Mark Paluch, Jay Bryant, Greg Turnquist
 
 (C) 2008-{copyright-year} VMware, Inc.
 
-Bạn có thể sao chép tài liệu này để sử dụng cho mục đích cá nhân hoặc để phân phối cho người khác, miễn là không thu bất kỳ khoản phí nào cho các bản sao đó và mỗi bản sao đều phải có thông báo bản quyền (Copyright Notice) này, dù được phân phối dưới dạng in ấn hay điện tử.
-
+Bạn có thể sao chép tài liệu này để tự sử dụng hoặc phân phối cho người khác, với điều kiện không thu bất kỳ khoản phí nào cho các bản sao đó và mỗi bản sao đều phải có thông báo bản quyền (Copyright Notice) này, dù được phân phối dưới dạng bản in hay điện tử.

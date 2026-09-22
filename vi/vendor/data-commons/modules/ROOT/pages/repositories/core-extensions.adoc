@@ -1,8 +1,8 @@
 [[core.extensions]]
-= Các phần mở rộng của Spring Data
+= Spring Data extensions
 
-Phần này mô tả một tập hợp các phần mở rộng của Spring Data, cho phép sử dụng Spring Data trong nhiều ngữ cảnh khác nhau.
-Hiện tại, phần lớn hoạt động tích hợp hướng đến Spring MVC.
+Phần này mô tả một tập hợp extension của Spring Data, cho phép sử dụng Spring Data trong nhiều ngữ cảnh khác nhau.
+Hiện tại, phần lớn hoạt động integration hướng đến Spring MVC.
 
 include::core-extensions-querydsl.adoc[leveloffset=1]
 

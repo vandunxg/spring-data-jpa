@@ -1,12 +1,12 @@
 [[kotlin.coroutines]]
 = Coroutines
 
-Kotlin https://kotlinlang.org/docs/reference/coroutines-overview.html[Coroutines] là các phép tính có thể tạm dừng, cho phép viết mã không chặn theo phong cách mệnh lệnh.
-Ở cấp độ ngôn ngữ, các hàm `suspend` cung cấp một abstraction cho các thao tác bất đồng bộ; ở cấp thư viện, https://github.com/Kotlin/kotlinx.coroutines[kotlinx.coroutines] cung cấp các hàm như https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/async.html[`async { }`] và các kiểu như https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/index.html[`Flow`].
+Kotlin https://kotlinlang.org/docs/reference/coroutines-overview.html[Coroutines] là các computation có thể suspend, cho phép viết code non-blocking theo kiểu imperative.
+Ở cấp language, các function `suspend` cung cấp một abstraction cho các operation async; ở cấp library, https://github.com/Kotlin/kotlinx.coroutines[kotlinx.coroutines] cung cấp các function như https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/async.html[`async { }`] và các type như https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/index.html[`Flow`].
 
 Các module Spring Data cung cấp hỗ trợ Coroutines trong phạm vi sau:
 
-* Hỗ trợ các giá trị trả về https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/index.html[Deferred] và https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/index.html[Flow] trong các Kotlin extension
+* Hỗ trợ các return value https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/index.html[Deferred] và https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/index.html[Flow] trong các Kotlin extension
 
 [[kotlin.coroutines.dependencies]]
 == Các dependency
@@ -40,18 +40,18 @@ NOTE: Các phiên bản được hỗ trợ là `1.7.0` trở lên.
 Đối với các giá trị trả về, việc chuyển đổi từ API Reactive sang API Coroutines như sau:
 
 * `fun handler(): Mono<Void>` trở thành `suspend fun handler()`
-* `fun handler(): Mono<T>` trở thành `suspend fun handler(): T` hoặc `suspend fun handler(): T?`, tùy thuộc vào việc `Mono` có thể rỗng hay không (với ưu điểm là được định kiểu tĩnh tốt hơn)
+* `fun handler(): Mono<T>` trở thành `suspend fun handler(): T` hoặc `suspend fun handler(): T?`, tùy thuộc vào việc `Mono` có thể empty hay không (với ưu điểm là có static typing tốt hơn)
 * `fun handler(): Flux<T>` trở thành `fun handler(): Flow<T>`
 
-https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/index.html[`Flow`] tương đương với `Flux` trong thế giới Coroutines, phù hợp cho stream nóng hoặc lạnh, hữu hạn hoặc vô hạn, với những khác biệt chính sau:
+https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/index.html[`Flow`] tương đương với `Flux` trong thế giới Coroutines, phù hợp cho hot hoặc cold stream, finite hoặc infinite stream, với những khác biệt chính sau:
 
-* `Flow` dựa trên push, trong khi `Flux` là một mô hình kết hợp push-pull
-* Backpressure được triển khai thông qua các hàm có thể tạm dừng
-* `Flow` chỉ có một https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/collect.html[phương thức `collect` có thể tạm dừng] duy nhất, còn các toán tử được triển khai dưới dạng https://kotlinlang.org/docs/reference/extensions.html[extension]
-* https://github.com/Kotlin/kotlinx.coroutines/tree/master/kotlinx-coroutines-core/common/src/flow/operators[Các toán tử dễ triển khai] nhờ Coroutines
-* Các extension cho phép thêm toán tử tùy chỉnh vào `Flow`
-* Các thao tác collect là các hàm có thể tạm dừng
-* https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/map.html[Toán tử `map`] hỗ trợ thao tác bất đồng bộ (không cần `flatMap`) vì nhận tham số là một hàm có thể tạm dừng
+* `Flow` là push-based, trong khi `Flux` là hybrid push-pull
+* Backpressure được implement thông qua các suspending function
+* `Flow` chỉ có một https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/collect.html[suspending method `collect`] duy nhất, còn các operator được implement dưới dạng https://kotlinlang.org/docs/reference/extensions.html[extension]
+* https://github.com/Kotlin/kotlinx.coroutines/tree/master/kotlinx-coroutines-core/common/src/flow/operators[Các operator dễ implement] nhờ Coroutines
+* Các extension cho phép thêm custom operator vào `Flow`
+* Các collect operation là các suspending function
+* https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/map.html[`map` operator] hỗ trợ async operation (không cần `flatMap`) vì nhận một suspending function làm parameter
 
 Đọc bài blog này về https://spring.io/blog/2019/04/12/going-reactive-with-spring-coroutines-and-kotlin-flow[Lập trình Reactive với Spring, Coroutines và Kotlin Flow] để biết thêm chi tiết, bao gồm cách chạy mã đồng thời với Coroutines.
 
@@ -72,17 +72,17 @@ interface CoroutineRepository : CoroutineCrudRepository<User, String> {
 }
 ----
 
-Các Coroutines repository được xây dựng trên các reactive repository để thể hiện tính không chặn của việc truy cập dữ liệu thông qua Coroutines của Kotlin.
-Các method trên một Coroutines repository có thể được cung cấp bởi một query method hoặc một custom implementation.
-Việc gọi một method của custom implementation sẽ truyền lời gọi Coroutines tới method triển khai thực tế nếu custom method có thể dùng `suspend`, mà không yêu cầu method triển khai trả về một reactive type như `Mono` hoặc `Flux`.
+Các Coroutines repository được xây dựng trên các reactive repository để expose tính non-blocking của data access thông qua Coroutines của Kotlin.
+Các method trên một Coroutines repository có thể dựa trên một query method hoặc một custom implementation.
+Việc gọi một method của custom implementation sẽ propagate invocation của Coroutines tới method implementation thực tế nếu custom method có thể suspend, mà không yêu cầu method implementation trả về một reactive type như `Mono` hoặc `Flux`.
 
 Lưu ý rằng tùy thuộc vào khai báo method, coroutine context có thể có hoặc không khả dụng.
-Để duy trì quyền truy cập vào context, hãy khai báo method bằng `suspend` hoặc trả về một kiểu cho phép truyền context, chẳng hạn như `Flow`.
+Để duy trì quyền truy cập vào context, hãy khai báo method bằng `suspend` hoặc trả về một type hỗ trợ context propagation, chẳng hạn như `Flow`.
 
-* `suspend fun findOne(id: String): User`: Truy xuất dữ liệu một lần và đồng bộ bằng cách tạm dừng.
+* `suspend fun findOne(id: String): User`: Truy xuất dữ liệu một lần theo cách synchronous bằng cách suspend.
 * `fun findByFirstname(firstname: String): Flow<User>`: Truy xuất một stream dữ liệu.
-`Flow` được tạo eager, còn dữ liệu được lấy khi tương tác với `Flow` (`Flow.collect(…)`).
-* `fun getUser(): User`: Truy xuất dữ liệu một lần, *chặn thread* và không truyền context.
+`Flow` được tạo eagerly, còn dữ liệu được fetch khi tương tác với `Flow` (`Flow.collect(…)`).
+* `fun getUser(): User`: Truy xuất dữ liệu một lần, *blocking the thread* và không có context propagation.
 Nên tránh cách này.
 
 NOTE: Coroutines repository chỉ được phát hiện khi repository mở rộng interface `CoroutineCrudRepository`.

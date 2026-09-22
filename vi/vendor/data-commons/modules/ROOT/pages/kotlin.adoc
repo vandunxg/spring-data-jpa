@@ -2,9 +2,9 @@
 = Hỗ trợ Kotlin
 :page-section-summary-toc: 1
 
-https://kotlinlang.org[Kotlin] là một ngôn ngữ kiểu tĩnh nhắm đến JVM (và các nền tảng khác), cho phép viết mã ngắn gọn và tao nhã đồng thời cung cấp khả năng https://kotlinlang.org/docs/reference/java-interop.html[tương tác] tuyệt vời với các thư viện hiện có được viết bằng Java.
+https://kotlinlang.org[Kotlin] là một ngôn ngữ kiểu tĩnh nhắm đến JVM (và các nền tảng khác), cho phép viết code ngắn gọn và tao nhã đồng thời cung cấp khả năng https://kotlinlang.org/docs/reference/java-interop.html[interoperability] tuyệt vời với các library hiện có được viết bằng Java.
 
-Spring Data cung cấp hỗ trợ Kotlin hàng đầu và cho phép nhà phát triển viết các ứng dụng Kotlin gần như thể Spring Data là một framework native của Kotlin.
+Spring Data cung cấp first-class support cho Kotlin và cho phép developer viết các ứng dụng Kotlin gần như thể Spring Data là một framework native của Kotlin.
 
-Cách dễ nhất để xây dựng ứng dụng Spring bằng Kotlin là tận dụng Spring Boot và phần hỗ trợ Kotlin chuyên biệt của nó.
-Hướng dẫn toàn diện này sẽ hướng dẫn bạn cách xây dựng các ứng dụng Spring Boot bằng Kotlin sử dụng https://start.spring.io/#!language=kotlin&type=gradle-project[start.spring.io].
+Cách dễ nhất để xây dựng ứng dụng Spring bằng Kotlin là tận dụng Spring Boot và phần https://docs.spring.io/spring-boot/reference/features/kotlin.html[hỗ trợ Kotlin chuyên biệt] của nó.
+https://spring.io/guides/tutorials/spring-boot-kotlin/[Hướng dẫn] toàn diện này sẽ hướng dẫn bạn cách xây dựng các ứng dụng Spring Boot bằng Kotlin sử dụng https://start.spring.io/#!language=kotlin&type=gradle-project[start.spring.io].

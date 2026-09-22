@@ -2,11 +2,11 @@ ifndef::projection-collection[]
 :projection-collection: Collection
 endif::[]
 
-Các query method của Spring Data thường trả về một hoặc nhiều instance của aggregate root được repository quản lý.
-Tuy nhiên, đôi khi bạn có thể muốn tạo projection dựa trên một số thuộc tính nhất định của các kiểu đó.
-Spring Data cho phép mô hình hóa các kiểu trả về chuyên biệt để truy xuất có chọn lọc hơn các khung nhìn một phần của các aggregate được quản lý.
+Các query method của Spring Data thường trả về một hoặc nhiều instance của aggregate root do repository quản lý.
+Tuy nhiên, đôi khi bạn có thể muốn tạo projection dựa trên một số attribute nhất định của các type đó.
+Spring Data cho phép định nghĩa các return type chuyên biệt để retrieve có chọn lọc các partial view của managed aggregate.
 
-Hãy hình dung một kiểu aggregate root và repository như trong ví dụ sau:
+Hãy hình dung một aggregate root type và repository như trong ví dụ sau:
 
 .Một aggregate và repository mẫu
 [source,java,subs="+attributes"]
@@ -28,9 +28,9 @@ interface PersonRepository extends Repository<Person, UUID> {
 }
 ----
 
-Bây giờ hãy hình dung rằng chúng ta chỉ muốn truy xuất các thuộc tính tên của người đó.
-Spring Data cung cấp những phương tiện nào để thực hiện việc này?
+Bây giờ hãy hình dung rằng chúng ta chỉ muốn retrieve các attribute về tên của person.
+Spring Data cung cấp những cách nào để thực hiện việc này?
 Phần còn lại của chương này sẽ trả lời câu hỏi đó.
 
-NOTE: Các kiểu projection là những kiểu nằm bên ngoài hệ phân cấp kiểu của entity.
-Các superclass và interface được entity triển khai nằm bên trong hệ phân cấp kiểu, vì vậy việc trả về một supertype (hoặc interface được triển khai) sẽ trả về một instance của entity đã được materialize hoàn toàn.
+NOTE: Các projection type là những type nằm bên ngoài type hierarchy của entity.
+Các superclass và interface mà entity implement nằm bên trong type hierarchy, vì vậy việc trả về một supertype (hoặc interface mà entity implement) sẽ trả về một instance của entity đã được materialize hoàn toàn.

@@ -1,10 +1,10 @@
 [[specifications]]
 = Specifications
 
-Criteria API của JPA cho phép bạn xây dựng query theo cách lập trình (programmatically).
+Criteria API của JPA cho phép bạn xây dựng query bằng code.
 `Specification` của Spring Data JPA cung cấp một API nhỏ gọn, tập trung để biểu diễn predicate trên entity và tái sử dụng chúng giữa các repository.
-Dựa trên khái niệm specification từ cuốn sách "`Domain Driven Design`" của Eric Evans, specification tuân theo cùng ngữ nghĩa đó, cung cấp một API để định nghĩa criteria bằng JPA.
-Để hỗ trợ specification, bạn có thể mở rộng repository interface của mình bằng interface `JpaSpecificationExecutor`, như sau:
+Dựa trên concept về specification trong cuốn sách "`Domain Driven Design`" của Eric Evans, specification tuân theo cùng semantics, cung cấp một API để define criteria bằng JPA.
+Để hỗ trợ specification, bạn có thể mở rộng repository interface bằng interface `JpaSpecificationExecutor`, như sau:
 
 [source, java]
 ----
@@ -15,13 +15,13 @@ public interface CustomerRepository extends CrudRepository<Customer, Long>, JpaS
 Một specification là một predicate trên một entity, được biểu diễn bằng Criteria API.
 Spring Data JPA cung cấp hai entry point:
 
-* <<predicate-specification,`PredicateSpecification`>>: Một interface linh hoạt, không phụ thuộc vào loại query, được giới thiệu cùng với Spring Data JPA 4.0.
-* <<specification-interfaces,`Specification`>> (và `UpdateSpecification`, `DeleteSpecification`): Các biến thể gắn với một loại query cụ thể.
+* <<predicate-specification,`PredicateSpecification`>>: Một interface flexible, không phụ thuộc vào query type, được giới thiệu cùng với Spring Data JPA 4.0.
+* <<specification-interfaces,`Specification`>> (và `UpdateSpecification`, `DeleteSpecification`): Các variant gắn với một query type cụ thể.
 
 [[predicate-specification]]
 == PredicateSpecification
 
-Interface `PredicateSpecification` được định nghĩa với tập dependency tối thiểu, cho phép composition linh hoạt về mặt functional:
+Interface `PredicateSpecification` được định nghĩa với tập dependency tối thiểu, cho phép functional composition trên phạm vi rộng:
 
 [source, java]
 ----
@@ -30,9 +30,9 @@ public interface PredicateSpecification<T> {
 }
 ----
 
-Specification có thể dễ dàng được dùng để xây dựng một tập predicate có khả năng mở rộng và sử dụng với `JpaRepository`, loại bỏ nhu cầu khai báo một query (method) cho mỗi tổ hợp cần thiết, như trong ví dụ sau:
+Specification có thể dễ dàng được dùng để build một tập predicate extensible và sử dụng với `JpaRepository`, loại bỏ nhu cầu khai báo một query method cho từng combination cần thiết, như trong ví dụ sau:
 
-.Specification cho Customer
+.Các Specification cho Customer
 ====
 [source,java]
 ----
@@ -47,15 +47,15 @@ class CustomerSpecs {
 
   static PredicateSpecification<Customer> hasSalesOfMoreThan(MonetaryAmount value) {
     return (from, builder) -> {
-      // build predicate for sales > value
+      // build predicate cho sales > value
     };
   }
 }
 ----
 
-Type `Customer_` là một metamodel type được sinh ra bằng JPA Metamodel generator (xem link:$$https://docs.jboss.org/hibernate/jpamodelgen/1.3/reference/en-US/html_single/#whatisit$$[tài liệu của Hibernate implementation để xem ví dụ]).
-Vì vậy, biểu thức `Customer_.createdAt` giả định rằng `Customer` có một attribute `createdAt` kiểu `LocalDate`.
-Bên cạnh đó, chúng ta đã diễn đạt một số criteria ở mức trừu tượng của business requirement và tạo ra các `Specification` có thể thực thi được.
+Type `Customer_` là một metamodel type được generate bằng JPA Metamodel generator (xem link:$$https://docs.jboss.org/hibernate/jpamodelgen/1.3/reference/en-US/html_single/#whatisit$$[tài liệu của Hibernate implementation để xem ví dụ]).
+Vì vậy, biểu thức `Customer_.createdAt` giả định rằng `Customer` có một attribute `createdAt` với type `LocalDate`.
+Bên cạnh đó, chúng ta đã diễn đạt một số criteria ở abstraction level của business requirement và tạo ra các `Specification` có thể execute.
 ====
 
 Sử dụng một specification trực tiếp với repository:
@@ -65,7 +65,7 @@ Sử dụng một specification trực tiếp với repository:
 List<Customer> customers = customerRepository.findAll(isLongTermCustomer());
 ----
 
-Specification trở nên có giá trị nhất khi được kết hợp (composed) với nhau:
+Specification trở nên có giá trị nhất khi được compose với nhau:
 
 [source,java]
 ----
@@ -78,8 +78,8 @@ List<Customer> customers = customerRepository.findAll(
 [[specification-interfaces]]
 == `Specification`, `UpdateSpecification`, `DeleteSpecification`
 
-Interface javadoc:org.springframework.data.jpa.domain.Specification[] đã tồn tại từ lâu hơn nhiều và gắn với một loại query cụ thể (select, update, delete) theo đúng giới hạn của Criteria API.
-Ba interface specification được định nghĩa như sau:
+Interface javadoc:org.springframework.data.jpa.domain.Specification[] đã có từ lâu hơn nhiều và gắn với một query type cụ thể (select, update, delete) theo đúng giới hạn của Criteria API.
+Ba specification interface được định nghĩa như sau:
 
 [tabs]
 ======
@@ -120,9 +120,9 @@ public interface DeleteSpecification<T> {
 ====
 ======
 
-Đối tượng `Specification` có thể được tạo trực tiếp hoặc bằng cách tái sử dụng các instance `PredicateSpecification`, như trong ví dụ sau:
+`Specification` object có thể được tạo trực tiếp hoặc bằng cách reuse các instance `PredicateSpecification`, như trong ví dụ sau:
 
-.Specification cho Customer
+.Các Specification cho Customer
 ====
 [source, java]
 ----
@@ -142,7 +142,7 @@ public class CustomerSpecs {
 
   public static PredicateSpecification<Customer> hasLastname(String lastname) {
     return (root, builder) -> {
-      // build query here
+      // build query tại đây
     };
   }
 }
@@ -152,24 +152,24 @@ public class CustomerSpecs {
 [[specification-fluent]]
 == Fluent API
 
-`JpaSpecificationExecutor` định nghĩa các fluent query method để thực thi query một cách linh hoạt dựa trên các instance `Specification`:
+`JpaSpecificationExecutor` định nghĩa các fluent query method để execute query một cách linh hoạt dựa trên các instance `Specification`:
 
-1. Cho `PredicateSpecification`: `findBy(PredicateSpecification<T> spec, Function<? super SpecificationFluentQuery<S>, R> queryFunction)`
-2. Cho `Specification`: `findBy(Specification<T> spec, Function<? super SpecificationFluentQuery<S>, R> queryFunction)`
+1. Đối với `PredicateSpecification`: `findBy(PredicateSpecification<T> spec, Function<? super SpecificationFluentQuery<S>, R> queryFunction)`
+2. Đối với `Specification`: `findBy(Specification<T> spec, Function<? super SpecificationFluentQuery<S>, R> queryFunction)`
 
-Cũng như các method khác, nó thực thi một query được suy ra (derived) từ một `Specification`.
-Tuy nhiên, query function cho phép bạn kiểm soát các khía cạnh của việc thực thi query mà bạn không thể kiểm soát một cách linh hoạt bằng cách khác.
-Bạn thực hiện điều này bằng cách gọi các intermediate method và terminal method khác nhau của `SpecificationFluentQuery`.
+Giống như các method khác, method này execute một query derived từ một `Specification`.
+Tuy nhiên, query function cho phép bạn control các khía cạnh của query execution mà nếu không dùng nó thì bạn không thể dynamically control.
+Bạn thực hiện điều này bằng cách invoke các intermediate method và terminal method khác nhau của `SpecificationFluentQuery`.
 
-**Intermediate method**
+**Các intermediate method**
 
 * `sortBy`: Áp dụng thứ tự sắp xếp cho kết quả của bạn.
 Gọi method này nhiều lần sẽ nối thêm từng `Sort` (lưu ý rằng `page(Pageable)` khi dùng một `Pageable` đã có sort sẽ ghi đè mọi thứ tự sort trước đó).
 * `limit`: Giới hạn số lượng kết quả.
-* `as`: Chỉ định type sẽ được đọc hoặc project sang.
+* `as`: Chỉ định type được read hoặc project sang.
 * `project`: Giới hạn các property của query.
 
-**Terminal method**
+**Các terminal method**
 
 * `first`, `firstValue`: Trả về giá trị đầu tiên. `first` trả về `Optional<T>` hoặc `Optional.empty()` nếu query không trả về kết quả nào. `firstValue` là biến thể nullable của nó, không cần dùng `Optional`.
 * `one`, `oneValue`: Trả về giá trị duy nhất. `one` trả về `Optional<T>` hoặc `Optional.empty()` nếu query không trả về kết quả nào. `oneValue` là biến thể nullable của nó, không cần dùng `Optional`.
@@ -178,11 +178,11 @@ Ném ra `IncorrectResultSizeDataAccessException` nếu tìm thấy nhiều hơn 
 * `page(Pageable)`: Trả về toàn bộ kết quả dưới dạng `Page<T>`.
 * `slice(Pageable)`: Trả về toàn bộ kết quả dưới dạng `Slice<T>`.
 * `scroll(ScrollPosition)`: Dùng scrolling (offset, keyset) để lấy kết quả dưới dạng `Window<T>`.
-* `stream()`: Trả về một `Stream<T>` để xử lý kết quả dưới dạng stream thay vì một `Collection` đã materialize (xem xref:repositories/query-return-types-reference.adoc#return-type.stream[ngữ nghĩa của `Stream`]).
-Stream này có trạng thái (stateful) và phải được đóng lại sau khi sử dụng.
+* `stream()`: Trả về một `Stream<T>` để xử lý kết quả dưới dạng stream thay vì một `Collection` đã materialize (xem xref:repositories/query-return-types-reference.adoc#return-type.stream[semantics của `Stream`]).
+Stream này là stateful và phải được close sau khi sử dụng.
 * `count` và `exists`: Trả về số lượng entity khớp hoặc liệu có tồn tại kết quả khớp nào hay không.
 
-NOTE: Intermediate method và terminal method phải được gọi bên trong query function.
+NOTE: Các intermediate method và terminal method phải được invoke bên trong query function.
 
 .Dùng fluent API để lấy một `Page` đã được project, sắp xếp theo `lastname`
 ====

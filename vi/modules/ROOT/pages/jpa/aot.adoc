@@ -1,42 +1,42 @@
 include::{commons}@data-commons-vi::page$aot.adoc[]
 
 [[aot.repositories.jpa]]
-== JPA Ahead of Time Repositories
+== JPA Repository Ahead of Time
 
-AOT repositories lọc ra các method đủ điều kiện cho AOT processing.
-Đây thường là tất cả các query method không được backing bởi một xref:repositories/custom-implementations.adoc[implementation fragment].
+Các AOT repository lọc các method đủ điều kiện cho AOT processing.
+Thông thường, đây là toàn bộ query method không có một xref:repositories/custom-implementations.adoc[implementation fragment] hỗ trợ.
 
 [NOTE]
 ====
-AOT processing tránh việc truy cập database.
+AOT processing không truy cập database.
 Vì vậy, nó khởi tạo một Hibernate instance in-memory để thu thập metadata.
-Các type cho cấu hình Hibernate được xác định bởi AOT metadata collector của chúng ta.
-Chúng ta ưu tiên sử dụng một `PersistenceManagedTypes` bean nếu có sẵn, và fall back sang `PersistenceUnitInfo` hoặc các type tự phát hiện được.
-Nếu việc scanning type của chúng ta không đủ đáp ứng cho trường hợp của bạn, bạn có thể bật sử dụng `EntityManagerFactory` trực tiếp bằng cách cấu hình property `spring.aot.jpa.repositories.use-entitymanager=true`.
+Các type dùng cho Hibernate configuration được xác định bởi AOT metadata collector của chúng tôi.
+Chúng tôi ưu tiên sử dụng một `PersistenceManagedTypes` bean nếu có sẵn, và fallback về `PersistenceUnitInfo` hoặc các type do chúng tôi tự discover.
+Nếu type scanning của chúng tôi không đủ cho setup của bạn, bạn có thể bật việc sử dụng trực tiếp `EntityManagerFactory` bằng cách cấu hình property `spring.aot.jpa.repositories.use-entitymanager=true`.
 ====
 
-**Các tính năng được hỗ trợ**
+**Các feature được hỗ trợ**
 
-* Derived query method, method `@Query`/`@NativeQuery` và named query method
+* Derived query method, `@Query`/`@NativeQuery` và named query method
 * Stored procedure query method được annotate bằng `@Procedure`
-* Method `@Modifying` trả về `void` hoặc `int`
+* Các method có `@Modifying` và trả về `void` hoặc `int`
 * Hỗ trợ `@QueryHints`
-* Các kiểu trả về Pagination, `Slice`, `Stream`, và `Optional`
+* Các return type Pagination, `Slice`, `Stream`, và `Optional`
 * Sort query rewriting
-* Interface và DTO Projection
-* Value Expression (Các expression này cần một chút reflective information.
-Lưu ý rằng việc sử dụng Value Expression đòi hỏi expression parsing và contextual information để evaluate expression)
+* Interface projection và DTO projection
+* Value Expressions (Các expression này cần một số reflective information.
+Lưu ý rằng việc sử dụng Value Expression yêu cầu expression parsing và contextual information để evaluate expression)
 
 **Các giới hạn**
 
 * Yêu cầu Hibernate cho AOT processing.
-* `QueryRewriter` phải là một class không có tham số (no-args). Các `QueryRewriter` bean chưa được hỗ trợ.
-* Các method nhận `ScrollPosition` (ví dụ: `Keyset` pagination) chưa được hỗ trợ.
-* Các Collection return type tùy chỉnh (ví dụ: `io.vavr.collection`, `org.eclipse.collections`) chưa được hỗ trợ.
+* `QueryRewriter` phải là một class không có tham số (no-args). Các `QueryRewriter` bean hiện chưa được hỗ trợ.
+* Các method nhận `ScrollPosition` (ví dụ: `Keyset` pagination) hiện chưa được hỗ trợ.
+* Các custom Collection return type (ví dụ: `io.vavr.collection`, `org.eclipse.collections`) hiện chưa được hỗ trợ.
 
 **Các method bị loại trừ**
 
-* `CrudRepository`, Querydsl, Query by Example, và các base interface method khác vì implementation của chúng được cung cấp bởi base class hoặc các fragment tương ứng
-* Các method mà implementation sẽ trở nên quá phức tạp
+* `CrudRepository`, Querydsl, Query by Example, và các method khác của base interface vì implementation của chúng được cung cấp bởi base class hoặc các fragment tương ứng
+* Các method có implementation quá phức tạp
 ** Các method nhận `ScrollPosition` (ví dụ: `Keyset` pagination)
-** Dynamic projection
+** Dynamic projections

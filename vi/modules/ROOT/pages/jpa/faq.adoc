@@ -6,7 +6,7 @@
 == Chung
 
 [qanda]
-Tôi muốn có thông tin logging chi tiết hơn về những method nào được gọi bên trong `JpaRepository`, chẳng hạn. Làm thế nào để có được thông tin này? :: Bạn có thể sử dụng `CustomizableTraceInterceptor` do Spring cung cấp, như trong ví dụ sau:
+Tôi muốn có thông tin logging chi tiết hơn, chẳng hạn như những method nào được gọi bên trong `JpaRepository`. Làm thế nào để lấy được thông tin đó? :: Bạn có thể sử dụng `CustomizableTraceInterceptor` do Spring cung cấp, như trong ví dụ sau:
 +
 [source, xml]
 ----
@@ -26,7 +26,7 @@ Tôi muốn có thông tin logging chi tiết hơn về những method nào đư
 == Auditing
 
 [qanda]
-Tôi muốn sử dụng khả năng auditing của Spring Data JPA nhưng database của tôi đã được cấu hình sẵn để tự set modification date và creation date trên entity. Làm sao để ngăn Spring Data tự set date theo cách lập trình? :: Set attribute `set-dates` của namespace element `auditing` thành `false`.
+Tôi muốn sử dụng khả năng auditing của Spring Data JPA nhưng database của tôi đã được cấu hình để tự set modification date và creation date cho các entity. Làm thế nào để ngăn Spring Data tự set các date này bằng code? :: Đặt attribute `set-dates` của namespace element `auditing` thành `false`.
 
 
 [[faq.hibernate]]

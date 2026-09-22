@@ -1,13 +1,13 @@
 [[repositories.scrolling]]
-= Cuộn
+= Scrolling
 
 Scrolling là cách tiếp cận chi tiết hơn để lặp qua các phần của những tập kết quả lớn hơn.
-Scrolling bao gồm một thứ tự sắp xếp ổn định, một kiểu cuộn (cuộn dựa trên Offset hoặc Keyset) và giới hạn kết quả.
-Bạn có thể định nghĩa các biểu thức sắp xếp đơn giản bằng cách sử dụng tên thuộc tính và định nghĩa giới hạn kết quả tĩnh bằng từ khóa xref:repositories/query-methods-details.adoc#repositories.limit-query-result[`Top` hoặc `First`] thông qua việc suy dẫn query.
+Scrolling bao gồm một thứ tự sắp xếp ổn định, một scroll type (Offset-based hoặc Keyset-based scrolling) và giới hạn kết quả.
+Bạn có thể định nghĩa các biểu thức sắp xếp đơn giản bằng cách sử dụng tên thuộc tính và định nghĩa giới hạn kết quả tĩnh bằng từ khóa xref:repositories/query-methods-details.adoc#repositories.limit-query-result[`Top` hoặc `First`] thông qua query derivation.
 Bạn có thể nối các biểu thức để tập hợp nhiều tiêu chí thành một biểu thức.
 
-Các scroll query trả về một `Window<T>`, cho phép lấy vị trí cuộn của phần tử để tải `Window<T>` tiếp theo cho đến khi ứng dụng đã sử dụng toàn bộ kết quả query.
-Tương tự như việc sử dụng một Java `Iterator<List<…>>` bằng cách lấy lô kết quả tiếp theo, scrolling kết quả query cho phép bạn truy cập một `ScrollPosition` thông qua `Window.positionAt(…)`, như trong ví dụ sau:
+Các scroll query trả về một `Window<T>`, cho phép lấy scroll position của element để lấy `Window<T>` tiếp theo cho đến khi application đã consume toàn bộ query result.
+Tương tự như việc consume một Java `Iterator<List<…>>` bằng cách lấy batch result tiếp theo, việc scrolling qua query result cho phép bạn truy cập một `ScrollPosition` thông qua `Window.positionAt(…)`, như trong ví dụ sau:
 
 [source,java]
 ----
@@ -22,16 +22,16 @@ do {
     break;
   }
 
-  // lấy Scroll tiếp theo
+  // lấy scroll tiếp theo
   users = repository.findFirst10ByLastnameOrderByFirstname("Doe", users.positionAt(users.size() - 1));
 } while (!users.isEmpty());
 ----
 
 [NOTE]
 ====
-`ScrollPosition` xác định vị trí chính xác của một phần tử trong toàn bộ kết quả query.
-Việc thực thi query xem tham số vị trí là _exclusive_, kết quả sẽ bắt đầu _sau_ vị trí đã cho.
-`ScrollPosition#offset()` và `ScrollPosition#keyset()` là các thể hiện đặc biệt của `ScrollPosition`, biểu thị điểm bắt đầu của một thao tác scrolling.
+`ScrollPosition` xác định vị trí chính xác của một element trong toàn bộ query result.
+Việc thực thi query xem tham số position là _exclusive_, result sẽ bắt đầu _sau_ position đã cho.
+`ScrollPosition#offset()` và `ScrollPosition#keyset()` là các thể hiện đặc biệt của `ScrollPosition`, biểu thị điểm bắt đầu của một scroll operation.
 ====
 
 [NOTE]
@@ -39,12 +39,12 @@ Việc thực thi query xem tham số vị trí là _exclusive_, kết quả s�
 Ví dụ trên minh họa việc sắp xếp và giới hạn tĩnh.
 Ngoài ra, bạn có thể định nghĩa các query method nhận một đối tượng `Sort` để định nghĩa thứ tự sắp xếp phức tạp hơn hoặc sắp xếp theo từng request.
 Tương tự, việc cung cấp một đối tượng `Limit` cho phép bạn định nghĩa giới hạn động theo từng request thay vì áp dụng một giới hạn tĩnh.
-Đọc thêm về sắp xếp và giới hạn động trong xref:repositories/query-methods-details.adoc#repositories.special-parameters[Chi tiết Query Method].
+Đọc thêm về sắp xếp và giới hạn động trong xref:repositories/query-methods-details.adoc#repositories.special-parameters[Chi tiết về Query Methods].
 ====
 
-Việc scrolling bằng cách sử dụng các thể hiện `Window` yêu cầu khá nhiều điều kiện để đạt số lần round-trip đến database tối ưu và có thể nhanh chóng trở thành một tác vụ lặp đi lặp lại, có thể được đơn giản hóa bằng `WindowIterator`.
+Việc scrolling bằng cách sử dụng các `Window` yêu cầu khá nhiều điều kiện để tối ưu số lần round-trip đến database và có thể nhanh chóng trở thành một tác vụ lặp đi lặp lại, có thể được đơn giản hóa bằng `WindowIterator`.
 
-`WindowIterator` cung cấp một tiện ích để đơn giản hóa việc scrolling qua các ``Window`` bằng cách loại bỏ nhu cầu kiểm tra sự hiện diện của `Window` tiếp theo và áp dụng `ScrollPosition`.
+`WindowIterator` cung cấp một tiện ích để đơn giản hóa việc scrolling qua các ``Window`` bằng cách loại bỏ nhu cầu kiểm tra xem có `Window` tiếp theo hay không và áp dụng `ScrollPosition`.
 
 [source,java]
 ----
@@ -58,13 +58,13 @@ while (users.hasNext()) {
 ----
 
 [[repositories.scrolling.offset]]
-== Cuộn bằng Offset
+== Scrolling bằng Offset
 
-Scrolling dựa trên Offset tương tự phân trang, sử dụng một bộ đếm Offset để bỏ qua một số kết quả và chỉ cho nguồn dữ liệu trả về các kết quả bắt đầu từ Offset đã cho.
+Offset scrolling tương tự pagination, sử dụng một Offset counter để bỏ qua một số result và chỉ yêu cầu data source trả về các result bắt đầu từ Offset đã cho.
 Cơ chế đơn giản này tránh việc gửi các kết quả lớn đến ứng dụng client.
 Tuy nhiên, hầu hết database yêu cầu materialize toàn bộ kết quả query trước khi server có thể trả về kết quả.
 
-.Sử dụng `OffsetScrollPosition` với Repository Query Method
+.Sử dụng `OffsetScrollPosition` với Repository Query Methods
 ====
 [source,java]
 ----
@@ -88,16 +88,16 @@ Do scrolling có tính chất _exclusive_, việc sử dụng `ScrollPosition.of
 ====
 
 [[repositories.scrolling.keyset]]
-== Cuộn bằng Keyset-Filtering
+== Scrolling bằng Keyset-Filtering
 
-Scrolling dựa trên Offset yêu cầu hầu hết database materialize toàn bộ kết quả trước khi server có thể trả về kết quả.
+Offset-based scrolling yêu cầu hầu hết database materialize toàn bộ result trước khi server có thể trả về result.
 Vì vậy, dù client chỉ nhìn thấy phần kết quả được yêu cầu, server vẫn phải xây dựng toàn bộ kết quả, gây ra tải bổ sung.
 
 Keyset-Filtering tiếp cận việc truy xuất một tập con kết quả bằng cách tận dụng các khả năng tích hợp sẵn của database, nhằm giảm yêu cầu tính toán và I/O cho từng query.
 Cách tiếp cận này duy trì một tập key để tiếp tục scrolling bằng cách truyền các key vào query, từ đó thực chất bổ sung các tiêu chí filter.
 
 Ý tưởng cốt lõi của Keyset-Filtering là bắt đầu truy xuất kết quả bằng một thứ tự sắp xếp ổn định.
-Khi muốn cuộn đến phần tiếp theo, bạn lấy một `ScrollPosition` được sử dụng để tái tạo vị trí trong kết quả đã sắp xếp.
+Khi muốn scrolling đến phần tiếp theo, bạn lấy một `ScrollPosition` được sử dụng để tái tạo vị trí trong kết quả đã sắp xếp.
 `ScrollPosition` lưu keyset của entity cuối cùng trong `Window` hiện tại.
 Để chạy query, quá trình tái tạo viết lại mệnh đề tiêu chí để bao gồm tất cả trường sắp xếp và primary key, nhờ đó database có thể tận dụng các index tiềm năng để chạy query.
 Database chỉ cần xây dựng một kết quả nhỏ hơn nhiều từ vị trí keyset đã cho, không cần materialize toàn bộ một kết quả lớn rồi bỏ qua các kết quả cho đến khi đạt một offset cụ thể.
@@ -109,7 +109,7 @@ Giới hạn này tồn tại do cách xử lý giá trị `null` của các to�
 Keyset-Filtering trên các thuộc tính nullable sẽ dẫn đến kết quả không như mong đợi.
 ====
 
-.Sử dụng `KeysetScrollPosition` với Repository Query Method
+.Sử dụng `KeysetScrollPosition` với Repository Query Methods
 [source,java]
 ----
 interface UserRepository extends Repository<User, Long> {

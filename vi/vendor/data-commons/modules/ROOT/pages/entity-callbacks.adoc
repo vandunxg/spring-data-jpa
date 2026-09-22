@@ -1,27 +1,27 @@
 [[entity-callbacks]]
-= Callback của Entity
+= Entity Callbacks
 
-Infrastructure của Spring Data cung cấp các hook để sửa đổi một entity trước và sau khi một số method nhất định được gọi.
-Các instance `EntityCallback` nói trên cung cấp một cách thuận tiện để kiểm tra và có thể sửa đổi một entity theo phong cách callback. +
+Spring Data infrastructure cung cấp các hook để sửa đổi một entity trước và sau khi gọi một số method nhất định.
+Các instance `EntityCallback` nói trên cung cấp cách thuận tiện để kiểm tra và có khả năng sửa đổi một entity theo kiểu callback. +
 Một `EntityCallback` khá giống một `ApplicationListener` chuyên biệt.
-Một số Spring Data module phát hành các event đặc thù cho store (chẳng hạn `BeforeSaveEvent`) cho phép sửa đổi entity đã cho. Trong một số trường hợp, chẳng hạn khi làm việc với immutable type, các event này có thể gây ra sự cố.
-Ngoài ra, việc phát hành event dựa vào `ApplicationEventMulticaster`. Nếu cấu hình thành phần đó bằng một `TaskExecutor` bất đồng bộ, kết quả có thể không thể dự đoán vì việc xử lý event có thể được phân tách sang một Thread.
+Một số Spring Data module publish các event đặc thù cho store (chẳng hạn `BeforeSaveEvent`), cho phép sửa đổi entity được cung cấp. Trong một số trường hợp, chẳng hạn khi làm việc với immutable type, các event này có thể gây ra sự cố.
+Ngoài ra, việc publish event dựa trên `ApplicationEventMulticaster`. Nếu cấu hình nó với một `TaskExecutor` async, điều này có thể dẫn đến kết quả không thể dự đoán, vì việc xử lý event có thể được fork sang một Thread.
 
-Entity callback cung cấp các điểm tích hợp với cả API đồng bộ và reactive để bảo đảm việc thực thi đúng thứ tự tại các checkpoint được xác định rõ trong chuỗi xử lý, đồng thời trả về một entity có thể đã được sửa đổi hoặc một kiểu reactive wrapper.
+Entity callback cung cấp các integration point với cả synchronous và reactive API để bảo đảm execution đúng thứ tự tại các checkpoint được xác định rõ trong processing chain, đồng thời trả về một entity có khả năng đã được sửa đổi hoặc một reactive wrapper type.
 
-Entity callback thường được phân tách theo kiểu API. Việc phân tách này có nghĩa là API đồng bộ chỉ xem xét các entity callback đồng bộ, còn một implementation reactive chỉ xem xét các entity callback reactive.
+Entity callback thường được phân tách theo API type. Việc phân tách này có nghĩa là synchronous API chỉ xem xét các synchronous entity callback, còn một reactive implementation chỉ xem xét các reactive entity callback.
 
 [NOTE]
 ====
 Entity Callback API được giới thiệu cùng với Spring Data Commons 2.2. Đây là cách được khuyến nghị để áp dụng các sửa đổi cho entity.
-Các `ApplicationEvents` đặc thù cho store hiện vẫn được phát hành *trước* khi gọi các instance `EntityCallback` có thể đã được đăng ký.
+Các `ApplicationEvents` đặc thù cho store hiện vẫn được publish *trước* khi gọi các instance `EntityCallback` đã được đăng ký, nếu có.
 ====
 
 [[entity-callbacks.implement]]
 == Triển khai Entity Callback
 
 Một `EntityCallback` được liên kết trực tiếp với domain type của nó thông qua generic type argument.
-Mỗi Spring Data module thường cung cấp sẵn một tập các interface `EntityCallback` được định nghĩa trước, bao phủ vòng đời của entity.
+Mỗi Spring Data module thường cung cấp sẵn một tập interface `EntityCallback` định nghĩa sẵn, bao phủ lifecycle của entity.
 
 .Cấu trúc của một `EntityCallback`
 [source,java]
@@ -30,7 +30,7 @@ Mỗi Spring Data module thường cung cấp sẵn một tập các interface `
 public interface BeforeSaveCallback<T> extends EntityCallback<T> {
 
 	/**
-	 * Phương thức entity callback được gọi trước khi một domain object được lưu.
+	 * Entity callback method được gọi trước khi một domain object được lưu.
 	 * Có thể trả về cùng instance hoặc một instance đã được sửa đổi.
 	 *
 	 * @return domain object sẽ được persist.
@@ -51,23 +51,23 @@ public interface BeforeSaveCallback<T> extends EntityCallback<T> {
 public interface ReactiveBeforeSaveCallback<T> extends EntityCallback<T> {
 
 	/**
-	 * Phương thức entity callback được gọi khi subscription, trước khi một domain object được lưu.
-	 * Publisher được trả về có thể phát ra cùng instance hoặc một instance đã được sửa đổi.
+	 * Entity callback method được gọi khi subscribe, trước khi một domain object được lưu.
+	 * Publisher được trả về có thể emit cùng instance hoặc một instance đã được sửa đổi.
 	 *
-	 * @return Publisher phát ra domain object sẽ được persist.
+	 * @return Publisher emit domain object sẽ được persist.
 	 */
 	// <1>
 	Publisher<T> onBeforeSave(T entity, // <2>
 		String collection); // <3>
 }
 ----
-<1> Method cụ thể của `BeforeSaveCallback`, được gọi khi subscription, trước khi entity được lưu. Phát ra một instance có thể đã được sửa đổi.
+<1> Method cụ thể của `BeforeSaveCallback`, được gọi khi subscribe, trước khi entity được lưu. Emit một instance có thể đã được sửa đổi.
 <2> Entity ngay trước khi persist.
 <3> Một số argument đặc thù cho store, chẳng hạn _collection_ nơi entity được persist.
 
-NOTE: Các tham số entity callback tùy chọn được Spring Data module triển khai định nghĩa và được suy ra từ call site của `EntityCallback.callback()`.
+NOTE: Các tham số tùy chọn của entity callback được Spring Data module triển khai định nghĩa và được suy ra từ call site của `EntityCallback.callback()`.
 
-Triển khai interface phù hợp với nhu cầu của ứng dụng như trong ví dụ dưới đây:
+Implement interface phù hợp với nhu cầu của ứng dụng như trong ví dụ dưới đây:
 
 .Ví dụ về `BeforeSaveCallback`
 [source,java]
@@ -90,16 +90,16 @@ class DefaultingEntityCallback implements BeforeSaveCallback<Person>, Ordered { 
 	}
 }
 ----
-<1> Implementation callback theo yêu cầu của bạn.
-<2> Có thể sắp xếp thứ tự entity callback nếu tồn tại nhiều callback cho cùng một domain type. Việc sắp xếp tuân theo precedence thấp nhất.
+<1> Implementation của callback theo yêu cầu của bạn.
+<2> Có thể order entity callback nếu tồn tại nhiều callback cho cùng một domain type. Việc ordering tuân theo precedence thấp nhất.
 
 [[entity-callbacks.register]]
 == Đăng ký Entity Callback
 
-Các bean `EntityCallback` được các implementation đặc thù cho store tự động nhận diện nếu chúng được đăng ký trong `ApplicationContext`.
-Hầu hết template API đã triển khai `ApplicationContextAware` nên có quyền truy cập vào `ApplicationContext`
+Các bean `EntityCallback` được các store-specific implementation tự động nhận diện nếu chúng được register trong `ApplicationContext`.
+Hầu hết template API đã implement `ApplicationContextAware` và do đó có quyền truy cập vào `ApplicationContext`
 
-Ví dụ sau giải thích một số cách đăng ký bean entity callback hợp lệ:
+Ví dụ sau giải thích một số cách register bean entity callback hợp lệ:
 
 .Ví dụ đăng ký bean `EntityCallback`
 [source,java]
@@ -153,7 +153,7 @@ class UserCallbacks implements BeforeConvertCallback<User>,
 	}
 }
 ----
-<1> `BeforeSaveCallback` nhận thứ tự từ annotation `@Order`.
-<2> `BeforeSaveCallback` nhận thứ tự thông qua implementation của interface `Ordered`.
-<3> `BeforeSaveCallback` sử dụng lambda expression. Theo mặc định callback không có thứ tự và được gọi sau cùng. Lưu ý rằng callback được triển khai bằng lambda expression không cung cấp thông tin kiểu, do đó việc gọi chúng với một entity không thể gán được sẽ ảnh hưởng đến throughput của callback. Sử dụng `class` hoặc `enum` để bật tính năng lọc kiểu cho bean callback.
+<1> `BeforeSaveCallback` nhận order từ annotation `@Order`.
+<2> `BeforeSaveCallback` nhận order thông qua implementation của interface `Ordered`.
+<3> `BeforeSaveCallback` sử dụng lambda expression. Theo mặc định callback không có order và được gọi sau cùng. Lưu ý rằng callback được implement bằng lambda expression không expose thông tin về type, do đó việc invoke chúng với một entity không assignable sẽ ảnh hưởng đến throughput của callback. Sử dụng `class` hoặc `enum` để bật tính năng lọc type cho bean callback.
 <4> Kết hợp nhiều interface entity callback trong một implementation class.

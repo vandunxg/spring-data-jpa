@@ -1,7 +1,7 @@
 [[jpa.misc.merging-persistence-units]]
-= Merging persistence units
+= Merge các persistence unit
 
-Spring hỗ trợ việc có nhiều persistence unit. Tuy nhiên, đôi khi bạn có thể muốn modularize ứng dụng của mình nhưng vẫn đảm bảo tất cả các module này chạy bên trong một persistence unit duy nhất. Để bật hành vi đó, Spring Data JPA cung cấp một implementation của `PersistenceUnitManager` tự động merge các persistence unit dựa trên tên của chúng, như ví dụ sau:
+Spring hỗ trợ việc sử dụng nhiều persistence unit. Tuy nhiên, đôi khi bạn có thể muốn module hóa ứng dụng nhưng vẫn đảm bảo tất cả module chạy trong cùng một persistence unit. Để bật hành vi này, Spring Data JPA cung cấp một implementation của `PersistenceUnitManager` tự động merge các persistence unit dựa trên tên của chúng, như trong ví dụ sau:
 
 .Sử dụng MergingPersistenceUnitManager
 ====
@@ -16,9 +16,9 @@ Spring hỗ trợ việc có nhiều persistence unit. Tuy nhiên, đôi khi b�
 ====
 
 [[jpa.misc.entity-scanning]]
-== Classpath Scanning cho các Entity Class có @Entity và JPA Mapping File
+== Classpath Scanning cho các entity class có @Entity và JPA mapping file
 
-Một thiết lập JPA thông thường yêu cầu tất cả các annotation-mapped entity class phải được liệt kê trong `orm.xml`. Điều tương tự cũng áp dụng cho các XML mapping file. Spring Data JPA cung cấp một `ClasspathScanningPersistenceUnitPostProcessor` nhận vào một base package đã cấu hình và tùy chọn nhận thêm một mapping filename pattern. Sau đó, nó sẽ scan package đã cho để tìm các class được đánh dấu bằng `@Entity` hoặc `@MappedSuperclass`, load các configuration file khớp với filename pattern, rồi đưa chúng vào JPA configuration. Post-processor này phải được cấu hình như sau:
+Một thiết lập JPA thuần yêu cầu tất cả entity class được mapping bằng annotation phải được liệt kê trong `orm.xml`. Điều tương tự cũng áp dụng cho các XML mapping file. Spring Data JPA cung cấp một `ClasspathScanningPersistenceUnitPostProcessor` nhận một base package được cấu hình và tùy chọn nhận một mapping filename pattern. Sau đó, nó scan package đã cho để tìm các class có annotation `@Entity` hoặc `@MappedSuperclass`, load các configuration file khớp với filename pattern rồi đưa chúng vào JPA configuration. Post-processor này phải được cấu hình như sau:
 
 .Sử dụng ClasspathScanningPersistenceUnitPostProcessor
 ====
@@ -37,5 +37,4 @@ Một thiết lập JPA thông thường yêu cầu tất cả các annotation-m
 ----
 ====
 
-NOTE: Kể từ Spring 3.1, một package cần scan có thể được cấu hình trực tiếp trên `LocalContainerEntityManagerFactoryBean` để bật classpath scanning cho entity class. Xem link:{springJavadocUrl}/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan(java.lang.String...)$$[JavaDoc] để biết chi tiết.
-
+NOTE: Kể từ Spring 3.1, có thể cấu hình trực tiếp package cần scan trên `LocalContainerEntityManagerFactoryBean` để bật classpath scanning cho entity class. Xem link:{springJavadocUrl}/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html#setPackagesToScan(java.lang.String...)$$[JavaDoc] để biết chi tiết.

@@ -6,15 +6,15 @@
 
 [[populator.namespace-dao-config]]
 == Phần tử `<repositories />`
-Phần tử `<repositories />` kích hoạt việc thiết lập hạ tầng repository của Spring Data. Thuộc tính quan trọng nhất là `base-package`, thuộc tính này xác định package cần quét để tìm các repository interface của Spring Data. Xem "`xref:repositories/create-instances.adoc#repositories.create-instances.xml[Cấu hình XML]`". Bảng sau đây mô tả các thuộc tính của phần tử `<repositories />`:
+Phần tử `<repositories />` kích hoạt việc thiết lập repository infrastructure của Spring Data. Attribute quan trọng nhất là `base-package`, xác định package cần scan để tìm các repository interface của Spring Data. Xem "`xref:repositories/create-instances.adoc#repositories.create-instances.xml[Cấu hình XML]`". Bảng sau mô tả các attribute của phần tử `<repositories />`:
 
 .Thuộc tính
 [options="header", cols="1,3"]
 |===============
 |Tên|Mô tả
-|`base-package`|Xác định package cần quét để tìm các repository interface mở rộng `*Repository` (interface thực tế được xác định bởi Spring Data module cụ thể) ở chế độ tự động phát hiện. Tất cả package bên dưới package đã cấu hình cũng được quét. Cho phép sử dụng wildcard.
-|`repository-impl-postfix`|Xác định hậu tố dùng để tự động phát hiện custom repository implementation. Các class có tên kết thúc bằng hậu tố đã cấu hình được xem là ứng viên. Mặc định là `Impl`.
-|`query-lookup-strategy`|Xác định strategy được sử dụng để tạo finder query. Xem "`xref:repositories/query-methods-details.adoc#repositories.query-methods.query-lookup-strategies[Các strategy tra cứu query]`" để biết chi tiết. Mặc định là `create-if-not-found`.
+|`base-package`|Xác định package được scan để tìm các repository interface mở rộng `*Repository` (interface thực tế do Spring Data module cụ thể xác định) trong mode auto-detection. Mọi package nằm dưới package đã cấu hình cũng được scan. Cho phép wildcard.
+|`repository-impl-postfix`|Xác định postfix dùng để auto-detect custom repository implementation. Các class có tên kết thúc bằng postfix đã cấu hình được xem là candidate. Mặc định là `Impl`.
+|`query-lookup-strategy`|Xác định strategy được dùng để tạo finder query. Xem "`xref:repositories/query-methods-details.adoc#repositories.query-methods.query-lookup-strategies[Các strategy tra cứu query]`" để biết chi tiết. Mặc định là `create-if-not-found`.
 |`named-queries-location`|Xác định vị trí cần tìm file Properties chứa các query được định nghĩa bên ngoài.
-|`consider-nested-repositories`|Cho biết có xem xét các định nghĩa repository interface lồng nhau hay không. Mặc định là `false`.
+|`consider-nested-repositories`|Cho biết có xem xét các định nghĩa nested repository interface hay không. Mặc định là `false`.
 |===============

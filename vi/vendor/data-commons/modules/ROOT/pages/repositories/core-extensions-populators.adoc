@@ -1,5 +1,5 @@
 [[core.repository-populators]]
-= Repository Populator
+= Các repository populator
 
 Nếu làm việc với module Spring JDBC, có lẽ bạn đã quen với việc hỗ trợ nạp một `DataSource` bằng các tập lệnh SQL.
 Một abstraction tương tự cũng có sẵn ở cấp repository, mặc dù nó không sử dụng SQL làm ngôn ngữ định nghĩa dữ liệu vì phải độc lập với hệ thống lưu trữ.
@@ -38,17 +38,17 @@ Bạn có thể nạp dữ liệu vào các repository bằng cách sử dụng 
 </beans>
 ----
 
-Khai báo trên khiến tệp `data.json` được đọc và giải tuần tự bằng một Jackson `ObjectMapper`.
+Khai báo trên khiến tệp `data.json` được đọc và deserialize bằng một Jackson `ObjectMapper`.
 
-Kiểu mà đối tượng JSON được giải tuần tự thành được xác định bằng cách kiểm tra thuộc tính `_class` của tài liệu JSON.
-Cuối cùng, hạ tầng sẽ chọn repository phù hợp để xử lý đối tượng đã được giải tuần tự.
+Kiểu đích mà đối tượng JSON được unmarshall thành được xác định bằng cách kiểm tra thuộc tính `_class` của tài liệu JSON.
+Cuối cùng, hạ tầng sẽ chọn repository phù hợp để xử lý đối tượng đã được deserialize.
 
 Nếu muốn sử dụng XML thay vì JSON để định nghĩa dữ liệu mà các repository cần được nạp, bạn có thể sử dụng phần tử `unmarshaller-populator`.
 Bạn cấu hình phần tử này để sử dụng một trong các tùy chọn XML marshaller có trong Spring OXM.
 Xem {spring-framework-docs}/data-access/oxm.html[tài liệu tham khảo của Spring] để biết chi tiết.
-Ví dụ sau đây minh họa cách giải tuần tự một repository populator bằng JAXB:
+Ví dụ sau đây minh họa cách unmarshall một repository populator bằng JAXB:
 
-.Khai báo repository populator sử dụng unmarshalling (bằng JAXB)
+.Khai báo một repository populator thực hiện unmarshalling (sử dụng JAXB)
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>

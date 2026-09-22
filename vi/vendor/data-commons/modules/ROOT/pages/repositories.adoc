@@ -3,20 +3,20 @@ ifndef::store[]
 endif::[]
 
 [[repositories]]
-= Làm việc với Spring Data Repository
+= Làm việc với các repository của Spring Data
 
-Mục tiêu của repository abstraction của Spring Data là giảm đáng kể lượng mã boilerplate cần thiết để triển khai các tầng truy cập dữ liệu cho nhiều persistence store khác nhau.
+Mục tiêu của repository abstraction của Spring Data là giảm đáng kể số lượng boilerplate code cần thiết để triển khai các data access layer cho nhiều persistence store khác nhau.
 
 [IMPORTANT]
 ====
-_Tài liệu Spring Data Repository và module của bạn_
+_Tài liệu về repository của Spring Data và module của bạn_
 
-Chương này giải thích các khái niệm cốt lõi và interface của Spring Data Repository.
+Chương này giải thích các khái niệm cốt lõi và interface của các repository Spring Data.
 Thông tin trong chương này được lấy từ module Spring Data Commons.
-Chương sử dụng cấu hình và các mẫu mã cho Jakarta Persistence API (JPA).
+Nội dung trong chương này sử dụng cấu hình và code sample dành cho module Jakarta Persistence API (JPA).
 ifeval::[{include-xml-namespaces} != false]
-Nếu bạn muốn sử dụng cấu hình XML, bạn nên điều chỉnh khai báo XML namespace và các type được mở rộng thành các thành phần tương đương của module cụ thể mà bạn sử dụng. "`xref:repositories/namespace-reference.adoc#repositories.namespace-reference[Tham chiếu namespace]`" trình bày về cấu hình XML, được hỗ trợ trên tất cả các module Spring Data hỗ trợ repository API.
+Nếu bạn muốn sử dụng cấu hình XML, bạn nên điều chỉnh khai báo XML namespace và các type cần mở rộng thành các type tương đương của module cụ thể mà bạn sử dụng. "`xref:repositories/namespace-reference.adoc#repositories.namespace-reference[Tham chiếu namespace]`" trình bày về cấu hình XML, được hỗ trợ trên tất cả các module Spring Data hỗ trợ repository API.
 endif::[]
-"`xref:repositories/query-keywords-reference.adoc[Từ khóa query của Repository]`" trình bày các query method keyword được repository abstraction hỗ trợ nói chung.
+"`xref:repositories/query-keywords-reference.adoc[Các query keyword của repository]`" trình bày các query keyword được repository abstraction hỗ trợ nói chung trong query method.
 Để biết thông tin chi tiết về các tính năng cụ thể của module, hãy xem chương về module đó trong tài liệu này.
 ====

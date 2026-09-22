@@ -1,14 +1,14 @@
 include::{commons}@data-commons-vi::page$auditing.adoc[]
 
-Ngoài ra còn có một convenience base class, `AbstractAuditable`, mà bạn có thể extend để tránh phải tự implement thủ công các interface method. Tuy nhiên, làm vậy sẽ làm tăng sự coupling giữa domain class của bạn với Spring Data, điều mà bạn có thể muốn tránh. Thông thường, cách định nghĩa auditing metadata bằng annotation được ưa chuộng hơn vì nó ít invasive hơn và linh hoạt hơn.
+Ngoài ra còn có một base class tiện ích, `AbstractAuditable`, mà bạn có thể mở rộng để không phải tự triển khai các method của interface. Tuy nhiên, việc này làm tăng coupling giữa domain class của bạn với Spring Data, và có thể là điều bạn muốn tránh. Thông thường, cách định nghĩa metadata auditing dựa trên annotation được ưu tiên vì ít can thiệp hơn và linh hoạt hơn.
 
 
 [[jpa.auditing.configuration]]
-== Cấu hình Auditing Tổng quát
+== Cấu hình Auditing tổng quát
 
-Spring Data JPA đi kèm với một entity listener có thể được dùng để kích hoạt việc capture auditing information. Trước tiên, bạn phải đăng ký `AuditingEntityListener` để dùng cho tất cả entity trong persistence context của bạn bên trong file `orm.xml`, như ví dụ sau:
+Spring Data JPA đi kèm một entity listener có thể được dùng để kích hoạt việc thu thập thông tin auditing. Trước tiên, bạn phải đăng ký `AuditingEntityListener` để sử dụng cho tất cả entity trong các persistence context của mình trong file `orm.xml`, như ví dụ sau:
 
-.Auditing configuration orm.xml
+.Cấu hình Auditing bằng orm.xml
 ====
 [source, xml]
 ----
@@ -22,7 +22,7 @@ Spring Data JPA đi kèm với một entity listener có thể được dùng đ
 ----
 ====
 
-Bạn cũng có thể bật `AuditingEntityListener` theo từng entity riêng lẻ bằng cách dùng annotation `@EntityListeners`, như sau:
+Bạn cũng có thể bật `AuditingEntityListener` trên từng entity bằng annotation `@EntityListeners`, như sau:
 
 ====
 [source, java]
@@ -37,9 +37,9 @@ public class MyEntity {
 
 NOTE: Tính năng auditing yêu cầu `spring-aspects.jar` phải có mặt trên classpath.
 
-Sau khi `orm.xml` đã được chỉnh sửa phù hợp và `spring-aspects.jar` đã có trên classpath, việc kích hoạt chức năng auditing chỉ đơn giản là thêm element namespace `auditing` của Spring Data JPA vào configuration của bạn, như sau:
+Sau khi đã chỉnh sửa `orm.xml` phù hợp và có `spring-aspects.jar` trên classpath, để kích hoạt auditing, bạn chỉ cần thêm element namespace `auditing` của Spring Data JPA vào configuration của mình, như sau:
 
-.Kích hoạt auditing bằng XML configuration
+.Kích hoạt Auditing bằng cấu hình XML
 ====
 [source, xml]
 ----
@@ -47,9 +47,9 @@ Sau khi `orm.xml` đã được chỉnh sửa phù hợp và `spring-aspects.jar
 ----
 ====
 
-Kể từ Spring Data JPA 1.5, bạn có thể bật auditing bằng cách đánh dấu một configuration class với annotation `@EnableJpaAuditing`. Bạn vẫn phải chỉnh sửa file `orm.xml` và có `spring-aspects.jar` trên classpath. Ví dụ sau minh họa cách dùng annotation `@EnableJpaAuditing`:
+Kể từ Spring Data JPA 1.5, bạn có thể bật auditing bằng cách gắn annotation `@EnableJpaAuditing` vào một configuration class. Bạn vẫn phải chỉnh sửa file `orm.xml` và có `spring-aspects.jar` trên classpath. Ví dụ sau minh họa cách dùng annotation `@EnableJpaAuditing`:
 
-.Kích hoạt auditing bằng Java configuration
+.Kích hoạt Auditing bằng cấu hình Java
 ====
 [source, java]
 ----
@@ -65,8 +65,8 @@ class Config {
 ----
 ====
 
-Nếu bạn expose một bean kiểu `AuditorAware` cho `ApplicationContext`, auditing infrastructure sẽ tự động nhận diện và sử dụng nó để xác định current user cần được set trên domain type. Nếu bạn có nhiều implementation được đăng ký trong `ApplicationContext`, bạn có thể chọn implementation nào sẽ được dùng bằng cách set tường minh attribute `auditorAwareRef` của `@EnableJpaAuditing`.
+Nếu bạn expose một bean kiểu `AuditorAware` cho `ApplicationContext`, infrastructure auditing sẽ tự động nhận diện và sử dụng bean đó để xác định người dùng hiện tại cần được set trên domain type. Nếu có nhiều implementation được đăng ký trong `ApplicationContext`, bạn có thể chọn implementation sẽ được sử dụng bằng cách thiết lập tường minh attribute `auditorAwareRef` của `@EnableJpaAuditing`.
 
-// FIXME: does this need to exist?
+// FIXME: phần này có cần tồn tại không?
 // [[jpa.misc]]
-// = Miscellaneous Considerations
+// = Các lưu ý khác

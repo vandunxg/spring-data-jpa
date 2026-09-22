@@ -1,7 +1,7 @@
 [[envers.usage]]
 = Sử dụng
 
-Giờ đây bạn có thể sử dụng các method của `RevisionRepository` để truy vấn các revision của entity, như test case sau đây minh họa:
+Giờ đây bạn có thể sử dụng các method từ `RevisionRepository` để query các revision của entity, như test case sau đây cho thấy:
 
 ====
 [source,java]
@@ -35,14 +35,14 @@ class EnversIntegrationTests {
 	}
 
 	/**
-    * Checks that the next element in the iterator is a Revision entry referencing a Person
-    * with the given name after whatever change brought that Revision into existence.
+    * Kiểm tra rằng phần tử tiếp theo trong iterator là một Revision entry tham chiếu đến một Person
+    * có name được cung cấp, sau thay đổi đã tạo ra Revision đó.
     * <p>
-    * As a side effect the Iterator gets advanced by one element.
+    * Một side effect là Iterator được advance thêm một phần tử.
     *
-    * @param revisionIterator the iterator to be tested.
-    * @param name the expected name of the Person referenced by the Revision.
-    * @param revisionType the type of the revision denoting if it represents an insert, update or delete.
+    * @param revisionIterator iterator cần được test.
+    * @param name name mong đợi của Person được Revision tham chiếu.
+    * @param revisionType type của revision, cho biết revision đó đại diện cho insert, update hay delete.
     */
 	private void checkNextRevision(Iterator<Revision<Long, Person>> revisionIterator, String name,
 			RevisionType revisionType) {
@@ -54,37 +54,37 @@ class EnversIntegrationTests {
 	}
 
 	/**
-    * Creates a Person with a couple of changes so it has a non-trivial revision history.
-    * @return the created Person.
+    * Tạo một Person với một vài thay đổi để có revision history không đơn giản.
+    * @return Person được tạo.
     */
 	private Person preparePersonHistory() {
 
 		Person john = new Person();
 		john.setName("John");
 
-		// create
+		// tạo
 		Person saved = tx.execute(__ -> repository.save(john));
 		assertThat(saved).isNotNull();
 
 		saved.setName("Jonny");
 
-		// update
+		// cập nhật
 		Person updated = tx.execute(__ -> repository.save(saved));
 		assertThat(updated).isNotNull();
 
-		// delete
+		// xóa
 		tx.executeWithoutResult(__ -> repository.delete(updated));
 		return updated;
 	}
 }
 ----
-<1> Dòng này tham chiếu đến cấu hình application context đã trình bày trước đó (trong phần xref:envers/configuration.adoc#envers.configuration[Cấu hình]).
+<1> Dòng này tham chiếu đến cấu hình application context được trình bày trước đó (trong phần xref:envers/configuration.adoc#envers.configuration[Cấu hình]).
 ====
 
 [[envers.resources]]
 == Tài nguyên bổ sung
 
-Bạn có thể tải https://github.com/spring-projects/spring-data-examples[ví dụ Spring Data Envers trong repository Spring Data Examples] về và thử nghiệm để có cảm nhận về cách thư viện này hoạt động.
+Bạn có thể tải https://github.com/spring-projects/spring-data-examples[ví dụ Spring Data Envers trong repository Spring Data Examples] và thử nghiệm để hiểu rõ hơn cách thư viện hoạt động.
 
 Bạn cũng nên tham khảo {spring-data-commons-javadoc-base}/org/springframework/data/repository/history/RevisionRepository.html[Javadoc của `RevisionRepository`] và các class liên quan.
 

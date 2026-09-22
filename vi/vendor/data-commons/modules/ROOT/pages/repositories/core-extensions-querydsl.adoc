@@ -1,14 +1,14 @@
 [[core.extensions.querydsl]]
 = Phần mở rộng Querydsl
 
-http://www.querydsl.com/[Querydsl] là một framework cho phép xây dựng các truy vấn tương tự SQL được định kiểu tĩnh thông qua fluent API của framework này.
+http://www.querydsl.com/[Querydsl] là một framework cho phép xây dựng các truy vấn tương tự SQL được định kiểu tĩnh thông qua fluent API của nó.
 
 NOTE: Việc bảo trì Querydsl đã chậm lại đến mức cộng đồng đã fork dự án dưới OpenFeign tại https://github.com/OpenFeign/querydsl (groupId `io.github.openfeign.querydsl`).
-Spring Data hỗ trợ bản fork này theo khả năng.
+Spring Data hỗ trợ fork này trong phạm vi có thể.
 
 Một số module Spring Data cung cấp tích hợp với Querydsl thông qua `QuerydslPredicateExecutor`, như ví dụ sau đây:
 
-.Giao diện QuerydslPredicateExecutor
+.Interface QuerydslPredicateExecutor
 [source,java]
 ----
 public interface QuerydslPredicateExecutor<T> {
@@ -30,7 +30,7 @@ public interface QuerydslPredicateExecutor<T> {
 <3> Trả về số lượng entity khớp với `Predicate`.
 <4> Cho biết có tồn tại entity khớp với `Predicate` hay không.
 
-Để sử dụng hỗ trợ Querydsl, hãy cho repository interface của bạn kế thừa `QuerydslPredicateExecutor`, như ví dụ sau đây:
+Để sử dụng khả năng hỗ trợ Querydsl, hãy cho repository interface của bạn kế thừa `QuerydslPredicateExecutor`, như ví dụ sau đây:
 
 .Tích hợp Querydsl trên repository
 [source,java]
@@ -39,7 +39,7 @@ interface UserRepository extends CrudRepository<User, Long>, QuerydslPredicateEx
 }
 ----
 
-Ví dụ trước cho phép bạn viết các truy vấn an toàn kiểu bằng các instance `Predicate` của Querydsl, như ví dụ sau đây:
+Ví dụ trên cho phép bạn viết các truy vấn type-safe bằng các instance `Predicate` của Querydsl, như ví dụ sau đây:
 
 [source,java]
 ----

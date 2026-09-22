@@ -23,13 +23,13 @@ Tùy thuộc vào database, khả năng hỗ trợ matching chuỗi có thể b�
 
 API Query by Example gồm bốn phần:
 
-* Probe: Ví dụ thực tế của một domain object có các field đã được điền giá trị.
+* Probe: Một example thực tế của một domain object có các field đã được điền giá trị.
 * `ExampleMatcher`: `ExampleMatcher` chứa thông tin chi tiết về cách match các field cụ thể.
 Có thể tái sử dụng `ExampleMatcher` cho nhiều Example.
 * `Example`: Một `Example` gồm probe và `ExampleMatcher`.
 Được dùng để tạo query.
 * `FetchableFluentQuery`: Một `FetchableFluentQuery` cung cấp fluent API, cho phép tùy chỉnh thêm một query được suy ra từ một `Example`.
-Sử dụng fluent API cho phép bạn chỉ định thứ tự, projection và việc xử lý kết quả cho query.
+Sử dụng fluent API cho phép bạn chỉ định ordering, projection và result processing cho query.
 
 Query by Example phù hợp với một số trường hợp sử dụng:
 
@@ -90,7 +90,7 @@ Example<Person> example = Example.of(person);         <3>
 <3> Tạo `Example`.
 ====
 
-Bạn có thể chạy các query ví dụ bằng repository.
+Bạn có thể chạy các query theo Example bằng repository.
 Để làm vậy, hãy để repository interface của bạn mở rộng `QueryByExampleExecutor<T>`.
 Danh sách sau cho thấy một phần của interface `QueryByExampleExecutor`:
 
@@ -108,7 +108,7 @@ public interface QueryByExampleExecutor<T> {
 ----
 
 [[query-by-example.matchers]]
-== Example Matcher
+== Các ExampleMatcher
 
 Example không bị giới hạn ở các thiết lập mặc định.
 Bạn có thể chỉ định các thiết lập mặc định của riêng mình cho việc matching chuỗi, xử lý null và các thiết lập dành riêng cho property bằng cách sử dụng `ExampleMatcher`, như trong ví dụ sau:
@@ -154,7 +154,7 @@ ExampleMatcher matcher = ExampleMatcher.matching()
 }
 ----
 
-Một cách khác để cấu hình các tùy chọn matcher là sử dụng lambda (được giới thiệu trong Java 8).
+Một cách khác để cấu hình các tùy chọn matcher là sử dụng các lambda (được giới thiệu trong Java 8).
 Cách tiếp cận này tạo một callback yêu cầu implementor sửa đổi matcher.
 Bạn không cần trả về matcher, vì các tùy chọn cấu hình được lưu trong instance matcher.
 Ví dụ sau cho thấy một matcher sử dụng lambda:
@@ -170,7 +170,7 @@ ExampleMatcher matcher = ExampleMatcher.matching()
 
 Các query được tạo bởi `Example` sử dụng một view hợp nhất của cấu hình.
 Các thiết lập matching mặc định có thể được đặt ở cấp `ExampleMatcher`, còn các thiết lập riêng lẻ có thể được áp dụng cho các property path cụ thể.
-Các thiết lập được đặt trên `ExampleMatcher` được kế thừa bởi các thiết lập của property path, trừ khi chúng được định nghĩa một cách tường minh.
+Các thiết lập được đặt trên `ExampleMatcher` được các thiết lập của property path kế thừa, trừ khi chúng được định nghĩa một cách tường minh.
 Các thiết lập trên property path có độ ưu tiên cao hơn các thiết lập mặc định.
 Bảng sau mô tả phạm vi của các thiết lập `ExampleMatcher` khác nhau:
 
@@ -200,21 +200,21 @@ Bảng sau mô tả phạm vi của các thiết lập `ExampleMatcher` khác nh
 [[query-by-example.fluent]]
 == Fluent API
 
-`QueryByExampleExecutor` định nghĩa các phương thức query fluent để thực thi linh hoạt các query dựa trên các instance `Example` thông qua `findBy(Example<S> example, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction)`.
+`QueryByExampleExecutor` định nghĩa các fluent query method để thực thi linh hoạt các query dựa trên các instance `Example` thông qua `findBy(Example<S> example, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction)`.
 
 Cũng như các phương thức khác, phương thức này thực thi một query được suy ra từ một `Example`.
 Tuy nhiên, query function cho phép bạn kiểm soát các khía cạnh của việc thực thi query mà nếu không thì bạn không thể kiểm soát một cách động.
-Bạn thực hiện điều đó bằng cách gọi các phương thức trung gian và kết thúc khác nhau của `FetchableFluentQuery`.
+Bạn thực hiện điều đó bằng cách gọi các intermediate method và terminal method khác nhau của `FetchableFluentQuery`.
 
-**Các phương thức trung gian**
+**Các intermediate method**
 
-* `sortBy`: Áp dụng thứ tự cho kết quả.
-Các lần gọi phương thức lặp lại sẽ nối thêm từng `Sort` (lưu ý rằng `page(Pageable)` sử dụng một `Pageable` đã được sắp xếp sẽ ghi đè mọi thứ tự sắp xếp trước đó).
+* `sortBy`: Áp dụng ordering cho result.
+Các lần gọi method lặp lại sẽ append từng `Sort` (lưu ý rằng `page(Pageable)` sử dụng một `Pageable` đã được sort sẽ override mọi sort order trước đó).
 * `limit`: Giới hạn số lượng kết quả.
-* `as`: Chỉ định type cần đọc hoặc projection đến.
+* `as`: Chỉ định type cần đọc hoặc project sang.
 * `project`: Giới hạn các property của query.
 
-**Các phương thức kết thúc**
+**Các terminal method**
 
 * `first`, `firstValue`: Trả về giá trị đầu tiên. `first` trả về một `Optional<T>` hoặc `Optional.empty()` nếu query không trả về kết quả nào. `firstValue` là biến thể nullable của nó, không cần sử dụng `Optional`.
 * `one`, `oneValue`: Trả về một giá trị duy nhất. `one` trả về một `Optional<T>` hoặc `Optional.empty()` nếu query không trả về kết quả nào. `oneValue` là biến thể nullable của nó, không cần sử dụng `Optional`.
@@ -227,9 +227,9 @@ Ném `IncorrectResultSizeDataAccessException` nếu tìm thấy nhiều hơn m�
 Stream có state và phải được đóng sau khi sử dụng.
 * `count` và `exists`: Trả về số lượng entity match hoặc cho biết có tồn tại kết quả match nào hay không.
 
-NOTE: Các phương thức trung gian và kết thúc phải được gọi bên trong query function.
+NOTE: Các intermediate method và terminal method phải được gọi bên trong query function.
 
-.Sử dụng fluent API để nhận một `Page` projection được sắp xếp theo `lastname`
+.Sử dụng fluent API để nhận một `Page` đã được project, sắp xếp theo `lastname`
 ====
 [source,java]
 ----

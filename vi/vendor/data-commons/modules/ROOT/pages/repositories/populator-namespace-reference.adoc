@@ -6,11 +6,11 @@
 
 [[namespace-dao-config]]
 == Phần tử <populator />
-Phần tử `<populator />` cho phép điền một kho dữ liệu thông qua cơ sở hạ tầng repository của Spring Data.footnote:[xem xref:repositories/create-instances.adoc#repositories.create-instances.xml[Cấu hình XML]]
+Phần tử `<populator />` cho phép nạp dữ liệu vào một data store thông qua hạ tầng repository của Spring Data.footnote:[xem xref:repositories/create-instances.adoc#repositories.create-instances.xml[Cấu hình XML]]
 
 .Thuộc tính
 [options="header", cols="1,3"]
 |===============
 |Tên|Mô tả
-|`locations`|Nơi tìm các tệp chứa những đối tượng sẽ được dùng để điền repository.
+|`locations`|Nơi tìm các file chứa các object dùng để nạp vào repository.
 |===============

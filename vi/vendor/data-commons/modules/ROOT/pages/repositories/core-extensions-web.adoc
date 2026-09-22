@@ -1,10 +1,10 @@
 [[core.web]]
 = Hỗ trợ web
 
-Các module Spring Data hỗ trợ mô hình lập trình repository được cung cấp nhiều khả năng hỗ trợ web.
+Các module Spring Data hỗ trợ repository programming model đi kèm nhiều tính năng web.
 Các thành phần liên quan đến web yêu cầu các JAR Spring MVC có trên classpath.
-Một số thành phần thậm chí còn cung cấp khả năng tích hợp với https://github.com/spring-projects/spring-hateoas[Spring HATEOAS].
-Nhìn chung, khả năng hỗ trợ tích hợp được bật bằng cách sử dụng annotation `@EnableSpringDataWebSupport` trong class cấu hình JavaConfig, như ví dụ sau:
+Một số thành phần còn cung cấp khả năng tích hợp với https://github.com/spring-projects/spring-hateoas[Spring HATEOAS].
+Nhìn chung, tích hợp được bật bằng cách sử dụng annotation `@EnableSpringDataWebSupport` trong class cấu hình JavaConfig, như ví dụ sau:
 
 .Bật hỗ trợ web của Spring Data
 [tabs]
@@ -31,22 +31,22 @@ XML::
 ======
 
 Annotation `@EnableSpringDataWebSupport` đăng ký một số thành phần.
-Chúng ta sẽ thảo luận về các thành phần đó ở phần sau.
-Annotation này cũng phát hiện Spring HATEOAS trên classpath và đăng ký các thành phần tích hợp cho nó (nếu có).
+Các thành phần đó được thảo luận ở phần sau.
+Annotation này cũng phát hiện Spring HATEOAS trên classpath và đăng ký các thành phần tích hợp cho Spring HATEOAS (nếu có).
 
 [[core.web.basic]]
-== Hỗ trợ Web cơ bản
+== Hỗ trợ web cơ bản
 
 Cấu hình được trình bày trong xref:repositories/core-extensions.adoc#core.web[phần trước] đăng ký một số thành phần cơ bản:
 
 - Một xref:repositories/core-extensions.adoc#core.web.basic.domain-class-converter[sử dụng class `DomainClassConverter`] để Spring MVC phân giải các instance của domain class do repository quản lý từ request parameter hoặc path variable.
 - Các implementation của xref:repositories/core-extensions.adoc#core.web.basic.paging-and-sorting[`HandlerMethodArgumentResolver`] để Spring MVC phân giải các instance `Pageable` và `Sort` từ request parameter.
-- xref:repositories/core-extensions.adoc#core.web.basic.jackson-mappers[Các Jackson Module] để de-/serialize các kiểu như `Point` và `Distance`, hoặc các kiểu riêng của store, tùy thuộc vào Spring Data Module được sử dụng.
+- xref:repositories/core-extensions.adoc#core.web.basic.jackson-mappers[Các Jackson Module] để de-/serialize các kiểu như `Point` và `Distance`, hoặc các kiểu riêng của store, tùy thuộc vào Spring Data module được sử dụng.
 
 [[core.web.basic.domain-class-converter]]
 === Sử dụng class `DomainClassConverter`
 
-Class `DomainClassConverter` cho phép bạn sử dụng trực tiếp các domain type trong method signature của Spring MVC controller, nhờ đó bạn không cần tự tra cứu các instance thông qua repository, như ví dụ sau:
+Class `DomainClassConverter` cho phép bạn sử dụng trực tiếp các domain type trong method signature của Spring MVC controller, nhờ đó không cần tự tra cứu các instance thông qua repository, như ví dụ sau:
 
 .Spring MVC controller sử dụng domain type trong method signature
 [source,java]
@@ -65,15 +65,15 @@ class UserController {
 ----
 
 Method nhận trực tiếp một instance `User`, và không cần tra cứu thêm.
-Instance này có thể được phân giải bằng cách để Spring MVC trước tiên chuyển path variable thành kiểu `id` của domain class, sau đó truy cập instance thông qua việc gọi `findById(…)` trên instance repository đã đăng ký cho domain type.
+Instance này có thể được phân giải bằng cách để Spring MVC trước tiên chuyển path variable thành kiểu `id` của domain class, sau đó truy cập instance bằng cách gọi `findById(…)` trên repository đã đăng ký cho domain type.
 
-NOTE: Hiện tại, repository phải implement `CrudRepository` thì mới đủ điều kiện được phát hiện để chuyển đổi.
+NOTE: Hiện tại, repository phải implement `CrudRepository` thì mới có thể được phát hiện để chuyển đổi.
 
 [[core.web.basic.paging-and-sorting]]
-=== HandlerMethodArgumentResolver cho Pageable và Sort
+=== Các HandlerMethodArgumentResolver cho Pageable và Sort
 
 Đoạn cấu hình trong xref:repositories/core-extensions.adoc#core.web.basic.domain-class-converter[phần trước] cũng đăng ký một `PageableHandlerMethodArgumentResolver` và một instance của `SortHandlerMethodArgumentResolver`.
-Việc đăng ký này cho phép dùng `Pageable` và `Sort` làm argument hợp lệ của controller method, như ví dụ sau:
+Việc đăng ký này cho phép dùng `Pageable` và `Sort` làm argument hợp lệ trong controller method, như ví dụ sau:
 
 .Sử dụng Pageable làm argument của controller method
 [source,java]
@@ -102,14 +102,14 @@ Method signature ở trên khiến Spring MVC cố gắng suy ra một instance 
 .Các request parameter được đánh giá cho instance `Pageable`
 [options = "autowidth"]
 |===
-|`page`|Trang bạn muốn truy xuất. Đánh chỉ mục từ 0 và mặc định là 0.
-|`size`|Kích thước trang bạn muốn truy xuất. Mặc định là 20.
-|`sort`|Các property cần sắp xếp theo định dạng `property,property(,ASC\|DESC)(,IgnoreCase)`. Hướng sắp xếp mặc định là tăng dần có phân biệt hoa thường. Sử dụng nhiều parameter `sort` nếu bạn muốn thay đổi hướng hoặc việc phân biệt hoa thường -- ví dụ: `?sort=firstname&sort=lastname,asc&sort=city,ignorecase`.
+|`page`|`Page` bạn muốn retrieve. Được đánh index từ 0 và mặc định là 0.
+|`size`|Kích thước `Page` bạn muốn retrieve. Mặc định là 20.
+|`sort`|Các property cần sort theo định dạng `property,property(,ASC\|DESC)(,IgnoreCase)`. Hướng sort mặc định là ascending có phân biệt hoa thường. Sử dụng nhiều parameter `sort` nếu bạn muốn thay đổi hướng hoặc việc phân biệt hoa thường -- ví dụ: `?sort=firstname&sort=lastname,asc&sort=city,ignorecase`.
 |===
 
 [IMPORTANT]
 ====
-Các instance `Sort.Order` được phân giải từ request parameter là các transfer object đơn thuần chứa nguyên trạng tên property, không có validation đối với domain model. Ứng dụng chịu trách nhiệm xác minh các giá trị này để ngăn việc sắp xếp ngoài ý muốn.
+Các instance `Sort.Order` được phân giải từ request parameter là các transfer object thuần túy chứa nguyên trạng tên property, không có validation đối với domain model. Ứng dụng chịu trách nhiệm xác minh các giá trị này để ngăn việc sort ngoài ý muốn.
 ====
 
 Để tùy chỉnh hành vi này, hãy đăng ký một bean implement lần lượt interface `PageableHandlerMethodArgumentResolverCustomizer` hoặc interface `SortHandlerMethodArgumentResolverCustomizer`.
@@ -135,26 +135,26 @@ String showUsers(Model model,
       @Qualifier("thing2") Pageable second) { … }
 ----
 
-Bạn phải điền `thing1_page`, `thing2_page`, v.v.
+Bạn phải populate `thing1_page`, `thing2_page`, v.v.
 
 `Pageable` mặc định được truyền vào method tương đương với `PageRequest.of(0, 20)`, nhưng bạn có thể tùy chỉnh nó bằng annotation `@PageableDefault` trên parameter `Pageable`.
 
 [[core.web.page]]
-== Tạo biểu diễn JSON cho `Page`
+== Tạo JSON representation cho `Page`
 
-Các Spring MVC controller thường cố gắng cuối cùng render biểu diễn của một trang Spring Data cho client.
-Mặc dù có thể chỉ cần trả về các instance `Page` từ handler method để Jackson render chúng nguyên trạng, chúng tôi đặc biệt khuyến nghị không làm vậy vì class implementation bên dưới là `PageImpl`, một domain type.
-Điều này có nghĩa là chúng ta có thể muốn hoặc buộc phải thay đổi API của nó vì những lý do không liên quan, và các thay đổi đó có thể làm thay đổi biểu diễn JSON kết quả theo cách gây breaking change.
+Các Spring MVC controller thường cố gắng render `Page` của Spring Data cho client.
+Mặc dù có thể chỉ cần trả về các instance `Page` từ handler method để Jackson render chúng nguyên trạng, chúng tôi đặc biệt khuyến nghị không làm vậy vì implementation class bên dưới là `PageImpl`, một domain type.
+Điều này có nghĩa là chúng ta có thể muốn hoặc buộc phải thay đổi API của nó vì những lý do không liên quan, và các thay đổi đó có thể làm thay đổi JSON representation kết quả theo cách gây breaking change.
 
 Từ Spring Data 3.1, chúng tôi bắt đầu cảnh báo về vấn đề này bằng cách ghi một warning log mô tả vấn đề.
-Chúng tôi vẫn khuyến nghị sử dụng xref:repositories/core-extensions.adoc#core.web.pageables[phần tích hợp với Spring HATEOAS] để render các page theo cách hoàn toàn ổn định và hỗ trợ hypermedia, đồng thời cho phép client dễ dàng điều hướng giữa các page.
-Tuy nhiên, từ version 3.3, Spring Data cung cấp một cơ chế render page thuận tiện sử dụng nhưng không yêu cầu đưa Spring HATEOAS vào.
+Chúng tôi vẫn khuyến nghị sử dụng xref:repositories/core-extensions.adoc#core.web.pageables[phần tích hợp với Spring HATEOAS] để render `Page` theo cách hoàn toàn ổn định và hỗ trợ hypermedia, đồng thời cho phép client dễ dàng điều hướng giữa các `Page`.
+Tuy nhiên, từ version 3.3, Spring Data cung cấp một cơ chế render `Page` thuận tiện sử dụng nhưng không yêu cầu đưa Spring HATEOAS vào.
 
 [[core.web.page.paged-model]]
 === Sử dụng `PagedModel` của Spring Data
 
-Về cốt lõi, khả năng hỗ trợ này bao gồm một phiên bản đơn giản hóa của `PagedModel` của Spring HATEOAS (phiên bản của Spring Data nằm trong package `org.springframework.data.web`).
-Nó có thể được sử dụng để bọc các instance `Page` và tạo ra một biểu diễn đơn giản hóa phản ánh cấu trúc do Spring HATEOAS thiết lập nhưng bỏ qua các navigation link.
+Về cốt lõi, support này bao gồm một phiên bản đơn giản hóa của `PagedModel` của Spring HATEOAS (phiên bản của Spring Data nằm trong package `org.springframework.data.web`).
+Nó có thể được sử dụng để bọc các instance `Page` và tạo ra một representation đơn giản hóa phản ánh cấu trúc do Spring HATEOAS thiết lập nhưng bỏ qua các navigation link.
 
 [source,java]
 ----
@@ -193,12 +193,12 @@ Kết quả sẽ là một cấu trúc JSON có dạng như sau:
 }
 ----
 
-Lưu ý rằng tài liệu chứa một field `page` cung cấp metadata phân trang thiết yếu.
+Lưu ý rằng document chứa một field `page` cung cấp pagination metadata thiết yếu.
 
 [[core.web.page.config]]
 === Bật toàn cục việc render `Page` đơn giản hóa
 
-Nếu không muốn thay đổi tất cả controller hiện có để thêm bước ánh xạ nhằm trả về `PagedModel` thay vì `Page`, bạn có thể bật việc tự động chuyển các instance `PageImpl` thành `PagedModel` bằng cách điều chỉnh `@EnableSpringDataWebSupport` như sau:
+Nếu không muốn thay đổi tất cả controller hiện có để thêm bước mapping nhằm trả về `PagedModel` thay vì `Page`, bạn có thể bật việc tự động chuyển các instance `PageImpl` thành `PagedModel` bằng cách điều chỉnh `@EnableSpringDataWebSupport` như sau:
 
 [source,java]
 ----
@@ -206,7 +206,7 @@ Nếu không muốn thay đổi tất cả controller hiện có để thêm bư
 class MyConfiguration { }
 ----
 
-Điều này cho phép controller tiếp tục trả về các instance `Page`, và chúng sẽ tự động được render thành biểu diễn đơn giản hóa:
+Điều này cho phép controller tiếp tục trả về các instance `Page`, và chúng sẽ tự động được render thành representation đơn giản hóa:
 
 [source,java]
 ----
@@ -227,7 +227,7 @@ class MyController {
 [[core.web.pageables]]
 === Hỗ trợ hypermedia cho `Page` và `Slice`
 
-Spring HATEOAS cung cấp một representation model class (`PagedModel`/`SlicedModel`) cho phép bổ sung vào nội dung của một instance `Page` hoặc `Slice` các metadata `Page`/`Slice` cần thiết cũng như các link để client dễ dàng điều hướng giữa các page.
+Spring HATEOAS cung cấp một representation model class (`PagedModel`/`SlicedModel`) cho phép bổ sung vào nội dung của một instance `Page` hoặc `Slice` các metadata `Page`/`Slice` cần thiết cũng như các link để client dễ dàng điều hướng giữa các `Page`.
 Việc chuyển đổi từ `Page` sang `PagedModel` được thực hiện bởi một implementation của interface Spring HATEOAS `RepresentationModelAssembler`, có tên là `PagedResourcesAssembler`.
 Tương tự, các instance `Slice` có thể được chuyển thành `SlicedModel` bằng `SlicedResourcesAssembler`.
 Ví dụ sau cho thấy cách sử dụng `PagedResourcesAssembler` làm argument của controller method; `SlicedResourcesAssembler` hoạt động hoàn toàn tương tự:
@@ -252,14 +252,14 @@ class PersonController {
 }
 ----
 
-Bật cấu hình như trong ví dụ trước cho phép sử dụng `PagedResourcesAssembler` làm argument của controller method.
+Bật configuration như trong ví dụ trước cho phép sử dụng `PagedResourcesAssembler` làm argument của controller method.
 Việc gọi `toModel(…)` trên nó có các tác động sau:
 
 * Nội dung của `Page` trở thành nội dung của instance `PagedModel`.
 * Object `PagedModel` được gắn một instance `PageMetadata`, và instance này được điền thông tin từ `Page` và `Pageable` bên dưới.
-* `PagedModel` có thể được gắn các link `prev` và `next`, tùy thuộc vào trạng thái của page.
-Các link trỏ đến URI mà method ánh xạ tới.
-Các parameter phân trang được thêm vào method khớp với thiết lập của `PageableHandlerMethodArgumentResolver` để đảm bảo các link có thể được phân giải sau đó.
+* `PagedModel` có thể được gắn các link `prev` và `next`, tùy thuộc vào trạng thái của `Page`.
+Các link trỏ đến URI mà method được map tới.
+Các pagination parameter được thêm vào method khớp với thiết lập của `PageableHandlerMethodArgumentResolver` để đảm bảo các link có thể được phân giải sau đó.
 
 Giả sử chúng ta có 30 instance `Person` trong database.
 Bạn có thể thực hiện một request (`GET http://localhost:8080/people`) và xem output tương tự như sau:
@@ -286,19 +286,19 @@ Rất nên bật việc render dưới dạng một media type chính thức có
 Các media type đó có thể được kích hoạt bằng annotation `@EnableHypermediaSupport` của nó.
 Xem thêm thông tin trong https://docs.spring.io/spring-hateoas/docs/{springHateoasVersion}/reference/html/#configuration.at-enable[tài liệu tham khảo Spring HATEOAS].
 
-Assembler đã tạo URI chính xác và cũng nhận cấu hình mặc định để phân giải các parameter thành một `Pageable` cho request tiếp theo.
-Điều này có nghĩa là nếu bạn thay đổi cấu hình đó, các link sẽ tự động tuân theo thay đổi.
+Assembler đã tạo URI chính xác và cũng nhận configuration mặc định để phân giải các parameter thành một `Pageable` cho request tiếp theo.
+Điều này có nghĩa là nếu bạn thay đổi configuration đó, các link sẽ tự động tuân theo thay đổi.
 Theo mặc định, assembler trỏ đến controller method nơi nó được gọi, nhưng bạn có thể tùy chỉnh điều đó bằng cách truyền một `Link` tùy chỉnh làm cơ sở để xây dựng các link phân trang; cách này sử dụng overload của method `PagedResourcesAssembler.toModel(…)`.
 
 [[core.web.basic.jackson-mappers]]
-== Jackson Module của Spring Data
+== Spring Data Jackson Modules
 
-Core module và một số store-specific module cung cấp một tập hợp Jackson Module cho các kiểu như `org.springframework.data.geo.Distance` và `org.springframework.data.geo.Point`, được sử dụng bởi domain của Spring Data. +
+Core module và một số store-specific module cung cấp một tập hợp Jackson Module cho các kiểu như `org.springframework.data.geo.Distance` và `org.springframework.data.geo.Point`, được sử dụng bởi Spring Data domain. +
 Các module đó được import một lần khi xref:repositories/core-extensions.adoc#core.web[bật hỗ trợ web] và một `tools.jackson.databind.ObjectMapper` (Jackson 3) có trên classpath.
 
 NOTE: `tools.jackson.databind` là package prefix của Jackson 3.
 Jackson 2 sử dụng `com.fasterxml.jackson.databind`.
-Hỗ trợ Jackson 2 đã deprecated và sẽ bị loại bỏ trong một future release; xem https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0[hướng dẫn migration Jackson 3] để biết hướng dẫn nâng cấp.
+Hỗ trợ Jackson 2 đã deprecated và sẽ bị loại bỏ trong một future release; xem https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0[hướng dẫn migration Jackson 3] để biết hướng dẫn upgrade.
 
 Trong quá trình khởi tạo, `SpringDataJackson3Modules`, giống như `SpringDataJackson3Configuration`, được infrastructure phát hiện, nhờ đó các ``tools.jackson.databind.JacksonModule`` đã khai báo được cung cấp cho Jackson `ObjectMapper`.
 
@@ -320,9 +320,9 @@ Vui lòng tham khảo phần dành riêng cho store để biết thêm chi tiế
 
 
 [[core.web.binding]]
-== Hỗ trợ Web Databinding
+== Hỗ trợ web databinding
 
-Bạn có thể sử dụng Spring Data projection (được mô tả trong xref:repositories/projections.adoc[Projection]) để bind request payload đến bằng cách sử dụng các expression https://goessner.net/articles/JsonPath/[JSONPath] (yêu cầu https://github.com/json-path/JsonPath[Jayway JsonPath]) hoặc expression https://www.w3.org/TR/xpath-31/[XPath] (yêu cầu https://xmlbeam.org/[XmlBeam]), như ví dụ sau:
+Bạn có thể sử dụng Spring Data projection (được mô tả trong xref:repositories/projections.adoc[Projections]) để bind request payload bằng các expression https://goessner.net/articles/JsonPath/[JSONPath] (yêu cầu https://github.com/json-path/JsonPath[Jayway JsonPath]) hoặc https://www.w3.org/TR/xpath-31/[XPath] (yêu cầu https://xmlbeam.org/[XmlBeam]), như ví dụ sau:
 
 .Bind HTTP payload bằng expression JSONPath hoặc XPath
 [source,java]
@@ -346,23 +346,23 @@ Việc tra cứu XML `lastname` được thực hiện ở cấp cao nhất củ
 Biến thể JSON trước tiên thử `lastname` ở cấp cao nhất, nhưng cũng thử `lastname` nằm trong sub-document `user` nếu cách đầu tiên không trả về giá trị.
 Nhờ đó, các thay đổi trong cấu trúc của source document có thể được giảm thiểu dễ dàng mà không cần client gọi các method được expose (thường là một nhược điểm của việc bind payload dựa trên class).
 
-Để phân giải argument của Spring MVC handler method, hãy annotate parameter của handler method hoặc projection interface bằng `@ProjectedPayload`.
+Để phân giải argument của Spring MVC handler method, hãy gắn `@ProjectedPayload` cho parameter của handler method hoặc projection interface.
 Các interface không có `@ProjectedPayload` trên parameter của handler method hoặc trên chính interface type sẽ không được xem là projection payload.
 
-Nested projection được hỗ trợ như mô tả trong xref:repositories/projections.adoc[Projection].
-Nếu method trả về một type phức tạp, không phải interface, một Jackson `ObjectMapper` được sử dụng để ánh xạ giá trị cuối cùng.
+Nested projection được hỗ trợ như mô tả trong xref:repositories/projections.adoc[Projections].
+Nếu method trả về một type phức tạp, không phải interface, một Jackson `ObjectMapper` được sử dụng để map giá trị cuối cùng.
 
-Đối với Spring MVC, các converter cần thiết được đăng ký tự động ngay khi `@EnableSpringDataWebSupport` active và các dependency bắt buộc có trên classpath.
+Đối với Spring MVC, các converter cần thiết được đăng ký tự động ngay khi `@EnableSpringDataWebSupport` được active và các dependency bắt buộc có trên classpath.
 Khi sử dụng với `RestTemplate`, hãy đăng ký thủ công một `ProjectingJacksonHttpMessageConverter` (JSON) hoặc `XmlBeamHttpMessageConverter`.
 
-Để biết thêm thông tin, xem https://github.com/spring-projects/spring-data-examples/tree/main/web/projection[ví dụ web projection] trong https://github.com/spring-projects/spring-data-examples[kho lưu trữ Spring Data Examples] chính thức.
+Để biết thêm thông tin, xem https://github.com/spring-projects/spring-data-examples/tree/main/web/projection[ví dụ web projection] trong https://github.com/spring-projects/spring-data-examples[repository Spring Data Examples] chính thức.
 
 NOTE: Theo mặc định, việc bind các property dạng collection bị giới hạn ở 1024 entry. Bạn có thể ghi đè giới hạn này bằng cách đặt property `spring.data.web.projection.collection-limit` thông qua file `spring.properties` hoặc dưới dạng system property.
 
 [[core.web.type-safe]]
 == Hỗ trợ Querydsl Web
 
-Đối với các store có tích hợp http://www.querydsl.com/[Querydsl], bạn có thể suy ra query từ các attribute có trong query string của `Request`.
+Đối với các store có tích hợp http://www.querydsl.com/[Querydsl], bạn có thể derive query từ các attribute có trong query string của `Request`.
 
 Xét query string sau:
 
@@ -371,7 +371,7 @@ Xét query string sau:
 ?firstname=Dave&lastname=Matthews
 ----
 
-Với object `User` từ các ví dụ trước, bạn có thể phân giải query string thành giá trị sau bằng cách sử dụng `QuerydslPredicateArgumentResolver` như sau:
+Với object `User` từ các ví dụ trước, bạn có thể phân giải query string thành giá trị sau bằng cách sử dụng `QuerydslPredicateArgumentResolver`:
 
 [source,text]
 ----
@@ -380,7 +380,7 @@ QUser.user.firstname.eq("Dave").and(QUser.user.lastname.eq("Matthews"))
 
 NOTE: Tính năng này được tự động bật cùng với `@EnableSpringDataWebSupport` khi Querydsl được tìm thấy trên classpath.
 
-Thêm `@QuerydslPredicate` vào method signature sẽ cung cấp một `Predicate` sẵn sàng sử dụng, mà bạn có thể chạy bằng `QuerydslPredicateExecutor`.
+Thêm `@QuerydslPredicate` vào method signature sẽ cung cấp một `Predicate` sẵn sàng sử dụng, mà bạn có thể execute bằng `QuerydslPredicateExecutor`.
 
 TIP: Thông tin type thường được phân giải từ kiểu trả về của method.
 Vì thông tin đó không nhất thiết khớp với domain type, bạn nên sử dụng attribute `root` của `QuerydslPredicate`.

@@ -11,7 +11,7 @@ Tuy nhiên, phải có một strategy quyết định query thực tế nào đ�
 Phần tiếp theo mô tả các tùy chọn khả dụng.
 
 [[repositories.query-methods.query-lookup-strategies]]
-== Query Lookup Strategy
+== Query Lookup Strategies
 
 Các strategy sau khả dụng để infrastructure của repository phân giải query.
 ifeval::[{include-xml-namespaces} != false]
@@ -37,7 +37,7 @@ Nó cho phép định nghĩa query nhanh bằng tên method, đồng thời tinh
 [[repositories.query-methods.query-creation]]
 == Tạo Query
 
-Cơ chế query builder được tích hợp trong infrastructure của Spring Data repository hữu ích để xây dựng các query có điều kiện trên các entity của repository.
+Cơ chế query builder được tích hợp trong infrastructure của Spring Data repository hữu ích để xây dựng các query có constraint trên các entity của repository.
 
 Ví dụ sau cho thấy cách tạo một số query:
 
@@ -52,9 +52,9 @@ interface PersonRepository extends Repository<Person, Long> {
   List<Person> findDistinctPeopleByLastnameOrFirstname(String lastname, String firstname);
   List<Person> findPeopleDistinctByLastnameOrFirstname(String lastname, String firstname);
 
-  // Bật việc bỏ qua chữ hoa chữ thường cho từng property
+  // Bật IgnoreCase cho từng property
   List<Person> findByLastnameIgnoreCase(String lastname);
-  // Bật việc bỏ qua chữ hoa chữ thường cho tất cả property phù hợp
+  // Bật IgnoreCase cho tất cả property phù hợp
   List<Person> findByLastnameAndFirstnameAllIgnoreCase(String lastname, String firstname);
 
   // Bật ORDER BY tĩnh cho query
@@ -63,31 +63,31 @@ interface PersonRepository extends Repository<Person, Long> {
 }
 ----
 
-Việc phân tích tên query method được chia thành subject và predicate.
+Việc parse tên query method được chia thành subject và predicate.
 Phần đầu (`find…By`, `exists…By`) định nghĩa subject của query; phần thứ hai tạo thành predicate.
 Mệnh đề mở đầu (subject) có thể chứa thêm các biểu thức.
 Mọi văn bản giữa `find` (hoặc các keyword mở đầu khác) và `By` được xem là phần mô tả, trừ khi sử dụng một trong các keyword giới hạn kết quả như `Distinct` để đặt cờ distinct cho query sẽ được tạo hoặc <<repositories.limit-query-result,`Top`/`First` để giới hạn kết quả query>>.
 
-Phụ lục chứa xref:repositories/query-keywords-reference.adoc#appendix.query.method.subject[danh sách đầy đủ các keyword subject của query method] và xref:repositories/query-keywords-reference.adoc#appendix.query.method.predicate[các keyword predicate của query method, bao gồm modifier sắp xếp và phân biệt chữ hoa chữ thường].
-Tuy nhiên, `By` đầu tiên đóng vai trò delimiter để chỉ ra phần bắt đầu của predicate tiêu chí thực tế.
+Phụ lục chứa xref:repositories/query-keywords-reference.adoc#appendix.query.method.subject[danh sách đầy đủ các keyword subject của query method] và xref:repositories/query-keywords-reference.adoc#appendix.query.method.predicate[các keyword predicate của query method, bao gồm modifier về sorting và phân biệt chữ hoa chữ thường].
+Tuy nhiên, `By` đầu tiên đóng vai trò delimiter để chỉ ra phần bắt đầu của predicate chứa criteria thực tế.
 Ở mức rất cơ bản, bạn có thể định nghĩa điều kiện trên các property của entity và nối chúng bằng `And` và `Or`.
 
-Kết quả thực tế của việc phân tích method phụ thuộc vào persistence store mà bạn tạo query cho nó.
+Kết quả thực tế của việc parse method phụ thuộc vào persistence store mà bạn tạo query cho nó.
 Tuy nhiên, có một số điểm chung cần lưu ý:
 
-- Các biểu thức thường là các phép duyệt property được kết hợp với các operator có thể nối với nhau.
+- Các biểu thức thường là các property path được kết hợp với các operator có thể nối với nhau.
 Bạn có thể kết hợp các biểu thức property bằng `AND` và `OR`.
 Bạn cũng được hỗ trợ các operator như `Between`, `LessThan`, `GreaterThan` và `Like` cho các biểu thức property.
 Các operator được hỗ trợ có thể khác nhau tùy datastore, vì vậy hãy tham khảo phần thích hợp trong tài liệu reference của bạn.
 
-- Method parser hỗ trợ đặt cờ `IgnoreCase` cho từng property (ví dụ: `findByLastnameIgnoreCase(…)`) hoặc cho tất cả property của một type hỗ trợ bỏ qua chữ hoa chữ thường (thường là các instance `String` -- ví dụ: `findByLastnameAndFirstnameAllIgnoreCase(…)`).
-Việc bỏ qua chữ hoa chữ thường có được hỗ trợ hay không có thể khác nhau tùy store, vì vậy hãy tham khảo các phần liên quan trong tài liệu reference về query method đặc thù cho store.
+- Method parser hỗ trợ đặt cờ `IgnoreCase` cho từng property (ví dụ: `findByLastnameIgnoreCase(…)`) hoặc cho tất cả property của một type hỗ trợ case-insensitive (thường là các instance `String` -- ví dụ: `findByLastnameAndFirstnameAllIgnoreCase(…)`).
+Việc hỗ trợ case-insensitive có thể khác nhau tùy store, vì vậy hãy tham khảo các phần liên quan trong tài liệu reference về query method đặc thù cho store.
 
 - Bạn có thể áp dụng thứ tự tĩnh bằng cách nối mệnh đề `OrderBy` vào query method tham chiếu đến một property và cung cấp hướng sắp xếp (`Asc` hoặc `Desc`).
 Để tạo query method hỗ trợ sắp xếp động, xem "`xref:repositories/query-methods-details.adoc#repositories.special-parameters[Phân trang, Duyệt kết quả lớn, Sắp xếp & Giới hạn]`".
 
 [[repositories.query-methods.reserved-methods]]
-== Tên Method Được Dành Riêng
+== Reserved Method Names
 
 Mặc dù các derived repository method liên kết với property theo tên, có một số ngoại lệ đối với quy tắc này khi xét đến một số tên method được kế thừa từ repository cơ sở nhắm đến property _identifier_.
 Các _reserved method_ như `CrudRepository#findById` (hoặc chỉ `findById`) nhắm đến property _identifier_ bất kể tên property thực tế được sử dụng trong method đã khai báo.
@@ -125,14 +125,14 @@ Do đó, đây không phải derived query sử dụng `id` như tên property g
 ====
 
 Hành vi đặc biệt này không chỉ áp dụng cho lookup method mà còn áp dụng cho các method `exists` và `delete`.
-Vui lòng tham khảo "`xref:repositories/query-keywords-reference.adoc#appendix.query.method.reserved[Repository query keyword]`" để xem danh sách method.
+Vui lòng tham khảo "`xref:repositories/query-keywords-reference.adoc#appendix.query.method.reserved[Repository query keywords]`" để xem danh sách method.
 
 [[repositories.query-methods.query-property-expressions]]
-== Biểu Thức Property
+== Property Expressions
 
 Biểu thức property chỉ có thể tham chiếu đến một property trực tiếp của managed entity, như trong ví dụ trước.
-Khi tạo query, bạn đã đảm bảo property được phân tích là một property của managed domain class.
-Tuy nhiên, bạn cũng có thể định nghĩa các ràng buộc bằng cách duyệt qua các property lồng nhau.
+Khi tạo query, bạn đã đảm bảo property được parse là một property của managed domain class.
+Tuy nhiên, bạn cũng có thể định nghĩa các constraint bằng cách duyệt qua các nested property.
 Hãy xem xét method signature sau:
 
 [source,java]
@@ -141,18 +141,18 @@ List<Person> findByAddressZipCode(ZipCode zipCode);
 ----
 
 Giả sử một `Person` có một `Address` với một `ZipCode`.
-Trong trường hợp đó, method tạo phép duyệt property `x.address.zipCode`.
-Algorithm phân giải bắt đầu bằng cách diễn giải toàn bộ phần (`AddressZipCode`) là property và kiểm tra domain class để tìm property có tên đó (viết thường chữ cái đầu).
-Nếu algorithm thành công, nó sử dụng property đó.
+Trong trường hợp đó, method tạo property path `x.address.zipCode`.
+Thuật toán phân giải bắt đầu bằng cách diễn giải toàn bộ phần (`AddressZipCode`) là property và kiểm tra domain class để tìm property có tên đó (viết thường chữ cái đầu).
+Nếu thuật toán thành công, nó sử dụng property đó.
 Nếu không, nó tách source tại các phần camel-case từ phía bên phải thành head và tail rồi cố gắng tìm property tương ứng -- trong ví dụ của chúng ta là `AddressZip` và `Code`.
-Nếu algorithm tìm thấy một property với head đó, nó lấy tail và tiếp tục xây dựng cây từ đó xuống, tách tail theo cách vừa mô tả.
-Nếu lần tách đầu tiên không khớp, algorithm di chuyển điểm tách sang trái (`Address`, `ZipCode`) và tiếp tục.
+Nếu thuật toán tìm thấy một property với head đó, nó lấy tail và tiếp tục xây dựng cây từ đó xuống, tách tail theo cách vừa mô tả.
+Nếu lần tách đầu tiên không khớp, thuật toán di chuyển điểm tách sang trái (`Address`, `ZipCode`) và tiếp tục.
 
-Mặc dù cách này sẽ hoạt động trong phần lớn trường hợp, algorithm vẫn có thể chọn nhầm property.
+Mặc dù cách này sẽ hoạt động trong phần lớn trường hợp, thuật toán vẫn có thể chọn nhầm property.
 Giả sử class `Person` cũng có một property `addressZip`.
-Algorithm sẽ khớp ngay ở vòng tách đầu tiên, chọn nhầm property và thất bại (vì type của `addressZip` có thể không có property `code`).
+Thuật toán sẽ khớp ngay ở vòng tách đầu tiên, chọn nhầm property và thất bại (vì type của `addressZip` có thể không có property `code`).
 
-Để giải quyết sự không rõ ràng này, bạn có thể sử dụng `_` bên trong tên method để định nghĩa thủ công các điểm duyệt.
+Để giải quyết sự không rõ ràng này, bạn có thể sử dụng `_` bên trong tên method để định nghĩa thủ công các điểm phân tách property path.
 Vì vậy tên method của chúng ta sẽ như sau:
 
 [source,java]
@@ -180,13 +180,13 @@ Tên field gồm một chữ cái thường ở đầu theo sau là một chữ 
 Hãy lưu ý các khả năng không rõ ràng của path.
 
 .Path không rõ ràng:
-Trong ví dụ sau, cách sắp xếp các property `qCode` và `q`, trong đó `q` chứa một property có tên `code`, tạo ra sự không rõ ràng cho path `QCode`.
+Trong ví dụ sau, việc cùng tồn tại các property `qCode` và `q`, trong đó `q` chứa một property có tên `code`, tạo ra sự không rõ ràng cho path `QCode`.
 ```java
 record Container(String qCode, Code q) {}
 record Code(String code) {}
 ```
-Vì một kết quả khớp trực tiếp với property luôn được xét trước, mọi path lồng nhau có thể có sẽ không được xét và algorithm chọn field `qCode`.
-Để chọn field `code` trong `q`, cần có notation underscore `Q_Code`.
+Vì direct match với một property luôn được xét trước, mọi nested path có thể có sẽ không được xét và thuật toán chọn field `qCode`.
+Để chọn field `code` trong `q`, cần có cú pháp underscore `Q_Code`.
 ====
 
 [[repositories.collections-and-iterables]]
@@ -263,31 +263,31 @@ interface ProductRepository extends Repository<Product, Long> {
 Bạn không cần trả về `Streamable<Product>` rồi tự wrap nó sau query trong repository client.
 
 [[repositories.collections-and-iterables.vavr]]
-=== Hỗ Trợ Vavr Collection
+=== Hỗ Trợ Vavr Collections
 
 https://www.vavr.io/[Vavr] là một library áp dụng các khái niệm lập trình functional trong Java.
 Nó cung cấp một tập collection type tùy chỉnh mà bạn có thể sử dụng làm argument và kiểu trả về của query method, như bảng sau cho thấy:
 
 [options=header]
 |====
-|Loại collection Vavr|Loại implementation Vavr được sử dụng|Các Java source type hợp lệ
+|Vavr collection type|Vavr implementation type được sử dụng|Java source type hợp lệ
 |`io.vavr.collection.Seq`|`io.vavr.collection.List`|`java.util.Iterable`
 |`io.vavr.collection.Set`|`io.vavr.collection.LinkedHashSet`|`java.util.Iterable`
 |`io.vavr.collection.Map`|`io.vavr.collection.LinkedHashMap`|`java.util.Map`
 |====
 
 Bạn có thể sử dụng các type ở cột đầu tiên (hoặc subtype của chúng) làm kiểu trả về của query method và nhận các type ở cột thứ hai được sử dụng làm implementation type, tùy thuộc vào Java type của query result thực tế (cột thứ ba).
-Ngoài ra, bạn có thể khai báo `Traversable` (tương đương `Iterable` của Vavr), khi đó chúng tôi suy ra implementation class từ return value thực tế.
+Ngoài ra, bạn có thể khai báo `Traversable` (tương đương Vavr `Iterable`), khi đó chúng tôi suy ra implementation class từ return value thực tế.
 Nói cách khác, một `java.util.List` được chuyển thành Vavr `List` hoặc `Seq`, một `java.util.Set` trở thành Vavr `LinkedHashSet` `Set`, v.v.
 
 Các type Vavr cũng được chấp nhận làm query method parameter.
-Nếu một parameter của repository method sử dụng một trong các type trên (hoặc `Traversable`), Spring Data tự động unwrap nó thành equivalent Java trước khi chạy query.
+Nếu một parameter của repository method sử dụng một trong các type trên (hoặc `Traversable`), Spring Data tự động unwrap nó thành Java equivalent trước khi chạy query.
 
 Ví dụ, một derived query method được khai báo là `findAllByIdIn(io.vavr.collection.List<Long> ids)` chấp nhận một Vavr `List` và unwrap nó thành `java.util.List` để bind chính xác vào mệnh đề `IN`.
 Một parameter Vavr `Option` cũng được unwrap tương tự thành giá trị bên trong (hoặc `null`).
 
 [[repositories.query-streaming]]
-== Kết Quả Query Dạng Stream
+== Streaming Query Results
 
 Bạn có thể xử lý dần dần result của query method bằng cách sử dụng `Stream<T>` làm kiểu trả về.
 Thay vì bọc query result trong một `Stream`, các method đặc thù cho data store được sử dụng để thực hiện streaming, như ví dụ sau:
@@ -304,7 +304,7 @@ Stream<User> readAllByFirstnameNotNull();
 Stream<User> streamAllPaged(Pageable pageable);
 ----
 
-NOTE: Một `Stream` có thể bọc các resource nền tảng đặc thù cho data store và do đó phải được đóng sau khi sử dụng.
+NOTE: Một `Stream` có thể bọc các resource đặc thù của data store bên dưới và do đó phải được đóng sau khi sử dụng.
 Bạn có thể đóng `Stream` thủ công bằng method `close()` hoặc sử dụng block `try`-with-resources, như trong ví dụ sau:
 
 .Làm việc với result `Stream<T>` trong block `try-with-resources`
@@ -318,7 +318,7 @@ try (Stream<User> stream = repository.findAllByCustomQueryAndStream()) {
 NOTE: Hiện tại không phải tất cả Spring Data module đều hỗ trợ `Stream<T>` làm kiểu trả về.
 
 [[repositories.query-async]]
-== Kết Quả Query Bất Đồng Bộ
+== Asynchronous Query Results
 
 Bạn có thể chạy bất đồng bộ các query của repository bằng cách sử dụng {spring-framework-docs}/integration/scheduling.html[khả năng chạy method bất đồng bộ của Spring].
 Điều này có nghĩa là method trả về ngay khi được gọi, trong khi query thực tế diễn ra trong một task đã được gửi đến `TaskExecutor` của Spring.
@@ -338,9 +338,9 @@ CompletableFuture<User> findOneByFirstname(String firstname); <2>
 <2> Sử dụng `java.util.concurrent.CompletableFuture` làm kiểu trả về.
 
 [[repositories.special-parameters]]
-== Phân Trang, Duyệt Kết Quả Lớn, Sắp Xếp & Giới Hạn
+== Paging, Duyệt Large Results, Sorting & Limiting
 
-Để xử lý parameter trong query, hãy định nghĩa method parameter như đã thấy trong các ví dụ trước.
+Để xử lý parameters trong query, hãy định nghĩa method parameters như đã thấy trong các ví dụ trước.
 Ngoài ra, infrastructure nhận diện một số type cụ thể như `Pageable`, `Sort` và `Limit`, để áp dụng phân trang, sắp xếp và giới hạn vào query một cách động.
 Ví dụ sau minh họa các tính năng này:
 
@@ -383,15 +383,15 @@ Nếu bạn không muốn áp dụng sắp xếp hoặc phân trang, hãy sử d
 
 Method đầu tiên cho phép bạn truyền một instance `org.springframework.data.domain.Pageable` vào query method để thêm phân trang động vào query được định nghĩa tĩnh.
 Một `Page` biết tổng số phần tử và page khả dụng.
-Nó thực hiện điều đó bằng cách infrastructure kích hoạt một count query để tính tổng số.
+Nó thực hiện điều đó bằng cách infrastructure chạy một count query để tính tổng số.
 Vì việc này có thể tốn kém (tùy store được sử dụng), thay vào đó bạn có thể trả về một `Slice`.
 Một `Slice` chỉ biết liệu có `Slice` tiếp theo hay không, điều này có thể đủ khi duyệt qua một result set lớn hơn.
 
 Các tùy chọn sắp xếp cũng được xử lý thông qua instance `Pageable`.
 Nếu bạn chỉ cần sắp xếp, hãy thêm parameter `org.springframework.data.domain.Sort` vào method.
 Như bạn thấy, trả về một `List` cũng có thể thực hiện được.
-Trong trường hợp này, metadata bổ sung cần thiết để xây dựng instance `Page` thực tế không được tạo (điều này cũng có nghĩa count query bổ sung vốn cần thiết sẽ không được phát hành).
-Thay vào đó, query chỉ bị giới hạn để tra cứu phạm vi entity đã cho.
+Trong trường hợp này, metadata bổ sung cần thiết để xây dựng instance `Page` thực tế không được tạo (điều này cũng có nghĩa count query bổ sung vốn cần thiết sẽ không được thực hiện).
+Thay vào đó, query chỉ lấy range entity đã cho.
 
 NOTE: Để biết có bao nhiêu page cho một query hoàn chỉnh, bạn phải kích hoạt thêm một count query.
 Theo mặc định, query này được suy ra từ query mà bạn thực sự kích hoạt.
@@ -403,15 +403,15 @@ Một số parameter đặc biệt được mô tả ở trên loại trừ lẫ
 Hãy xem danh sách các tổ hợp parameter không hợp lệ sau.
 
 |===
-| Parameter | Ví dụ | Lý do
+| Parameters | Ví dụ | Lý do
 
-| `Pageable` and `Sort`
+| `Pageable` và `Sort`
 | `findBy...(Pageable page, Sort sort)`
-| `Pageable` already defines `Sort`
+| `Pageable` đã định nghĩa `Sort`
 
-| `Pageable` and `Limit`
+| `Pageable` và `Limit`
 | `findBy...(Pageable page, Limit limit)`
-| `Pageable` already defines a limit.
+| `Pageable` đã định nghĩa limit.
 
 |===
 
@@ -424,10 +424,10 @@ Keyword `Top` có thể được sử dụng cùng với `Pageable`: `Top` đị
 Giá trị do các abstraction của Spring Data cung cấp có lẽ được thể hiện rõ nhất qua các kiểu trả về query method có thể có được nêu trong bảng sau.
 Bảng cho thấy những type nào bạn có thể trả về từ một query method
 
-.Tiêu thụ Query Result Lớn
+.Tiêu thụ Large Query Results
 [cols="1,2,2,3"]
 |===
-| Method|Lượng data được fetch|Cấu trúc query|Ràng buộc
+| Method|Lượng data được fetch|Cấu trúc query|Constraints
 
 | <<repositories.collections-and-iterables,`List<T>`>>
 | Tất cả result.
@@ -442,7 +442,7 @@ Bảng cho thấy những type nào bạn có thể trả về từ một query 
 | <<repositories.query-streaming,`Stream<T>`>>
 | Chia thành các phần (từng phần một hoặc theo batch) tùy thuộc vào việc tiêu thụ `Stream`.
 | Một query thường sử dụng cursor.
-| Phải đóng stream sau khi sử dụng để tránh resource leak.
+| Phải đóng `Stream` sau khi sử dụng để tránh resource leak.
 
 | `Flux<T>`
 | Chia thành các phần (từng phần một hoặc theo batch) tùy thuộc vào việc tiêu thụ `Flux`.
@@ -489,7 +489,7 @@ endif::[]
 |===
 
 [[repositories.paging-and-sorting]]
-=== Phân Trang và Sắp Xếp
+=== Paging và Sorting
 
 Bạn có thể định nghĩa các biểu thức sắp xếp đơn giản bằng cách sử dụng tên property.
 Bạn có thể nối các biểu thức để tập hợp nhiều tiêu chí thành một biểu thức.
@@ -525,7 +525,7 @@ QSort sort = QSort.by(QPerson.firstname.asc())
 
 
 [[repositories.limit-query-result]]
-=== Giới Hạn Query Result
+=== Limiting Query Results
 
 Ngoài phân trang, có thể giới hạn kích thước result bằng parameter `Limit` chuyên dụng.
 Bạn cũng có thể giới hạn result của query method bằng các keyword `First` hoặc `Top`, có thể sử dụng thay thế cho nhau nhưng không được dùng cùng parameter `Limit`.

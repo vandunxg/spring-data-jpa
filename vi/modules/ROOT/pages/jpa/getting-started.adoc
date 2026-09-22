@@ -1,12 +1,12 @@
 [[jpa.getting-started]]
 = Bắt đầu
 
-Một cách đơn giản để bootstrap việc thiết lập một working environment là tạo một Spring-based project thông qua https://start.spring.io/#!type=maven-project&dependencies=h2,data-jpa[start.spring.io] hoặc tạo một Spring project trong https://spring.io/tools[Spring Tools].
+Một cách dễ dàng để khởi tạo một môi trường làm việc là tạo một project dựa trên Spring thông qua https://start.spring.io/#!type=maven-project&dependencies=h2,data-jpa[start.spring.io] hoặc tạo một Spring project trong https://spring.io/tools[Spring Tools].
 
 [[jpa.examples-repo]]
-== Repository Ví dụ
+== Repository chứa các ví dụ
 
-GitHub https://github.com/spring-projects/spring-data-examples[spring-data-examples repository] chứa nhiều ví dụ mà bạn có thể tải về và thử nghiệm để cảm nhận cách library này hoạt động.
+Repository https://github.com/spring-projects/spring-data-examples[spring-data-examples] trên GitHub chứa một số ví dụ mà bạn có thể tải xuống và thử nghiệm để hình dung cách library này hoạt động.
 
 [[jpa.hello-world]]
 == Hello World
@@ -33,7 +33,7 @@ interface PersonRepository extends Repository<Person, Long> {
 }
 ----
 
-Tạo main application để chạy, như ví dụ sau đây:
+Tạo application chính để chạy ứng dụng, như trong ví dụ sau:
 
 [source,java]
 ----
@@ -61,7 +61,7 @@ public class DemoApplication {
 Ngay cả trong ví dụ đơn giản này, cũng có một vài điểm đáng chú ý:
 
 * Các repository instance được tự động implement.
-Khi được dùng làm parameter của các `@Bean` method, chúng sẽ được autowired mà không cần thêm annotation nào khác.
-* Repository cơ bản extends `Repository`.
-Chúng tôi đề xuất bạn cân nhắc muốn expose bao nhiêu API surface cho ứng dụng của mình.
-Các repository interface phức tạp hơn là `ListCrudRepository` hoặc `JpaRepository`.
+Khi được dùng làm parameter của các method có `@Bean`, các instance này sẽ được autowired mà không cần thêm annotation nào khác.
+* Repository cơ bản kế thừa `Repository`.
+Chúng tôi khuyến nghị bạn cân nhắc mức API surface muốn expose cho ứng dụng của mình.
+Các repository interface phức tạp hơn gồm `ListCrudRepository` hoặc `JpaRepository`.

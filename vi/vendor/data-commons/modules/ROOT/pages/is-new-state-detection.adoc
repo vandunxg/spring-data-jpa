@@ -1,23 +1,23 @@
 [[is-new-state-detection]]
 = Các chiến lược phát hiện entity state
 
-Bảng sau đây mô tả các chiến lược mà Spring Data cung cấp để phát hiện một entity có mới hay không:
+Bảng sau đây mô tả các chiến lược mà Spring Data cung cấp để phát hiện một entity có ở new state hay không:
 
-.Các tùy chọn để phát hiện entity mới trong Spring Data
+.Các tùy chọn để phát hiện entity ở new state trong Spring Data
 [options = "autowidth",cols="1,1"]
 |===
-|Kiểm tra property `@Id` (mặc định)
-|Theo mặc định, Spring Data kiểm tra property định danh của entity đã cho.
-Nếu property định danh là `null` hoặc `0` trong trường hợp kiểu primitive, entity được coi là mới.
-Nếu không, entity được coi là không mới.
+|Kiểm tra `@Id` property (mặc định)
+|Theo mặc định, Spring Data kiểm tra identifier property của entity được cung cấp.
+Nếu identifier property là `null` hoặc `0` trong trường hợp primitive type, entity được coi là ở new state.
+Nếu không, entity được coi là không ở new state.
 
-|Kiểm tra property `@Version`
-|Nếu có property được chú thích bằng `@Version` và có giá trị `null`, hoặc trong trường hợp property version có kiểu primitive là `0`, entity được coi là mới.
-Nếu property version tồn tại nhưng có giá trị khác, entity được coi là không mới.
-Nếu không có property version, Spring Data chuyển sang kiểm tra property định danh.
+|Kiểm tra `@Version` property
+|Nếu có property được annotate bằng `@Version` và có value là `null`, hoặc nếu version property có primitive type và value là `0`, entity được coi là ở new state.
+Nếu version property tồn tại nhưng có value khác, entity được coi là không ở new state.
+Nếu không có version property, Spring Data fallback sang việc kiểm tra identifier property.
 
-|Triển khai `Persistable`
-|Nếu một entity triển khai `Persistable`, Spring Data ủy quyền việc phát hiện entity mới cho method `isNew(…)` của entity.
+|Implement `Persistable`
+|Nếu một entity implement `Persistable`, Spring Data ủy quyền việc new detection cho method `isNew(…)` của entity.
 Xem {spring-data-commons-javadoc-base}/org/springframework/data/domain/Persistable.html[Javadoc] để biết chi tiết.
 
 _Note: Các property của `Persistable` sẽ được phát hiện và persist nếu bạn sử dụng `AccessType.PROPERTY`.

@@ -1,34 +1,34 @@
 [[vector-search]]
 = Vector Search
 
-Cùng với sự trỗi dậy của Generative AI, các Vector database đã trở nên phổ biến mạnh mẽ trong thế giới database.
-Các database này cho phép lưu trữ và truy vấn hiệu quả các vector nhiều chiều (high-dimensional vectors), khiến chúng phù hợp cho các tác vụ như semantic search, hệ thống gợi ý (recommendation systems) và natural language understanding.
+Cùng với sự phát triển của Generative AI, vector database ngày càng được sử dụng rộng rãi trong lĩnh vực database.
+Các database này cho phép lưu trữ và query hiệu quả các vector nhiều chiều, phù hợp với những tác vụ như semantic search, hệ thống gợi ý (recommendation systems) và natural language understanding.
 
-Vector search là một kỹ thuật truy xuất dữ liệu tương đồng về mặt ngữ nghĩa bằng cách so sánh các biểu diễn vector (còn gọi là embeddings) thay vì dựa vào các query khớp chính xác (exact-match) truyền thống.
-Cách tiếp cận này giúp xây dựng các ứng dụng thông minh, nhận biết ngữ cảnh (context-aware), vượt ra ngoài khả năng truy xuất dựa trên từ khóa.
+Vector search là một kỹ thuật truy xuất dữ liệu tương đồng về mặt ngữ nghĩa bằng cách so sánh các biểu diễn vector (còn gọi là embeddings), thay vì dựa vào các query exact-match truyền thống.
+Cách tiếp cận này cho phép xây dựng các ứng dụng thông minh, nhận biết ngữ cảnh (context-aware), vượt ra ngoài khả năng truy xuất dựa trên từ khóa.
 
-Trong bối cảnh của Spring Data, vector search mở ra những khả năng mới để xây dựng các ứng dụng thông minh, nhận biết ngữ cảnh, đặc biệt trong các lĩnh vực như natural language processing, hệ thống gợi ý và generative AI.
-Bằng cách mô hình hóa việc truy vấn dựa trên vector (vector-based querying) thông qua các repository abstraction quen thuộc, Spring Data cho phép developer tích hợp liền mạch các database có khả năng vector dựa trên độ tương đồng (similarity-based) với sự đơn giản và nhất quán của lập trình model Spring Data.
+Trong bối cảnh Spring Data, vector search mở ra những khả năng mới để xây dựng các ứng dụng thông minh, nhận biết ngữ cảnh, đặc biệt trong các lĩnh vực như natural language processing, hệ thống gợi ý và Generative AI.
+Bằng cách mô hình hóa việc query dựa trên vector thông qua các repository abstraction quen thuộc, Spring Data cho phép developer tích hợp liền mạch các database có khả năng xử lý vector dựa trên similarity, với sự đơn giản và nhất quán của programming model Spring Data.
 
 ifdef::vector-search-intro-include[]
 include::{vector-search-intro-include}[]
 endif::[]
 
 [[vector-search.model]]
-== Vector Model
+== Mô hình Vector
 
 Để hỗ trợ vector search theo cách type-safe và idiomatic, Spring Data giới thiệu các abstraction cốt lõi sau:
 
 * <<vector-search.model.vector,`Vector`>>
 * <<vector-search.model.search-result,`SearchResults<T>` và `SearchResult<T>`>>
-* <<vector-search.model.scoring,`Score`, `Similarity` và các Scoring Function>>
+* <<vector-search.model.scoring,`Score`, `Similarity` và các scoring function>>
 
 [[vector-search.model.vector]]
 === `Vector`
 
-Type `Vector` biểu diễn một embedding số học n chiều (n-dimensional numerical embedding), thường được tạo ra bởi các embedding model.
-Trong Spring Data, nó được định nghĩa là một wrapper nhẹ (lightweight wrapper) bao quanh một mảng số thực dấu phẩy động (floating-point numbers), đảm bảo tính bất biến (immutability) và nhất quán.
-Type này có thể được dùng làm input cho search query hoặc làm một property trên một domain entity để lưu biểu diễn vector tương ứng.
+Type `Vector` biểu diễn một embedding số học n chiều, thường được tạo bởi các embedding model.
+Trong Spring Data, type này là một wrapper nhẹ quanh một mảng số thực dấu phẩy động, giúp đảm bảo tính bất biến và nhất quán.
+Type này có thể được dùng làm input cho search query hoặc làm một property của domain entity để lưu biểu diễn vector tương ứng.
 
 ====
 [source,java]
@@ -37,88 +37,88 @@ Vector vector = Vector.of(0.23f, 0.11f, 0.77f);
 ----
 ====
 
-Việc dùng `Vector` trong domain model của bạn loại bỏ nhu cầu làm việc trực tiếp với các mảng hoặc list số thô, cung cấp một cách xử lý dữ liệu vector type-safe và biểu cảm hơn.
+Việc dùng `Vector` trong domain model loại bỏ nhu cầu làm việc trực tiếp với các raw array hoặc list số, cung cấp một cách xử lý vector data type-safe và giàu tính biểu đạt hơn.
 Abstraction này cũng cho phép tích hợp dễ dàng với nhiều vector database và thư viện khác nhau.
-Nó cũng cho phép triển khai các tối ưu hóa đặc thù theo từng vendor (vendor-specific), chẳng hạn như binary vector hoặc quantized vector không map với biểu diễn floating point tiêu chuẩn (`float` và `double` theo https://en.wikipedia.org/wiki/IEEE_754[IEEE 754]).
-Một domain object có thể có một property kiểu vector, dùng cho các similarity search.
+Nó cũng cho phép triển khai các tối ưu hóa đặc thù của vendor, chẳng hạn như binary vector hoặc quantized vector, vốn không map với biểu diễn floating-point tiêu chuẩn (`float` và `double` theo https://en.wikipedia.org/wiki/IEEE_754[IEEE 754]).
+Một domain object có thể có một property vector dùng cho similarity search.
 Xem ví dụ sau:
 
 ifdef::vector-search-model-include[]
 include::{vector-search-model-include}[]
 endif::[]
 
-NOTE: Việc gắn một vector với một domain object khiến vector đó được load và lưu như một phần của entity lifecycle, điều này có thể phát sinh thêm overhead khi truy xuất và persist.
+NOTE: Việc liên kết một vector với một domain object khiến vector đó được load và lưu trữ trong entity lifecycle, có thể phát sinh thêm overhead khi truy xuất và persist.
 
 [[vector-search.model.search-result]]
-=== Search Results
+=== Kết quả Search
 
 Type `SearchResult<T>` đóng gói kết quả của một vector similarity query.
-Nó bao gồm cả domain object khớp và một relevance score cho biết mức độ khớp của nó với query vector.
-Abstraction này cung cấp một cách có cấu trúc để xử lý việc xếp hạng kết quả (result ranking) và giúp developer dễ dàng làm việc với cả dữ liệu lẫn mức độ liên quan theo ngữ cảnh của nó.
+Nó bao gồm cả domain object khớp với query và một relevance score cho biết mức độ khớp với query vector.
+Abstraction này cung cấp một cách có cấu trúc để xử lý việc xếp hạng result và giúp developer dễ dàng làm việc với cả dữ liệu lẫn mức độ liên quan trong ngữ cảnh của nó.
 
 ifdef::vector-search-repository-include[]
 include::{vector-search-repository-include}[]
 endif::[]
 
-Trong ví dụ này, method `searchByCountryAndEmbeddingNear` trả về một đối tượng `SearchResults<Comment>`, chứa một list các instance `SearchResult<Comment>`.
+Trong ví dụ này, method `searchByCountryAndEmbeddingNear` trả về một object `SearchResults<Comment>`, chứa một list các instance `SearchResult<Comment>`.
 Mỗi kết quả bao gồm entity `Comment` khớp và relevance score của nó.
 
-Relevance score là một giá trị số cho biết mức độ khớp giữa vector kết quả và query vector.
+Relevance score là một giá trị số cho biết mức độ tương đồng giữa vector được match và query vector.
 Tùy thuộc vào việc score đó biểu diễn khoảng cách (distance) hay độ tương đồng (similarity), score cao hơn có thể mang nghĩa khớp gần hơn hoặc xa hơn.
 
-Scoring function dùng để tính score này có thể khác nhau tùy vào database, index hoặc input parameter bên dưới.
+Scoring function dùng để tính score này có thể thay đổi tùy theo database, index hoặc input parameter bên dưới.
 
 [[vector-search.model.scoring]]
-=== Score, Similarity, and Scoring Functions
+=== Score, Similarity và Scoring Function
 
-Type `Score` chứa một giá trị số cho biết mức độ liên quan của một kết quả search.
+Type `Score` chứa một giá trị số cho biết relevance của một search result.
 Nó có thể được dùng để xếp hạng kết quả dựa trên độ tương đồng với query vector.
-Type `Score` thường là một số thực dấu phẩy động, và cách diễn giải của nó (cao hơn là tốt hơn hay thấp hơn là tốt hơn) phụ thuộc vào similarity function cụ thể được sử dụng.
-Score là sản phẩm phụ (by-product) của vector search và không bắt buộc phải có để một thao tác search thành công.
-Giá trị score không phải là một phần của domain model, do đó cách biểu diễn tốt nhất là dưới dạng dữ liệu out-of-band.
+Type `Score` thường là một số thực dấu phẩy động, và cách diễn giải của nó (score cao hơn tốt hơn hay thấp hơn tốt hơn) phụ thuộc vào similarity function cụ thể được sử dụng.
+Score là dữ liệu phát sinh từ vector search và không bắt buộc phải có để một thao tác search thành công.
+Giá trị score không thuộc domain model, vì vậy phù hợp nhất khi được biểu diễn dưới dạng out-of-band data.
 
-Nhìn chung, một Score được tính bởi một `ScoringFunction`.
-Scoring function thực tế dùng để tính score này có thể phụ thuộc vào database bên dưới và có thể được lấy từ một search index hoặc từ input parameter.
+Nói chung, một Score được tính bởi một `ScoringFunction`.
+Scoring function thực tế dùng để tính score này có thể phụ thuộc vào database bên dưới và có thể được lấy từ một search index hoặc các input parameter.
 
-Spring Data hỗ trợ khai báo các hằng số (constant) cho các function thường dùng như:
+Spring Data khai báo các constant cho những function thường dùng như:
 
-Euclidean Distance:: Tính khoảng cách theo đường thẳng (straight-line distance) trong không gian n chiều, liên quan đến căn bậc hai của tổng bình phương các hiệu số.
+Euclidean Distance:: Tính khoảng cách đường thẳng trong không gian n chiều bằng căn bậc hai của tổng bình phương các hiệu số.
 Cosine Similarity:: Đo góc giữa hai vector bằng cách tính Dot product trước, sau đó chuẩn hóa kết quả bằng cách chia cho tích độ dài của chúng.
-Dot Product:: Tính tổng các phép nhân theo từng phần tử (element-wise multiplications).
+Dot Product:: Tính tổng các phép nhân theo từng phần tử.
 
-Việc lựa chọn similarity function có thể ảnh hưởng đến cả hiệu năng lẫn ngữ nghĩa của việc search, và thường được quyết định bởi database hoặc index bên dưới đang được sử dụng.
-Spring Data thích ứng với khả năng scoring function gốc (native) của database và với việc score đó có thể dùng để giới hạn kết quả hay không.
+Việc lựa chọn similarity function có thể ảnh hưởng đến cả hiệu năng lẫn semantics của search, và thường được quyết định bởi database hoặc index đang được sử dụng.
+Spring Data thích ứng với các khả năng của native scoring function của database và việc score đó có thể được dùng để giới hạn result hay không.
 
 ifdef::vector-search-scoring-include[]
 include::{vector-search-scoring-include}[]
 endif::[]
 
 [[vector-search.methods]]
-== Vector Search Methods
+== Các method của Vector Search
 
 Vector search method được định nghĩa trong repository theo cùng quy ước với các Spring Data query method tiêu chuẩn.
-Các method này trả về `SearchResults<T>` và yêu cầu một parameter `Vector` để định nghĩa query vector.
-Cách triển khai thực tế phụ thuộc vào nội bộ thực tế của data store bên dưới và các khả năng của nó liên quan đến vector search.
+Các method này trả về `SearchResults<T>` và yêu cầu một parameter `Vector` để xác định query vector.
+Việc triển khai thực tế phụ thuộc vào internals của data store bên dưới và các khả năng vector search mà data store cung cấp.
 
 NOTE: Nếu bạn mới làm quen với Spring Data repository, hãy chắc chắn bạn đã nắm được xref:repositories/core-concepts.adoc[các khái niệm cơ bản về định nghĩa repository và query method].
 
-Nhìn chung, bạn có thể lựa chọn khai báo một search method theo hai cách:
+Thông thường, bạn có thể khai báo một search method theo hai cách:
 
 * Query Derivation
-* Khai báo một String-based Query
+* Khai báo String-based Query
 
-Vector Search method phải khai báo một parameter `Vector` để định nghĩa query vector.
+Vector search method phải khai báo một parameter `Vector` để xác định query vector.
 
 [[vector-search.method.derivation]]
 === Derived Search Methods
 
-Một derived search method dùng tên của method để suy ra (derive) query.
-Vector Search hỗ trợ các từ khóa sau để chạy một Vector search khi khai báo một search method:
+Một derived search method dùng tên method để suy ra query.
+Vector search hỗ trợ các keyword sau để thực hiện vector search khi khai báo search method:
 
-.Các từ khóa predicate của query
+.Các keyword predicate của query
 [options="header",cols="1,3"]
 |===============
-|Logical keyword|Keyword expressions
+|Từ khóa logic|Các biểu thức keyword
 |`NEAR`|`Near`, `IsNear`
 |`WITHIN`|`Within`, `IsWithin`
 |===============
@@ -127,22 +127,22 @@ ifdef::vector-search-method-derived-include[]
 include::{vector-search-method-derived-include}[]
 endif::[]
 
-Derived search method thường dễ đọc và dễ bảo trì hơn, vì chúng dựa vào tên method để diễn đạt ý định của query.
-Tuy nhiên, một derived search method yêu cầu bạn khai báo một `Score`, `Range<Score>`, hoặc `ScoringFunction` làm tham số thứ hai cho từ khóa `Near`/`Within` để giới hạn kết quả search theo score của chúng.
+Derived search method thường dễ đọc và dễ bảo trì hơn vì dựa vào tên method để diễn đạt ý định của query.
+Tuy nhiên, một derived search method yêu cầu bạn khai báo `Score`, `Range<Score>` hoặc `ScoringFunction` làm tham số thứ hai cho keyword `Near`/`Within` để giới hạn result search theo score của chúng.
 
 [[vector-search.method.string]]
 === Annotated Search Methods
 
-Annotated method cung cấp toàn quyền kiểm soát ngữ nghĩa và tham số của query.
+Annotated method cung cấp toàn quyền kiểm soát semantics và parameter của query.
 Khác với derived method, chúng không dựa vào quy ước đặt tên method.
 
 ifdef::vector-search-method-annotated-include[]
 include::{vector-search-method-annotated-include}[]
 endif::[]
 
-Với nhiều quyền kiểm soát hơn đối với query thực tế, Spring Data có thể đưa ra ít giả định hơn về query và tham số của nó.
-Ví dụ, việc chuẩn hóa (normalization) `Similarity` dùng native score function bên trong query để chuẩn hóa giá trị similarity đã cho thành một giá trị predicate dạng score và ngược lại.
-Nếu một annotated query không định nghĩa ví dụ như score, thì giá trị score trong `SearchResult<T>` trả về sẽ là zero.
+Với quyền kiểm soát tốt hơn đối với query thực tế, Spring Data có thể đưa ra ít giả định hơn về query và parameter của nó.
+Ví dụ, việc normalization của `Similarity` sử dụng native score function trong query để chuyển similarity đã cho thành một giá trị predicate của score và ngược lại.
+Nếu một annotated query không định nghĩa, chẳng hạn, score thì giá trị score trong `SearchResult<T>` trả về sẽ là zero.
 
 [[vector-search.method.sorting]]
 === Sorting
@@ -150,7 +150,7 @@ Nếu một annotated query không định nghĩa ví dụ như score, thì giá
 Theo mặc định, kết quả search được sắp xếp theo score của chúng.
 Bạn có thể ghi đè việc sắp xếp bằng cách dùng parameter `Sort`:
 
-.Dùng `Sort` trong Repository Search Method
+.Sử dụng `Sort` trong Repository Search Method
 ====
 [source,java]
 ----
@@ -163,5 +163,5 @@ interface CommentRepository extends Repository<Comment, String> {
 ----
 ====
 
-Lưu ý rằng việc sắp xếp tùy chỉnh (custom sorting) không cho phép diễn đạt score như một tiêu chí sắp xếp (sorting criteria).
-Bạn chỉ có thể tham chiếu đến các domain property.
+Lưu ý rằng custom sorting không cho phép biểu diễn score như một sorting criteria.
+Bạn chỉ có thể tham chiếu đến các property của domain.

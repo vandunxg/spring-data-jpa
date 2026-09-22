@@ -5,7 +5,7 @@ endif::[]
 [[projections.interfaces]]
 = Projection dựa trên interface
 
-Cách dễ nhất để giới hạn kết quả của các query chỉ còn các thuộc tính name là khai báo một interface expose các accessor method cho những property cần đọc, như trong ví dụ sau:
+Cách dễ nhất để giới hạn kết quả của query chỉ còn các thuộc tính name là khai báo một interface expose các accessor method cho các property cần đọc, như trong ví dụ sau:
 
 .Một interface projection để lấy một tập con các thuộc tính
 [source,java]
@@ -29,7 +29,7 @@ interface PersonRepository extends Repository<Person, UUID> {
 }
 ----
 
-Engine thực thi query tạo các proxy instance của interface đó tại runtime cho từng phần tử được trả về và chuyển tiếp các lời gọi đến những method được expose tới object đích.
+Engine thực thi query tạo các proxy instance của interface đó tại runtime cho từng phần tử được trả về và chuyển tiếp lời gọi đến các method được expose tới target object.
 
 NOTE: Việc khai báo một method trong `Repository` ghi đè một base method (chẳng hạn method được khai báo trong `CrudRepository`, một repository interface dành riêng cho store hoặc `Simple…Repository`) sẽ dẫn đến việc gọi base method bất kể kiểu trả về được khai báo là gì.
 Hãy đảm bảo sử dụng kiểu trả về tương thích vì không thể dùng base method cho projection.
@@ -54,12 +54,12 @@ interface PersonSummary {
 }
 ----
 
-Khi gọi method, property `address` của target instance được lấy ra và lần lượt được bọc trong một proxy projection.
+Khi gọi method, property `address` của target instance được lấy ra và sau đó được wrap trong một projection proxy.
 
 [[projections.interfaces.closed]]
 == Closed Projections
 
-Một interface projection có tất cả accessor method khớp với các property của aggregate đích được xem là một closed projection.
+Một interface projection có các accessor method đều khớp với các property của target aggregate được xem là một closed projection.
 Ví dụ sau (cũng đã được sử dụng trước đó trong chương này) là một closed projection:
 
 .Một closed projection
@@ -72,8 +72,8 @@ interface NamesOnly {
 }
 ----
 
-Khi sử dụng closed projection, Spring Data có thể tối ưu hóa việc thực thi query vì chúng ta biết tất cả thuộc tính cần thiết để cung cấp cho proxy projection.
-Để biết thêm chi tiết, hãy xem phần dành riêng cho module trong tài liệu tham khảo.
+Khi sử dụng closed projection, Spring Data có thể tối ưu hóa việc thực thi query vì chúng ta biết tất cả attribute cần thiết để cung cấp dữ liệu cho projection proxy.
+Để biết thêm chi tiết, hãy xem phần dành riêng cho từng module trong tài liệu tham khảo.
 
 [[projections.interfaces.open]]
 == Open Projections
@@ -94,9 +94,9 @@ interface NamesOnly {
 
 Aggregate root làm nền cho projection có sẵn trong biến `target`.
 Interface projection sử dụng `@Value` là một open projection.
-Spring Data không thể áp dụng các tối ưu hóa thực thi query trong trường hợp này vì expression SpEL có thể sử dụng bất kỳ property nào của aggregate root.
+Spring Data không thể áp dụng các tối ưu hóa thực thi query trong trường hợp này vì SpEL expression có thể sử dụng bất kỳ property nào của aggregate root.
 
-Các expression được sử dụng trong `@Value` không nên quá phức tạp -- bạn nên tránh việc lập trình trong các biến `String`.
+Các expression được sử dụng trong `@Value` không nên quá phức tạp -- bạn nên tránh viết logic trong các biến `String`.
 Đối với các expression rất đơn giản, một lựa chọn là sử dụng default method (được giới thiệu trong Java 8), như trong ví dụ sau:
 
 [[projections.interfaces.open.default]]
@@ -114,8 +114,8 @@ interface NamesOnly {
 }
 ----
 
-Cách tiếp cận này yêu cầu bạn có thể triển khai logic hoàn toàn dựa trên các accessor method khác được expose trên interface projection.
-Một lựa chọn thứ hai, linh hoạt hơn, là triển khai logic tùy chỉnh trong một Spring bean rồi gọi bean đó từ expression SpEL, như trong ví dụ sau:
+Cách tiếp cận này yêu cầu bạn phải có khả năng triển khai logic hoàn toàn dựa trên các accessor method khác được expose trên interface projection.
+Một lựa chọn thứ hai, linh hoạt hơn, là triển khai logic tùy chỉnh trong một Spring bean rồi gọi bean đó từ SpEL expression, như trong ví dụ sau:
 
 [[projections.interfaces.open.bean-reference]]
 .Ví dụ về đối tượng Person
@@ -137,10 +137,10 @@ interface NamesOnly {
 }
 ----
 
-Lưu ý cách expression SpEL tham chiếu đến `myBean`, gọi method `getFullName(…)` và truyền target của projection làm tham số method.
-Các method được hỗ trợ bởi việc đánh giá expression SpEL cũng có thể sử dụng các tham số method, sau đó các tham số này có thể được tham chiếu từ expression.
-Các tham số method có sẵn thông qua một mảng `Object` có tên `args`.
-Ví dụ sau cho thấy cách lấy một tham số method từ mảng `args`:
+Lưu ý cách SpEL expression tham chiếu đến `myBean`, gọi method `getFullName(…)` và truyền projection target làm tham số method.
+Các method được thực thi bằng cách đánh giá SpEL expression cũng có thể sử dụng method parameter, và các method parameter này có thể được tham chiếu từ expression.
+Các method parameter có sẵn thông qua một mảng `Object` có tên `args`.
+Ví dụ sau cho thấy cách lấy một method parameter từ mảng `args`:
 
 .Ví dụ về đối tượng Person
 [source,java]
@@ -152,12 +152,12 @@ interface NamesOnly {
 }
 ----
 
-Một lần nữa, đối với các expression phức tạp hơn, bạn nên sử dụng một Spring bean và để expression gọi một method, như đã mô tả <<projections.interfaces.open.bean-reference,trước đó>>.
+Một lần nữa, đối với các expression phức tạp hơn, bạn nên sử dụng một Spring bean và để SpEL expression gọi một method, như đã mô tả <<projections.interfaces.open.bean-reference,trước đó>>.
 
 [[projections.interfaces.nullable-wrappers]]
-== Wrapper nullable
+== Nullable Wrappers
 
-Các getter trong interface projection có thể sử dụng wrapper nullable để cải thiện độ an toàn khi xử lý `null`.
+Các getter trong interface projection có thể sử dụng nullable wrapper để cải thiện độ an toàn khi xử lý `null`.
 Hiện tại, các wrapper type được hỗ trợ là:
 
 * `java.util.Optional`
@@ -165,7 +165,7 @@ Hiện tại, các wrapper type được hỗ trợ là:
 * `scala.Option`
 * `io.vavr.control.Option`
 
-.Một interface projection sử dụng wrapper nullable
+.Một interface projection sử dụng nullable wrapper
 [source,java]
 ----
 interface NamesOnly {
@@ -174,5 +174,5 @@ interface NamesOnly {
 }
 ----
 
-Nếu giá trị projection nền không phải là `null`, các giá trị sẽ được trả về bằng biểu diễn có giá trị của wrapper type.
-Nếu giá trị nền là `null`, getter method sẽ trả về biểu diễn rỗng của wrapper type được sử dụng.
+Nếu underlying value của projection không phải là `null`, giá trị đó sẽ được trả về theo dạng present của wrapper type.
+Nếu backing value là `null`, getter method sẽ trả về biểu diễn rỗng của wrapper type được sử dụng.

@@ -23,7 +23,7 @@
 Việc này cũng sẽ kéo theo `hibernate-envers` vào project như một transient dependency.
 
 Để bật Spring Data Envers và Spring Data JPA, chúng ta cần cấu hình ba bean (`DataSource`, `EntityManagerFactory`, và `PlatformTransactionManager`).
-`@EnableEnversRepositories` đã tự động cung cấp sẵn `repositoryFactoryBeanClass`:
+`@EnableEnversRepositories` đã tự động cung cấp `repositoryFactoryBeanClass`:
 
 ====
 [source,java]
@@ -64,7 +64,7 @@ public class EnversDemoConfiguration {
 ----
 ====
 
-Để thực sự sử dụng Spring Data Envers, hãy biến một hoặc nhiều repository thành {spring-data-commons-javadoc-base}/org/springframework/data/repository/history/RevisionRepository.html[`RevisionRepository`] bằng cách thêm nó vào như một extended interface:
+Để thực sự sử dụng Spring Data Envers, hãy cho một hoặc nhiều repository extend {spring-data-commons-javadoc-base}/org/springframework/data/repository/history/RevisionRepository.html[`RevisionRepository`] bằng cách thêm interface này vào danh sách các extended interface:
 
 ====
 [source,java]
@@ -74,8 +74,8 @@ interface PersonRepository
     RevisionRepository<Person, Long, Long> // <1>
 {}
 ----
-<1> Type parameter đầu tiên (`Person`) biểu thị entity type, type parameter thứ hai (`Long`) biểu thị type của id property, và type parameter cuối cùng (`Long`) là type của revision number.
-Đối với Envers ở cấu hình mặc định, tham số revision number nên là `Integer` hoặc `Long`.
+<1> Type parameter đầu tiên (`Person`) biểu thị type của entity, type parameter thứ hai (`Long`) biểu thị type của id property, còn type parameter cuối cùng (`Long`) là type của revision number.
+Trong default configuration của Envers, parameter revision number nên là `Integer` hoặc `Long`.
 ====
 
 Entity của repository đó phải là một entity đã bật Envers auditing (tức là phải có annotation `@Audited`):

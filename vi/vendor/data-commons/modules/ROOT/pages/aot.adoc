@@ -6,26 +6,26 @@ Chương này trình bày các tối ưu hóa Ahead of Time (AOT) của Spring D
 [[aot.bestpractices]]
 == Các thực hành tốt nhất
 
-=== Chú thích Domain Type của bạn
+=== Gắn annotation cho Domain Type
 
 Trong quá trình khởi động ứng dụng, Spring quét classpath để tìm các domain class nhằm xử lý entity sớm.
-Bằng cách chú thích domain type của bạn bằng các annotation `@Table`, `@Document` hoặc `@Entity` dành riêng cho Spring Data Store, bạn có thể hỗ trợ việc quét entity ban đầu và đảm bảo các type đó được đăng ký với `ManagedTypes` cho Runtime Hints.
+Bằng cách gắn các annotation `@Table`, `@Document` hoặc `@Entity` dành riêng cho Spring Data Store cho domain type, bạn có thể hỗ trợ việc quét entity ban đầu và đảm bảo các type đó được đăng ký với `ManagedTypes` cho Runtime Hints.
 Không thể quét classpath trong các môi trường Native Image, vì vậy Spring phải sử dụng `ManagedTypes` cho tập entity ban đầu.
 
 [[aot.code-gen]]
-== Tạo mã Ahead of Time
+== Tạo code Ahead of Time
 
-Việc tạo code Ahead of Time không chỉ giới hạn ở việc sử dụng với GraalVM Native Image mà còn mang lại lợi ích khi làm việc với các triển khai thông thường và có thể giúp tối ưu hóa hiệu năng khởi động trên JVM.
+Việc tạo code Ahead of Time không chỉ giới hạn ở việc sử dụng với GraalVM Native Image mà còn mang lại lợi ích khi làm việc với các deployment thông thường và có thể giúp tối ưu hóa hiệu năng khởi động trên JVM.
 
 [NOTE]
 ====
 Với các tối ưu hóa AOT, một số quyết định (chẳng hạn như dialect cơ sở dữ liệu) sẽ được cố định tại thời điểm build và được đưa nguyên trạng vào thiết lập ứng dụng.
 ====
 
-Nếu bật biên dịch Ahead of Time, Spring Data có thể đóng góp một số component trong giai đoạn AOT của quá trình build, tùy thuộc vào Module đang được sử dụng.
+Nếu bật biên dịch Ahead of Time, Spring Data có thể cung cấp một số component trong giai đoạn AOT của quá trình build, tùy thuộc vào module đang được sử dụng.
 
 * Bytecode cho Type/Property Accessor được tạo
-* Source code cho các Repository Interface đã định nghĩa
+* Source code cho các Repository Interface đã được định nghĩa
 * Siêu dữ liệu Repository ở định dạng JSON
 
 Mỗi mục trên đều được bật theo mặc định.
@@ -34,44 +34,44 @@ Tuy nhiên, người dùng có thể tinh chỉnh cấu hình bằng các tùy c
 [options = "autowidth",cols="1,1"]
 |===
 |`spring.aot.data.accessors.enabled`
-|Cờ Boolean kiểm soát việc đóng góp Bytecode cho Type/Property Accessor được tạo
+|Boolean flag kiểm soát việc cung cấp Bytecode cho Type/Property Accessor được tạo
 
 |`spring.aot.data.accessors.include`
-|Danh sách FQCN phân tách bằng dấu phẩy, chỉ định các type sẽ được đóng góp Bytecode cho Type/Property Accessor được tạo.
+|Danh sách FQCN phân tách bằng dấu phẩy, chỉ định các type sẽ được cung cấp Bytecode cho Type/Property Accessor được tạo.
 Các pattern include kiểu Ant khớp với tên package (ví dụ: `example.springdata.**`) hoặc việc include tên type.
 Nếu một type khớp với cả include và exclude, include sẽ được ưu tiên và type được xem là đã include.
 
 |`spring.aot.data.accessors.exclude`
-|Danh sách FQCN phân tách bằng dấu phẩy, chỉ định các type sẽ bỏ qua việc đóng góp Bytecode cho Type/Property Accessor được tạo.
+|Danh sách FQCN phân tách bằng dấu phẩy, chỉ định các type sẽ bỏ qua việc cung cấp Bytecode cho Type/Property Accessor được tạo.
 Các pattern exclude kiểu Ant khớp với tên package (ví dụ: `example.springdata.**`) hoặc việc exclude tên type.
 Nếu một type khớp với cả include và exclude, include sẽ được ưu tiên và type được xem là đã include.
 
 |`spring.aot.repositories.enabled`
-|Cờ Boolean kiểm soát việc đóng góp Source Code cho Repository Interface
+|Boolean flag kiểm soát việc cung cấp Source Code cho Repository Interface
 
 |`spring.aot.[module-name].repositories.enabled`
-|Cờ Boolean kiểm soát việc đóng góp Source Code cho Repository Interface của một module cụ thể (ví dụ: `cassandra`, `jdbc`, `jpa`, `mongodb`)
+|Boolean flag kiểm soát việc cung cấp Source Code cho Repository Interface của một module cụ thể (ví dụ: `cassandra`, `jdbc`, `jpa`, `mongodb`)
 
 |`spring.aot.repositories.metadata.enabled`
-|Cờ Boolean kiểm soát việc đóng góp Repository Metadata dạng JSON, chứa các query method và query string thực tế.
+|Boolean flag kiểm soát việc cung cấp Repository Metadata dạng JSON, chứa các query method và query string thực tế.
 Yêu cầu phải bật `spring.aot.repositories.enabled`.
 |===
 
 [[aot.repositories]]
-== Repository Ahead of Time
+== AOT Repository
 
 [NOTE]
 ====
-Repository Ahead of Time chỉ khả dụng cho các repository interface imperative (không reactive) của một số module.
+AOT Repository chỉ khả dụng cho các repository interface imperative (không reactive) của một số module.
 Tiêu chí xác định query method đủ điều kiện khác nhau tùy theo module triển khai.
 ====
 
 AOT Repository là phần mở rộng của quá trình xử lý AOT, bằng cách tạo trước các implementation cho query method đủ điều kiện.
 Đối với developer, query method không cho biết chi tiết về các query nền tảng được thực thi trong một lời gọi query method.
-AOT Repository đóng góp các implementation cho query method dựa trên derived query, annotated query và named query đã được biết tại thời điểm build.
+AOT Repository cung cấp các implementation cho query method dựa trên derived query, annotated query và named query đã được biết tại thời điểm build.
 Tối ưu hóa này chuyển việc xử lý query method từ runtime sang build-time, có thể mang lại cải thiện hiệu năng đáng kể vì query method không cần được phân tích bằng reflection mỗi khi ứng dụng khởi động.
 
-Fragment AOT Repository tạo ra tuân theo quy ước đặt tên `<Repository FQCN>Impl__AotRepository` và được đặt trong cùng package với repository interface.
+Fragment AOT Repository được tạo ra tuân theo quy ước đặt tên `<Repository FQCN>Impl__AotRepository` và được đặt trong cùng package với repository interface.
 
 [WARNING]
 ====
@@ -147,14 +147,14 @@ Việc tạo siêu dữ liệu JSON có thể được kiểm soát thông qua c
 == Runtime Hints cho Native Image
 
 Việc chạy ứng dụng dưới dạng Native Image yêu cầu thêm thông tin so với runtime JVM thông thường.
-Spring Data đóng góp {spring-framework-docs}/core/aot.html#aot.hints[Runtime Hints] trong quá trình xử lý AOT để sử dụng với Native Image.
-Cụ thể, đây là các hint cho:
+Spring Data cung cấp {spring-framework-docs}/core/aot.html#aot.hints[Runtime Hints] trong quá trình xử lý AOT để sử dụng với Native Image.
+Cụ thể, đây là các Runtime Hints cho:
 
 * Auditing
 * `ManagedTypes` để ghi nhận kết quả của các lần quét classpath
 * Repository
-** Reflection hint cho entity, kiểu trả về và annotation của Spring Data
-** Repository fragment
+** Reflection hints cho entity, kiểu trả về và annotation của Spring Data
+** Repository fragments
 ** Class `Q` của Querydsl
 ** Hỗ trợ Kotlin Coroutine
- * Hỗ trợ Web (Jackson Hint cho `PagedModel`)
+* Web support (Jackson Hints cho `PagedModel`)

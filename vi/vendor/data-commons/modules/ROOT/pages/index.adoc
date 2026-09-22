@@ -11,13 +11,13 @@ NOTE: Bạn có thể sao chép tài liệu này cho mục đích sử dụng ri
 [[preface]]
 == Lời nói đầu
 
-Dự án Spring Data Commons áp dụng các khái niệm cốt lõi của Spring vào việc phát triển các giải pháp sử dụng nhiều kho dữ liệu quan hệ và phi quan hệ.
+Dự án Spring Data Commons áp dụng các khái niệm cốt lõi của Spring để phát triển các giải pháp sử dụng nhiều data store quan hệ và phi quan hệ.
 
 [[project]]
-== Siêu dữ liệu dự án
+== Metadata dự án
 
-* Quản lý phiên bản: https://github.com/spring-projects/spring-data-commons
-* Trình theo dõi lỗi: https://github.com/spring-projects/spring-data-commons/issues
-* Repository bản phát hành: https://repo1.maven.org/maven2/
-* Repository milestone: https://repo.spring.io/milestone/
-* Repository snapshot: https://repo.spring.io/snapshot/
+* Version control: https://github.com/spring-projects/spring-data-commons
+* Bug tracker: https://github.com/spring-projects/spring-data-commons/issues
+* Release repository: https://repo1.maven.org/maven2/
+* Milestone repository: https://repo.spring.io/milestone/
+* Snapshot repository: https://repo.spring.io/snapshot/

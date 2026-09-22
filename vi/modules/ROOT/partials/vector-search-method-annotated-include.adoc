@@ -1,6 +1,6 @@
-Annotated search method phải định nghĩa toàn bộ JPQL query để chạy một Vector Search.
+Các annotated search method phải định nghĩa toàn bộ JPQL query để thực hiện một Vector Search.
 
-.Dùng `@Query` Search Method
+.Sử dụng `@Query` trong các search method
 ====
 [source,java]
 ----
@@ -24,5 +24,5 @@ interface CommentRepository extends Repository<Comment, String> {
 ----
 ====
 
-Vector Search method không bắt buộc phải bao gồm score hoặc distance trong projection của chúng.
-Khi dùng annotated search method trả về `SearchResults`, cơ chế thực thi giả định rằng nếu có cột projection thứ hai xuất hiện thì cột đó chứa giá trị score.
+Các Vector Search method không bắt buộc phải có score hoặc distance trong projection.
+Khi sử dụng các annotated search method trả về `SearchResults`, cơ chế thực thi giả định rằng nếu có cột thứ hai trong projection thì cột đó chứa giá trị score.

@@ -1,10 +1,10 @@
 [[repositories.query-methods]]
 = Query Methods
 
-Các repository cung cấp chức năng CRUD tiêu chuẩn thường có các query trên datastore bên dưới.
-Với Spring Data, việc khai báo các query đó gồm bốn bước:
+Các repository có chức năng CRUD tiêu chuẩn thường có các query trên datastore bên dưới.
+Với Spring Data, việc khai báo các query đó được thực hiện qua bốn bước:
 
-. Khai báo một interface mở rộng Repository hoặc một subinterface của nó, đồng thời định kiểu cho interface đó theo domain class và ID type mà nó cần xử lý, như trong ví dụ sau:
+. Khai báo một interface mở rộng Repository hoặc một subinterface của nó, đồng thời định kiểu interface đó theo domain class và ID type mà nó cần xử lý, như trong ví dụ sau:
 +
 [source,java]
 ----
@@ -20,7 +20,7 @@ interface PersonRepository extends Repository<Person, Long> {
 }
 ----
 
-. Thiết lập Spring để tạo các proxy instance cho những interface đó, bằng xref:repositories/create-instances.adoc#repositories.create-instances.java-config[JavaConfig] hoặc bằng xref:repositories/create-instances.adoc[cấu hình XML].
+. Thiết lập Spring để tạo các proxy instance cho những interface đó, bằng xref:repositories/create-instances.adoc#repositories.create-instances.java-config[JavaConfig] hoặc bằng xref:repositories/create-instances.adoc[XML configuration].
 +
 [tabs]
 ======
@@ -81,7 +81,7 @@ class SomeClient {
 
 Các phần sau giải thích chi tiết từng bước:
 
-* xref:repositories/definition.adoc[Định nghĩa Repository Interface]
-* xref:repositories/query-methods-details.adoc[Định nghĩa Query Method]
-* xref:repositories/create-instances.adoc[Tạo Repository Instance]
-* xref:repositories/custom-implementations.adoc[Các triển khai tùy chỉnh cho Spring Data Repository]
+* xref:repositories/definition.adoc[Định nghĩa repository interface]
+* xref:repositories/query-methods-details.adoc[Định nghĩa query method]
+* xref:repositories/create-instances.adoc[Tạo repository instance]
+* xref:repositories/custom-implementations.adoc[Các custom implementation cho Spring Data repository]

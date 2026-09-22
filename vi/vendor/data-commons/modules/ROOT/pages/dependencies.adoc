@@ -1,7 +1,7 @@
 [[dependencies]]
 = Các dependency
 
-Do thời điểm ra đời của từng Spring Data module khác nhau, phần lớn các module có số version major và minor khác nhau. Cách dễ nhất để tìm các version tương thích là dựa vào Spring Data Release Train BOM mà chúng tôi cung cấp, trong đó đã định nghĩa các version tương thích. Trong một Maven project, bạn sẽ khai báo dependency này trong section `<dependencyManagement />` của POM như sau:
+Do thời điểm ra đời của từng Spring Data module khác nhau, phần lớn các module có major version và minor version khác nhau. Cách dễ nhất để tìm các version tương thích là dựa vào Spring Data Release Train BOM, được phát hành kèm các version tương thích đã được định nghĩa. Trong một Maven project, bạn sẽ khai báo dependency này trong section `<dependencyManagement />` của POM như sau:
 
 .Sử dụng Spring Data release train BOM
 [source, xml, subs="+attributes"]
@@ -20,16 +20,16 @@ Do thời điểm ra đời của từng Spring Data module khác nhau, phần l
 ----
 
 [[dependencies.train-version]]
-Version release train hiện tại là `{releasetrainVersion}`. Train version sử dụng https://calver.org/[calver] với pattern `YYYY.MINOR.MICRO`.
+Version của release train hiện tại là `{releasetrainVersion}`. Train version sử dụng https://calver.org/[calver] với pattern `YYYY.MINOR.MICRO`.
 Tên version tuân theo `+${calver}+` đối với các bản phát hành GA và service release, và tuân theo pattern sau đối với tất cả version khác: `+${calver}-${modifier}+`, trong đó `modifier` có thể là một trong các giá trị sau:
 
 * `SNAPSHOT`: Các snapshot hiện tại
 * `M1`, `M2`, v.v.: Các milestone
 * `RC1`, `RC2`, v.v.: Các release candidate
 
-Bạn có thể tìm thấy ví dụ hoạt động về việc sử dụng BOM trong https://github.com/spring-projects/spring-data-examples/tree/main/bom[repository ví dụ Spring Data] của chúng tôi. Sau khi thiết lập như vậy, bạn có thể khai báo các Spring Data module muốn sử dụng mà không cần chỉ định version trong block `<dependencies />`, như sau:
+Bạn có thể tìm thấy một ví dụ thực tế về việc sử dụng BOM trong https://github.com/spring-projects/spring-data-examples/tree/main/bom[repository ví dụ Spring Data] của chúng tôi. Sau khi thiết lập, bạn có thể khai báo các Spring Data module muốn sử dụng mà không cần chỉ định version trong block `<dependencies />`, như sau:
 
-.Khai báo một dependency tới Spring Data module chẳng hạn như JPA
+.Khai báo dependency tới một Spring Data module như JPA
 [source, xml]
 ----
 <dependencies>
@@ -43,8 +43,8 @@ Bạn có thể tìm thấy ví dụ hoạt động về việc sử dụng BOM 
 [[dependencies.spring-boot]]
 == Quản lý dependency với Spring Boot
 
-Spring Boot tự chọn một version gần đây của các Spring Data module cho bạn. Nếu vẫn muốn nâng cấp lên version mới hơn,
-hãy đặt property `spring-data-bom.version` thành <<dependencies.train-version,train version và iteration>>
+Spring Boot tự chọn một version tương đối mới của các Spring Data module cho bạn. Nếu vẫn muốn nâng cấp lên version mới hơn,
+hãy đặt property `spring-data-bom.version` thành <<dependencies.train-version,version và iteration của train>>
 mà bạn muốn sử dụng.
 
 Xem https://docs.spring.io/spring-boot/docs/current/reference/html/dependency-versions.html#appendix.dependency-versions.properties[tài liệu của Spring Boot]
@@ -53,4 +53,4 @@ Xem https://docs.spring.io/spring-boot/docs/current/reference/html/dependency-ve
 [[dependencies.spring-framework]]
 == Spring Framework
 
-Version hiện tại của các Spring Data module yêu cầu Spring Framework {springVersion} hoặc mới hơn. Các module cũng có thể hoạt động với một bugfix version cũ hơn của minor version đó. Tuy nhiên, đặc biệt khuyến nghị sử dụng version mới nhất trong generation đó.
+Các Spring Data module ở version hiện tại yêu cầu Spring Framework {springVersion} hoặc mới hơn. Các module cũng có thể hoạt động với một bugfix version cũ hơn trong minor version đó. Tuy nhiên, đặc biệt khuyến nghị sử dụng version mới nhất trong cùng dòng version đó.

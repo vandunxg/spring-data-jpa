@@ -11,9 +11,9 @@ include::{commons}@data-commons-vi::page$repositories/projections-interface.adoc
 
 include::{commons}@data-commons-vi::page$repositories/projections-class.adoc[leveloffset=2]
 
-== Sử dụng Projection với JPA
+== Sử dụng Projection cùng JPA
 
-Bạn có thể sử dụng Projection với JPA theo nhiều cách khác nhau.
+Bạn có thể sử dụng Projection cùng JPA theo nhiều cách khác nhau.
 Tùy vào kỹ thuật và loại query, bạn cần áp dụng các lưu ý riêng.
 
 Spring Data JPA nhìn chung sử dụng `Tuple` query để xây dựng interface proxy cho <<projections.interfaces,Interface-based Projection>>.
@@ -23,31 +23,31 @@ Spring Data JPA nhìn chung sử dụng `Tuple` query để xây dựng interfac
 Query derivation hỗ trợ cả class-based projection lẫn interface projection bằng cách introspect kiểu trả về.
 Class-based projection sử dụng cơ chế instantiation của JPA (constructor expression) để tạo projection instance.
 
-Projection giới hạn phần selection chỉ ở các property top-level của entity đích.
-Bất kỳ nested property nào resolve tới join sẽ select toàn bộ nested property đó, khiến full join phải materialize.
+Projection giới hạn selection ở các top-level property của target entity.
+Bất kỳ nested property nào resolve thành join cũng sẽ select toàn bộ nested property đó, khiến full join phải materialize.
 
 === String-based query
 
-Hỗ trợ cho string-based query bao gồm cả JPQL query (`@Query`) lẫn native query (`@NativeQuery`).
+String-based query bao gồm cả JPQL query (`@Query`) lẫn native query (`@NativeQuery`).
 
 ==== JPQL Query
 
 Cơ chế của JPA để trả về <<projections.dtos,Class-based projection>> bằng JPQL là *constructor expression*.
-Do đó, query của bạn phải định nghĩa một constructor expression, ví dụ `SELECT new com.example.NamesOnly(u.firstname, u.lastname) from User u`.
-(Lưu ý việc dùng FQDN cho DTO type!) Biểu thức JPQL này có thể được dùng trong annotation `@Query`, kể cả khi bạn định nghĩa named query.
-Một cách workaround, bạn có thể dùng named query với `ResultSetMapping` hoặc javadoc:{hibernatejavadocurl}org.hibernate.query.ResultListTransformer[] đặc thù của Hibernate.
+Do đó, query của bạn phải định nghĩa một constructor expression, chẳng hạn `SELECT new com.example.NamesOnly(u.firstname, u.lastname) from User u`.
+(Lưu ý phải dùng FQDN cho DTO type!) Biểu thức JPQL này cũng có thể được dùng trong annotation `@Query` hoặc khi bạn định nghĩa named query.
+Như một workaround, bạn có thể dùng named query với `ResultSetMapping` hoặc javadoc:{hibernatejavadocurl}org.hibernate.query.ResultListTransformer[] đặc thù của Hibernate.
 
-Spring Data JPA có thể hỗ trợ rewrite query của bạn thành constructor expression nếu query của bạn select primary entity hoặc một danh sách select item.
+Spring Data JPA có thể hỗ trợ rewrite query của bạn thành constructor expression nếu query select primary entity hoặc một danh sách select item.
 
-===== DTO Projection JPQL Query Rewriting
+===== Rewrite JPQL query cho DTO projection
 
-JPQL query cho phép select root object, từng property riêng lẻ, và DTO object thông qua constructor expression.
-Việc dùng constructor expression có thể nhanh chóng làm query dài thêm nhiều text và khiến query thực tế khó đọc.
-Spring Data JPA có thể hỗ trợ bạn với JPQL query bằng cách tự động thêm constructor expression giúp bạn thuận tiện hơn.
+JPQL query cho phép select root object, từng property riêng lẻ và DTO object thông qua constructor expression.
+Việc dùng constructor expression có thể nhanh chóng khiến query dài hơn và khó đọc query thực tế.
+Spring Data JPA có thể hỗ trợ JPQL query của bạn bằng cách tự động thêm constructor expression.
 
 Xem các query sau:
 
-.Projection Queries
+.Các query projection
 ====
 [source,java]
 ----
@@ -63,27 +63,27 @@ interface UserRepository extends Repository<User, Long> {
 record UserDto(String firstname, String lastname){}
 ----
 
-<1> Selection của entity top-level.
+<1> Select entity ở top-level.
 Query này được rewrite thành `SELECT new UserDto(u.firstname, u.lastname) FROM User u WHERE u.lastname = :lastname`.
-<2> Multi-select property `firstname` và `lastname`.
+<2> Multi-select các property `firstname` và `lastname`.
 Query này được rewrite thành `SELECT new UserDto(u.firstname, u.lastname) FROM User u WHERE u.lastname = :lastname`.
 ====
 
 [WARNING]
 ====
-Constructor expression trong JPQL không được chứa alias cho các cột được select, và việc rewrite query sẽ không tự loại bỏ chúng giúp bạn.
-Trong khi `SELECT u as user, count(u.roles) as roleCount FROM User u …` là một query hợp lệ cho interface-based projection dựa vào tên cột từ `Tuple` trả về, thì cùng cấu trúc đó lại không hợp lệ khi request một DTO, trường hợp này cần viết là `SELECT u, count(u.roles) FROM User u …`. +
-Một số persistence provider có thể dễ dãi (lenient) về điều này, số khác thì không.
+Constructor expression trong JPQL không được chứa alias cho các column được select, và query rewriting sẽ không tự loại bỏ chúng giúp bạn.
+Trong khi `SELECT u as user, count(u.roles) as roleCount FROM User u …` là một query hợp lệ cho interface-based projection dựa vào tên column từ `Tuple` trả về, cùng cấu trúc đó lại không hợp lệ khi request DTO; khi đó cần viết là `SELECT u, count(u.roles) FROM User u …`. +
+Một số persistence provider có thể xử lý linh động trường hợp này, số khác thì không.
 ====
 
 Repository query method trả về kiểu DTO projection (một Java type nằm ngoài domain type hierarchy) sẽ chịu tác động của query rewriting.
-Nếu một query được annotate `@Query` đã sử dụng constructor expression sẵn, Spring Data sẽ bỏ qua (back off) và không áp dụng DTO constructor expression rewriting.
+Nếu một query được annotate `@Query` đã sử dụng constructor expression, Spring Data sẽ back off và không áp dụng DTO constructor expression rewriting.
 
-Đảm bảo DTO type của bạn cung cấp một constructor nhận đủ tất cả tham số (all-args constructor) cho projection, nếu không query sẽ fail.
+Đảm bảo DTO type của bạn có all-args constructor cho projection, nếu không query sẽ fail.
 
-==== Native Query
+==== Native queries
 
-Khi dùng <<projections.dtos,Class-based projection>>, việc sử dụng đòi hỏi thêm một số lưu ý tùy vào use case:
+Khi dùng <<projections.dtos,Class-based projection>>, việc sử dụng chúng cần thêm một số lưu ý tùy vào use case:
 
 * Nếu các property của result type map trực tiếp với kết quả (thứ tự cột và kiểu dữ liệu khớp với constructor argument), bạn có thể khai báo query result type là DTO type mà không cần thêm hint nào (hoặc dùng DTO class thông qua dynamic projection).
 * Nếu các property không khớp hoặc cần transform, hãy dùng `@SqlResultSetMapping` thông qua annotation của JPA để map result set sang DTO, và cung cấp tên result mapping qua `@NativeQuery(resultSetMapping = "…")`.

@@ -3,12 +3,12 @@ ifndef::projection-collection[]
 endif::[]
 
 [[projections.dtos]]
-= Projection dựa trên class (DTO)
+= Class-based Projection (DTO)
 
-Một cách khác để định nghĩa projection là sử dụng DTO kiểu value (Data Transfer Objects) chứa các property tương ứng với những field cần được truy xuất.
-Các kiểu DTO này có thể được sử dụng giống hệt như interface projection, ngoại trừ việc không xảy ra proxying và không thể áp dụng nested projection.
+Một cách khác để định nghĩa projection là sử dụng các DTO kiểu value (Data Transfer Objects) chứa các property tương ứng với những field cần được retrieve.
+Các DTO type này có thể được sử dụng giống hệt interface projection, ngoại trừ việc không có proxying và không thể áp dụng nested projection.
 
-Nếu store tối ưu việc thực thi query bằng cách giới hạn các field được load, những field cần được load sẽ được xác định từ tên parameter của constructor được expose.
+Nếu store tối ưu query execution bằng cách giới hạn các field được load, các field cần load sẽ được xác định từ tên parameter của constructor được expose.
 
 Ví dụ sau đây cho thấy một DTO projection:
 
@@ -19,18 +19,18 @@ record NamesOnly(String firstname, String lastname) {
 }
 ----
 
-Java Records là lựa chọn lý tưởng để định nghĩa các kiểu DTO vì chúng tuân theo value semantics:
+Java Records là lựa chọn lý tưởng để định nghĩa các DTO type vì chúng tuân theo value semantics:
 Tất cả field đều là `private final` và các method ``equals(…)``/``hashCode()``/``toString()`` được tự động tạo.
-Ngoài ra, bạn có thể sử dụng bất kỳ class nào định nghĩa các property mà bạn muốn projection.
+Ngoài ra, bạn có thể sử dụng bất kỳ class nào định nghĩa các property mà bạn muốn đưa vào projection.
 
 [[projection.dynamic]]
 == Dynamic Projections
 
-Cho đến nay, chúng ta đã sử dụng kiểu projection làm kiểu trả về hoặc kiểu phần tử của một collection.
-Tuy nhiên, bạn có thể muốn chọn type được sử dụng tại thời điểm invocation (khi đó nó trở thành dynamic).
+Cho đến nay, chúng ta đã sử dụng projection type làm return type hoặc element type của một collection.
+Tuy nhiên, bạn có thể muốn chọn type sẽ được sử dụng tại invocation time (khi đó projection trở thành dynamic).
 Để áp dụng dynamic projection, hãy sử dụng một query method như trong ví dụ sau:
 
-.Một repository sử dụng parameter dynamic projection
+.Một repository sử dụng dynamic projection parameter
 [source,java,subs="+attributes"]
 ----
 interface PersonRepository extends Repository<Person, UUID> {
@@ -39,7 +39,7 @@ interface PersonRepository extends Repository<Person, UUID> {
 }
 ----
 
-Theo cách này, method có thể được sử dụng để lấy các aggregate ở dạng nguyên bản hoặc với một projection được áp dụng, như trong ví dụ sau:
+Theo cách này, method có thể được sử dụng để lấy aggregate nguyên bản hoặc với một projection được áp dụng, như trong ví dụ sau:
 
 .Sử dụng repository với dynamic projection
 [source,java,subs="+attributes"]
@@ -54,15 +54,15 @@ void someMethod(PersonRepository people) {
 }
 ----
 
-NOTE: Các query parameter có kiểu `Class` được kiểm tra để xác định chúng có đủ điều kiện làm dynamic projection parameter hay không.
-Nếu return type thực tế của query bằng với generic parameter type của parameter `Class`, thì parameter `Class` tương ứng không thể được sử dụng bên trong query hoặc các biểu thức SpEL.
+NOTE: Các query parameter có kiểu `Class` được kiểm tra xem có đủ điều kiện làm dynamic projection parameter hay không.
+Nếu return type thực tế của query bằng generic parameter type của parameter `Class`, thì parameter `Class` tương ứng không thể được sử dụng trong query hoặc các biểu thức SpEL.
 Nếu bạn muốn sử dụng parameter `Class` làm query argument thì hãy bảo đảm sử dụng một generic parameter khác, chẳng hạn `Class<?>`.
 
 [NOTE]
 ====
-Khi sử dụng <<projections.dtos,projection dựa trên class>>, các type phải khai báo một constructor duy nhất để Spring Data có thể xác định các input property của chúng.
-Nếu class của bạn định nghĩa nhiều hơn một constructor, bạn không thể sử dụng type đó cho DTO projection nếu không cung cấp thêm thông tin.
-Trong trường hợp này, hãy annotate constructor mong muốn bằng `@PersistenceCreator` như được trình bày bên dưới để Spring Data có thể xác định những property nào cần được select:
+Khi sử dụng <<projections.dtos,Class-based projection>>, các type phải khai báo một constructor duy nhất để Spring Data có thể xác định các input property của chúng.
+Nếu class của bạn định nghĩa nhiều hơn một constructor, bạn không thể sử dụng type đó cho DTO projection nếu không có thêm hint.
+Trong trường hợp này, hãy annotate constructor mong muốn bằng `@PersistenceCreator` như bên dưới để Spring Data có thể xác định các property cần select:
 
 [source,java]
 ----

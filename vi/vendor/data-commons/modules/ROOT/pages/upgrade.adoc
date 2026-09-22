@@ -3,6 +3,6 @@
 :page-section-summary-toc: 1
 
 Hướng dẫn nâng cấp từ các phiên bản Spring Data trước được cung cấp trên https://github.com/spring-projects/spring-data-commons/wiki[wiki] của dự án.
-Theo các liên kết trong https://github.com/spring-projects/spring-data-commons/wiki#release-notes[phần ghi chú phát hành] để tìm phiên bản mà bạn muốn nâng cấp lên.
+Hãy theo các liên kết trong https://github.com/spring-projects/spring-data-commons/wiki#release-notes[phần ghi chú phát hành] để tìm phiên bản mà bạn muốn nâng cấp lên.
 
-Hướng dẫn nâng cấp luôn là mục đầu tiên trong ghi chú phát hành. Nếu bạn chậm hơn một bản phát hành, hãy đảm bảo rằng bạn cũng xem lại ghi chú phát hành của các phiên bản mà bạn đã bỏ qua.
+Hướng dẫn nâng cấp luôn là mục đầu tiên trong ghi chú phát hành. Nếu bạn đã bỏ qua hơn một bản phát hành, hãy đảm bảo rằng bạn cũng xem lại ghi chú phát hành của các phiên bản mà bạn đã bỏ qua.

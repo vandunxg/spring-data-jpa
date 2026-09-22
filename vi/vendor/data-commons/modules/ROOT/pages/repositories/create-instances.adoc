@@ -1,7 +1,7 @@
 [[repositories.create-instances]]
-= Tạo Repository Instance
+= Tạo các repository instance
 
-Phần này trình bày cách tạo instance và định nghĩa bean cho các repository interface đã định nghĩa.
+Phần này trình bày cách tạo repository instance và định nghĩa bean cho các repository interface đã được định nghĩa.
 
 [[repositories.create-instances.java-config]]
 == Cấu hình Java
@@ -28,9 +28,9 @@ class ApplicationConfiguration {
 NOTE: Ví dụ trước sử dụng annotation dành riêng cho JPA, bạn cần thay đổi annotation này theo store module thực tế mà bạn sử dụng. Điều tương tự cũng áp dụng cho định nghĩa bean `EntityManagerFactory`. Xem các phần mô tả cấu hình dành riêng cho store.
 
 [[repositories.create-instances.java-config.placeholders-and-patterns]]
-=== Property Placeholders và Pattern kiểu Ant
+=== Property placeholder và pattern kiểu Ant
 
-Các thuộc tính `basePackages` và `value` trong `@Enable{store}Repositories` hỗ trợ `property placeholder` `${…}`, được resolve dựa trên `Environment`, cũng như các pattern package kiểu Ant như `"org.example.+++**+++"`.
+Các thuộc tính `basePackages` và `value` trong `@Enable{store}Repositories` hỗ trợ các `property placeholder` `${…}` được resolve dựa trên `Environment`, cũng như các pattern package kiểu Ant như `"org.example.+++**+++"`.
 
 Ví dụ sau chỉ định property placeholder `app.scan.packages` cho thuộc tính `value` ngầm định trong `@Enable{store}Repositories`.
 
@@ -65,7 +65,7 @@ ifeval::[{include-xml-namespaces} != false]
 [[repositories.create-instances.xml]]
 == Cấu hình XML
 
-Mỗi Spring Data module bao gồm một phần tử `repositories` cho phép bạn định nghĩa base package mà Spring sẽ scan, như trong ví dụ sau:
+Mỗi Spring Data module bao gồm một phần tử `repositories` cho phép bạn định nghĩa một base package để Spring scan, như trong ví dụ sau:
 
 .Kích hoạt Spring Data repository qua XML
 [source,xml]
@@ -84,20 +84,20 @@ Mỗi Spring Data module bao gồm một phần tử `repositories` cho phép b�
 </beans:beans>
 ----
 
-Trong ví dụ trước, Spring được yêu cầu scan `com.acme.repositories` và tất cả sub-package của package này để tìm các interface mở rộng `Repository` hoặc một trong các subinterface của nó.
-Với mỗi interface được tìm thấy, infrastructure đăng ký `FactoryBean` dành riêng cho công nghệ persistence để tạo các proxy phù hợp xử lý việc gọi các query method.
+Trong ví dụ trước, Spring được yêu cầu scan `com.acme.repositories` và tất cả sub-package của package này để tìm các interface mở rộng `Repository` hoặc một trong các sub-interface của nó.
+Với mỗi interface được tìm thấy, infrastructure đăng ký `FactoryBean` dành riêng cho persistence technology để tạo các proxy phù hợp xử lý việc gọi các query method.
 Mỗi bean được đăng ký dưới một bean name được suy ra từ tên interface, vì vậy interface `UserRepository` sẽ được đăng ký dưới tên `userRepository`.
 Bean name của các repository interface lồng nhau được thêm tiền tố là tên type bao ngoài.
 Thuộc tính base package cho phép dùng wildcard để bạn định nghĩa một pattern cho các package được scan.
 endif::[]
 
 [[repositories.using-filters]]
-== Sử dụng Filter
+== Sử dụng filter
 
-Theo mặc định, infrastructure chọn mọi interface mở rộng subinterface `Repository` dành riêng cho công nghệ persistence, nằm dưới base package đã cấu hình, và tạo một bean instance cho interface đó.
-Tuy nhiên, bạn có thể muốn kiểm soát chi tiết hơn interface nào được tạo bean instance.
+Theo mặc định, infrastructure chọn mọi interface nằm dưới base package đã cấu hình và mở rộng sub-interface `Repository` dành riêng cho persistence technology, rồi tạo một bean instance cho interface đó.
+Tuy nhiên, bạn có thể muốn kiểm soát chi tiết hơn interface nào sẽ được tạo bean instance.
 Để làm vậy, hãy sử dụng các phần tử filter bên trong khai báo repository.
-Ngữ nghĩa hoàn toàn tương đương với các phần tử trong filter component của Spring.
+Ngữ nghĩa hoàn toàn tương đương với các phần tử trong component filter của Spring.
 Để biết chi tiết, hãy xem {spring-framework-docs}/core/beans/classpath-scanning.html[tài liệu tham khảo Spring] cho các phần tử này.
 
 Ví dụ, để loại trừ một số interface khỏi việc được khởi tạo dưới dạng repository bean, bạn có thể sử dụng cấu hình sau:
@@ -138,7 +138,7 @@ Ví dụ trước bao gồm tất cả interface kết thúc bằng `SomeReposit
 [[repositories.create-instances.standalone]]
 == Sử dụng độc lập
 
-Bạn cũng có thể sử dụng infrastructure của repository bên ngoài Spring container -- chẳng hạn, trong các môi trường CDI. Bạn vẫn cần một số thư viện Spring trong classpath, nhưng nhìn chung, bạn cũng có thể thiết lập repository theo cách programmatically. Các Spring Data module cung cấp hỗ trợ repository đi kèm `RepositoryFactory` dành riêng cho công nghệ persistence mà bạn có thể sử dụng như sau:
+Bạn cũng có thể sử dụng repository infrastructure bên ngoài Spring container -- chẳng hạn, trong các môi trường CDI. Bạn vẫn cần một số thư viện Spring trong classpath, nhưng nhìn chung, bạn cũng có thể thiết lập repository theo cách programmatically. Các Spring Data module cung cấp repository support đi kèm `RepositoryFactory` dành riêng cho persistence technology mà bạn có thể sử dụng như sau:
 
 .Sử dụng repository factory độc lập
 [source,java]

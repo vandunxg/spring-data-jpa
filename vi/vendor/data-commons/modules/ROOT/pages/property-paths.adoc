@@ -3,22 +3,22 @@
 
 Chương này trình bày khái niệm property path.
 Property path là một hình thức điều hướng qua các domain class để áp dụng một số khía cạnh nhất định trong ngữ cảnh tương tác với model.
-Application code cung cấp property path cho các data access component để biểu đạt những ý định như chọn các property trong một query, tạo predicate hoặc áp dụng việc sorting.
+Application code cung cấp property path cho các data access component để biểu đạt những ý định như chọn các property trong một query, tạo predicate hoặc thực hiện sorting.
 Một property path bắt nguồn từ owning type của nó và có thể bao gồm từ một đến nhiều segment.
 
 [TIP]
 ====
-Theo các nguyên tắc của thiết kế hướng domain, các class tạo thành nền tảng của persistent domain model và được truy cập thông qua Spring Data được gọi là entity.
+Theo các nguyên tắc của domain-driven design, các class tạo thành nền tảng của persistent domain model và được truy cập thông qua Spring Data được gọi là entity.
 Điểm bắt đầu của object graph được gọi là aggregate root.
 
-Hiểu cách điều hướng và tham chiếu các property này là điều thiết yếu khi làm việc với repository và query operation.
+Hiểu cách điều hướng và tham chiếu các property này là điều thiết yếu khi làm việc với các repository và query operation.
 ====
 
 [[property-path-overview]]
 == Tổng quan về Property Path
 
 Property path cung cấp một cơ chế đơn giản dựa trên text để điều hướng các property của domain model.
-Phần này giới thiệu những nền tảng của việc điều hướng property path và minh họa các đánh đổi giữa phương pháp dựa trên string và phương pháp type-safe.
+Phần này giới thiệu cơ sở của việc điều hướng property path và minh họa các đánh đổi giữa cách tiếp cận dựa trên string và cách tiếp cận type-safe.
 
 .Ví dụ về domain model
 [tabs]
@@ -64,9 +64,9 @@ class Address {
 ----
 ======
 
-Property path sử dụng ký pháp dấu chấm để biểu đạt các tham chiếu property trong các Spring Data operation, chẳng hạn như sorting và filtering:
+Property path sử dụng dot notation để biểu đạt các tham chiếu property trong các operation của Spring Data, chẳng hạn như sorting và filtering:
 
-.Tham chiếu property bằng ký pháp dấu chấm
+.Tham chiếu property bằng dot notation
 [source,java]
 ----
 Sort.by("firstname", "address.city")
@@ -75,7 +75,7 @@ Sort.by("firstname", "address.city")
 Một property path bao gồm một hoặc nhiều segment được phân tách bằng dấu chấm (`.`).
 Các method chấp nhận property path hỗ trợ tham chiếu một segment (top-level property) và điều hướng nhiều segment trừ khi có chỉ dẫn khác.
 
-Các property collection và array hỗ trợ việc duyệt trong suốt đến component type của chúng, cho phép tham chiếu trực tiếp đến các property lồng nhau:
+Các property dạng collection và array hỗ trợ transparent traversal đến component type của chúng, cho phép tham chiếu trực tiếp đến các property lồng nhau:
 
 ----
 Sort.by("address.city")             <1>
@@ -91,37 +91,37 @@ Sort.by("previousAddresses.city")   <3>
 
 Property path dựa trên string mang lại sự đơn giản và có thể được áp dụng rộng rãi, nhưng có những đánh đổi cần cân nhắc:
 
-* **Tính linh hoạt**: Property path linh hoạt và có thể được tạo từ constant string, configuration hoặc kết quả của user input.
-* **Không có type**: String path không mang thông tin type tại compile time.
-Khi được type dưới dạng text, chúng không phụ thuộc vào underlying domain type.
+* **Tính linh hoạt**: Property path linh hoạt và có thể được tạo từ constant string, configuration hoặc từ user input.
+* **Untyped**: String path không mang thông tin type tại compile time.
+Vì được biểu diễn dưới dạng text, chúng không phụ thuộc vào underlying domain type.
 * **Rủi ro khi refactoring**: Việc đổi tên domain property thường yêu cầu cập nhật thủ công các string literal; IDE không thể theo dõi đáng tin cậy các tham chiếu này.
 
 Để cải thiện độ an toàn khi refactoring và tính nhất quán về type, hãy ưu tiên các tham chiếu property type-safe bằng method reference.
 Cách tiếp cận này liên kết property path với thông tin type tại compile time và cho phép compiler validation cũng như refactoring do IDE hỗ trợ.
 Xem <<type-safe-property-references>> để biết chi tiết.
 
-NOTE: Để biết chi tiết triển khai, hãy tham khảo <<property-path-internals>> để biết thêm thông tin.
+NOTE: Để biết chi tiết triển khai, hãy tham khảo <<property-path-internals>>.
 
 [[property-path-internals]]
-=== Nội bộ Property Path
+=== Nội bộ của Property Path
 
-Package {spring-data-commons-javadoc-base}/org/springframework/data/core/package-summary.html[`org.springframework.data.core`] là nền tảng cho việc Spring Data điều hướng qua các domain class.
-Interface {spring-data-commons-javadoc-base}/org/springframework/data/core/TypeInformation.html[`TypeInformation`] cung cấp khả năng introspection type để phân giải type của một property. {spring-data-commons-javadoc-base}/org/springframework/data/core/PropertyPath.html[`PropertyPath`] biểu diễn một đường dẫn điều hướng dạng text qua một domain class.
+Package {spring-data-commons-javadoc-base}/org/springframework/data/core/package-summary.html[`org.springframework.data.core`] là nền tảng để Spring Data điều hướng qua các domain class.
+Interface {spring-data-commons-javadoc-base}/org/springframework/data/core/TypeInformation.html[`TypeInformation`] cung cấp khả năng type introspection để resolve type của một property. {spring-data-commons-javadoc-base}/org/springframework/data/core/PropertyPath.html[`PropertyPath`] biểu diễn một đường dẫn điều hướng dạng text qua một domain class.
 
 Kết hợp với nhau, chúng cung cấp:
 
-* Phân giải và introspection generic type
+* Phân giải generic type và type introspection
 * Tạo và validation property path
 * Phân giải type thực tế cho các property phức tạp như collection và map
 
 [[type-safe-property-references]]
-== Tham chiếu Property Type-safe
+== Type-safe Property References
 
-Tham chiếu property type-safe loại bỏ một nguồn lỗi phổ biến trong data access code: tham chiếu property dựa trên string dễ hỏng.
+Tham chiếu property type-safe loại bỏ một nguồn lỗi phổ biến trong data access code: các property reference dựa trên string dễ bị lỗi.
 Phần này giải thích cách sử dụng method reference để biểu đạt property path an toàn khi refactoring.
 
 Mặc dù property path là một biểu diễn đơn giản của việc điều hướng object, property path dựa trên String vốn mong manh trong quá trình refactoring vì chúng có thể dễ dàng bị bỏ sót khi khoảng cách giữa định nghĩa property và nơi sử dụng ngày càng tăng.
-Các phương án type-safe thay thế thông qua {spring-data-commons-javadoc-base}/org/springframework/data/core/TypedPropertyPath.html[`TypedPropertyPath`] suy ra property path từ method reference, cho phép compiler validation tên property và IDE hỗ trợ các thao tác refactoring.
+Các phương án type-safe thay thế thông qua {spring-data-commons-javadoc-base}/org/springframework/data/core/TypedPropertyPath.html[`TypedPropertyPath`] suy ra property path từ method reference, cho phép compiler validate tên property và IDE hỗ trợ các thao tác refactoring.
 
 [tabs]
 ======
@@ -149,12 +149,12 @@ Sort.by(Person::address / Address::city, Person::lastName)
 ----
 ======
 
-Property path type-safe tích hợp liền mạch với query abstraction và criteria builder, cho phép xây dựng query mang tính khai báo mà không cần tham chiếu property dựa trên string.
+Các property path type-safe tích hợp liền mạch với query abstractions và criteria builders, cho phép xây dựng query mang tính declarative mà không cần tham chiếu property dựa trên string.
 
 Việc áp dụng các tham chiếu property type-safe phù hợp với các nguyên tắc phát triển Spring hiện đại.
 Việc cung cấp các API mang tính khai báo, type-safe và fluent giúp suy luận về data access đơn giản hơn, loại bỏ hoàn toàn một nhóm bug tiềm ẩn nhờ hỗ trợ refactoring của IDE và phản hồi sớm từ compiler về các property không hợp lệ.
 
-Lambda introspection được cache để đạt hiệu quả, cho phép sử dụng lặp lại.
+Lambda introspection được cache để tăng hiệu quả, cho phép sử dụng lặp lại.
 JVM tái sử dụng các static lambda instance, góp phần giữ overhead của việc parsing một lần ở mức tối thiểu.
 
 Bạn có thể tự sử dụng `TypedPropertyPath` nếu đang tìm một biến thể type-safe được hưởng lợi từ compiler validation và IDE support cho các trường hợp không tích hợp trực tiếp với Spring Data API:
@@ -171,7 +171,7 @@ import static org.springframework.data.core.TypedPropertyPath.path;
 path(Person::getAddress)
                  .then(Address::getCity);
 
-// Kết hợp fluent
+// Kết hợp theo fluent API
 TypedPropertyPath.of(Person::getAddress)
                  .then(Address::getCity);
 ----
@@ -189,12 +189,12 @@ TypedPropertyPath.of(Person::address / Address::city)
 ======
 
 [[type-safe-property-references-recommendations]]
-=== Khuyến nghị về API Tham chiếu Property Type-safe
+=== Khuyến nghị về API cho Type-safe Property References
 
 Khi sử dụng (hoặc xây dựng) API sử dụng tham chiếu property type-safe, hãy cân nhắc các khuyến nghị sau:
 
 * **Sử dụng method reference**: Chấp nhận method reference (ví dụ: `Person::getFirstName`) thay vì string để tận dụng compiler validation và hỗ trợ refactoring của IDE.
-Method reference được ưu tiên vì chúng có cách biểu diễn tương tự trong cả Java và Kotlin.
+Method reference được ưu tiên vì có cách biểu diễn tương tự trong Java và Kotlin.
 Ngoài ra, method reference cung cấp baseline hiệu năng tốt hơn so với lambda nhờ cách biểu diễn đơn giản hơn.
 * **Tận dụng type `T` của `TypedPropertyPath`**: Khi chấp nhận một typed property path, hãy cân nhắc sử dụng generic type `T` của `TypedPropertyPath<T, P>`.
 Giới hạn property path ở một domain type cụ thể được sử dụng trong operation hiện tại làm giảm khả năng sử dụng các property không chủ ý từ những type khác. +
@@ -203,5 +203,5 @@ Khi chấp nhận hoặc cung cấp nhiều property path, hãy cân nhắc sử
 
 NOTE: Việc biên dịch Graal Native Image yêu cầu reachability metadata cho các lambda `TypedPropertyPath` có thể serialize.
 Spring Data cung cấp một https://www.graalvm.org/sdk/javadoc/org/graalvm/nativeimage/hosted/Feature.html[feature] tích hợp sẵn thông qua `org.springframework.data.core.TypedPropertyPathFeature`.
-Feature này được tự động kích hoạt và đăng ký serialization- và reflection metadata cần thiết cho việc parsing lambda và các reflective member được tham chiếu (field và method).
+Feature này được tự động kích hoạt và đăng ký metadata cần thiết cho serialization và reflection, phục vụ việc parsing lambda và các member được tham chiếu bằng reflection (field và method).
 Cũng lưu ý rằng khi sử dụng lambda expression thay vì method reference, bạn sẽ phải tự đưa Java source code của class chứa lambda expression vào native image configuration.

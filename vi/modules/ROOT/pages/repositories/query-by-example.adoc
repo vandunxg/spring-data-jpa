@@ -2,9 +2,9 @@
 include::{commons}@data-commons-vi::page$query-by-example.adoc[]
 
 [[query-by-example.running]]
-Trong Spring Data JPA, bạn có thể sử dụng Query by Example với Repository, như minh họa trong ví dụ sau:
+Trong Spring Data JPA, bạn có thể sử dụng Query by Example với các Repository, như minh họa trong ví dụ sau:
 
-.Query by Example sử dụng Repository
+.Query by Example sử dụng một Repository
 ====
 [source, java]
 ----
@@ -21,9 +21,9 @@ public class PersonService {
 ----
 ====
 
-Property specifier chấp nhận các property name (chẳng hạn `firstname` và `lastname`). Bạn có thể điều hướng bằng cách nối chuỗi các property lại với nhau qua dấu chấm (`address.city`). Bạn cũng có thể tinh chỉnh nó bằng matching option và case sensitivity.
+Property specifier chấp nhận các property names (chẳng hạn `firstname` và `lastname`). Bạn có thể điều hướng bằng cách nối các property với nhau bằng dấu chấm (`address.city`). Bạn cũng có thể tinh chỉnh bằng các matching options và case sensitivity.
 
-Bảng sau cho thấy các option `StringMatcher` khác nhau mà bạn có thể sử dụng, cùng kết quả khi áp dụng chúng lên một field tên `firstname`:
+Bảng sau đây cho thấy các option `StringMatcher` khác nhau mà bạn có thể sử dụng và kết quả khi áp dụng chúng cho một field có tên `firstname`:
 
 [cols="1,2", options="header"]
 .Các option của `StringMatcher`
@@ -63,4 +63,4 @@ Bảng sau cho thấy các option `StringMatcher` khác nhau mà bạn có thể
 
 |===
 
-NOTE: Regex-matching không được JPA hỗ trợ.
+NOTE: JPA không hỗ trợ regex-matching.

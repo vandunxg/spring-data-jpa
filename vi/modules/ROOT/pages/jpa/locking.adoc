@@ -1,30 +1,30 @@
 [[locking]]
 = Locking
 
-Để chỉ định lock mode sẽ được dùng, bạn có thể sử dụng annotation `@Lock` trên các query method, như ví dụ sau:
+Để chỉ định lock mode sẽ được sử dụng, bạn có thể dùng annotation `@Lock` trên các query method, như trong ví dụ sau:
 
-.Định nghĩa lock metadata trên query methods
+.Định nghĩa lock metadata trên các query method
 ====
 [source, java]
 ----
 interface UserRepository extends Repository<User, Long> {
 
-  // Plain query method
+  // Query method thông thường
   @Lock(LockModeType.READ)
   List<User> findByLastname(String lastname);
 }
 ----
 ====
 
-Khai báo method này khiến query được kích hoạt sẽ đi kèm với một `LockModeType` là `READ`. Bạn cũng có thể định nghĩa locking cho các CRUD method bằng cách redeclare chúng trong repository interface của bạn và thêm annotation `@Lock`, như ví dụ sau:
+Khai báo method này khiến query được thực thi được gắn `LockModeType` là `READ`. Bạn cũng có thể thiết lập locking cho các CRUD method bằng cách redeclare chúng trong repository interface và thêm annotation `@Lock`, như trong ví dụ sau:
 
-.Định nghĩa lock metadata trên CRUD methods
+.Định nghĩa lock metadata trên các CRUD method
 ====
 [source, java]
 ----
 interface UserRepository extends Repository<User, Long> {
 
-  // Redeclaration of a CRUD method
+  // Khai báo lại một CRUD method
   @Lock(LockModeType.READ)
   List<User> findAll();
 }

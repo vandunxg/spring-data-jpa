@@ -2,4 +2,4 @@
 = Yêu cầu
 
 Spring Data hỗ trợ Kotlin 1.9 trở lên và yêu cầu `kotlin-stdlib` và `kotlin-reflect` có mặt trên classpath.
-Các thư viện này được cung cấp theo mặc định nếu bạn khởi tạo một dự án Kotlin thông qua https://start.spring.io/#!language=kotlin&type=gradle-project[start.spring.io].
+Các dependency này được cung cấp theo mặc định nếu bạn khởi tạo một dự án Kotlin thông qua https://start.spring.io/#!language=kotlin&type=gradle-project[start.spring.io].

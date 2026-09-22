@@ -2,4 +2,4 @@
 = Envers
 :page-section-summary-toc: 1
 
-Chương này trình bày những điểm đặc thù của việc hỗ trợ repository cho Envers. Nội dung này được xây dựng dựa trên phần hỗ trợ repository cốt lõi đã trình bày trước đó. Hãy đảm bảo bạn đã hiểu rõ các khái niệm cơ bản được giải thích ở phần đó.
+Chương này trình bày những điểm đặc thù trong việc hỗ trợ repository cho Envers. Nội dung này được xây dựng dựa trên phần hỗ trợ repository cốt lõi đã trình bày trước đó. Hãy đảm bảo bạn nắm vững các khái niệm cơ bản được giải thích ở phần đó.

@@ -1,27 +1,27 @@
 [[jpa.query-methods]]
-= JPA Query Methods
+= Các Query Method của JPA
 
-Phần này mô tả các cách khác nhau để tạo query với Spring Data JPA.
+Phần này mô tả nhiều cách tạo query với Spring Data JPA.
 
 [[jpa.sample-app.finders.strategies]]
-== Chiến lược Tra cứu Query
+== Chiến lược tra cứu Query
 
-JPA module hỗ trợ định nghĩa query thủ công dưới dạng String hoặc để query được derive (suy ra) từ method name.
+JPA module hỗ trợ định nghĩa query thủ công dưới dạng String hoặc derive query từ method name.
 
-Đối với derived query sử dụng predicate `IsStartingWith`, `StartingWith`, `StartsWith`, `IsEndingWith`, `EndingWith`, `EndsWith`,
-`IsNotContaining`, `NotContaining`, `NotContains`, `IsContaining`, `Containing`, `Contains`, các argument tương ứng của những query này sẽ được sanitize (làm sạch).
-Điều này có nghĩa là nếu argument thực sự chứa các ký tự mà `LIKE` nhận diện là wildcard, các ký tự đó sẽ được escape để chỉ khớp như literal (giá trị nguyên văn).
-Ký tự escape được sử dụng có thể được cấu hình bằng cách set `escapeCharacter` của annotation `@EnableJpaRepositories`.
+Với các derived query có predicate `IsStartingWith`, `StartingWith`, `StartsWith`, `IsEndingWith`, `EndingWith`, `EndsWith`,
+`IsNotContaining`, `NotContaining`, `NotContains`, `IsContaining`, `Containing`, `Contains`, các argument tương ứng sẽ được sanitize.
+Điều này có nghĩa là nếu argument chứa các ký tự được `LIKE` nhận diện là wildcard, các ký tự đó sẽ được escape để chỉ khớp như literal.
+Ký tự escape được sử dụng có thể cấu hình bằng cách set `escapeCharacter` của annotation `@EnableJpaRepositories`.
 So sánh với xref:jpa/query-methods.adoc#jpa.query.spel-expressions[Sử dụng Value Expression].
 
 [[jpa.query-methods.declared-queries]]
 === Declared Query
-Mặc dù việc có một query được derive từ method name khá tiện lợi, bạn có thể gặp phải tình huống mà method name parser không hỗ trợ keyword bạn muốn dùng, hoặc method name trở nên xấu một cách không cần thiết. Khi đó, bạn có thể dùng JPA named query thông qua một naming convention (xem xref:jpa/query-methods.adoc#jpa.query-methods.named-queries[Using JPA Named Queries] để biết thêm thông tin), hoặc annotate query method của bạn bằng `@Query` (xem xref:jpa/query-methods.adoc#jpa.query-methods.at-query[Using `@Query`] để biết chi tiết).
+Mặc dù derive query từ method name khá tiện lợi, bạn có thể gặp tình huống method name parser không hỗ trợ keyword muốn dùng hoặc method name trở nên không cần thiết phải dài. Khi đó, bạn có thể dùng JPA named query theo một naming convention (xem xref:jpa/query-methods.adoc#jpa.query-methods.named-queries[Sử dụng JPA Named Query] để biết thêm thông tin), hoặc annotate query method bằng `@Query` (xem xref:jpa/query-methods.adoc#jpa.query-methods.at-query[Sử dụng `@Query`] để biết chi tiết).
 
 [[jpa.query-methods.query-creation]]
 == Tạo Query
 
-Nhìn chung, cơ chế tạo query cho JPA hoạt động như mô tả trong {spring-data-commons-docs-url}/repositories/query-methods.html[Query Methods]. Ví dụ sau cho thấy một JPA query method được chuyển thành gì:
+Nhìn chung, cơ chế tạo query cho JPA hoạt động như mô tả trong {spring-data-commons-docs-url}/repositories/query-methods.html[Query Methods]. Ví dụ sau cho thấy một query method của JPA được chuyển thành gì:
 
 .Tạo query từ method name
 ====
@@ -32,12 +32,12 @@ public interface UserRepository extends Repository<User, Long> {
   List<User> findByEmailAddressAndLastname(String emailAddress, String lastname);
 }
 ----
-Chúng ta tạo một query bằng JPQL, được dịch thành query sau: `select u from User u where u.emailAddress = ?1 and u.lastname = ?2`. Spring Data JPA thực hiện property check và traverse các nested property, như được mô tả trong xref:repositories/query-methods-details.adoc#repositories.query-methods.query-property-expressions[Property Expressions].
+Chúng ta tạo query bằng JPQL, query này được chuyển thành: `select u from User u where u.emailAddress = ?1 and u.lastname = ?2`. Spring Data JPA thực hiện property check và traverse các nested property, như được mô tả trong xref:repositories/query-methods-details.adoc#repositories.query-methods.query-property-expressions[Biểu Thức Property].
 ====
 
-Bảng sau mô tả các keyword được hỗ trợ cho JPA và method chứa keyword đó sẽ được chuyển thành gì:
+Bảng sau mô tả các keyword được JPA hỗ trợ và method chứa keyword đó sẽ được chuyển thành gì:
 
-.Các keyword được hỗ trợ bên trong method name
+.Các keyword được hỗ trợ trong method name
 [options = "header, autowidth"]
 |===============
 |Keyword|Ví dụ|Đoạn JPQL
@@ -68,33 +68,33 @@ Bảng sau mô tả các keyword được hỗ trợ cho JPA và method chứa k
 |`IgnoreCase`|`findByFirstnameIgnoreCase`|`… where UPPER(x.firstname) = UPPER(?1)`
 |===============
 
-NOTE: `In` và `NotIn` cũng nhận bất kỳ subclass nào của `Collection` làm parameter, cũng như array hoặc varargs. Để biết các biến thể cú pháp khác của cùng logical operator, xem xref:repositories/query-keywords-reference.adoc[Repository query keywords].
+NOTE: `In` và `NotIn` cũng nhận bất kỳ subclass nào của `Collection` làm parameter, cũng như array hoặc varargs. Để biết các biến thể cú pháp khác của cùng logical operator, xem xref:repositories/query-keywords-reference.adoc[Từ khóa query của Repository].
 
 [WARNING]
 ====
-`DISTINCT` có thể khá tricky (rắc rối) và không phải lúc nào cũng cho ra kết quả bạn mong đợi.
-Ví dụ, `select distinct u from User u` sẽ cho ra kết quả hoàn toàn khác so với `select distinct u.lastname from User u`.
-Trong trường hợp đầu, vì bạn đang include `User.id`, sẽ không có gì bị duplicate (trùng lặp), do đó bạn sẽ nhận được toàn bộ table, và đó sẽ là các `User` object.
+`DISTINCT` có thể khó đoán và không phải lúc nào cũng cho ra kết quả bạn mong đợi.
+Ví dụ, `select distinct u from User u` sẽ cho kết quả hoàn toàn khác `select distinct u.lastname from User u`.
+Trong trường hợp đầu, vì bạn include `User.id`, sẽ không có gì bị duplicate, do đó bạn nhận được toàn bộ table dưới dạng các object `User`.
 
 
-Tuy nhiên, query thứ hai sẽ thu hẹp phạm vi chỉ còn `User.lastname` và tìm tất cả last name duy nhất (unique) trong table đó.
-Điều này cũng sẽ cho ra một result set kiểu `List<String>` thay vì `List<User>`.
+Tuy nhiên, query thứ hai sẽ thu hẹp phạm vi chỉ còn `User.lastname` và tìm tất cả lastname duy nhất trong table đó.
+Kết quả cũng sẽ là một result set kiểu `List<String>` thay vì `List<User>`.
 
 
 `countDistinctByLastname(String lastname)` cũng có thể cho ra kết quả không như mong đợi.
-Spring Data JPA sẽ derive ra `select count(distinct u.id) from User u where u.lastname = ?1`.
-Một lần nữa, vì `u.id` sẽ không bao giờ trùng lặp, query này sẽ đếm tất cả user có last name khớp với giá trị binding.
+Spring Data JPA sẽ derive thành `select count(distinct u.id) from User u where u.lastname = ?1`.
+Một lần nữa, vì `u.id` sẽ không bao giờ trùng lặp, query này sẽ đếm tất cả user có lastname khớp với giá trị binding.
 Kết quả này sẽ giống hệt với `countByLastname(String lastname)`!
 
-Vậy thì mục đích thực sự của query này là gì? Là để tìm số lượng người có một last name nhất định? Hay để tìm số lượng người _distinct_ (khác nhau) có last name binding đó?
-Hay để tìm số lượng _last name distinct_? (Đây lại là một query hoàn toàn khác!)
-Việc dùng `distinct` đôi khi đòi hỏi bạn phải viết query bằng tay và dùng `@Query` để nắm bắt chính xác thông tin bạn cần, vì bạn cũng có thể cần một projection
-để capture result set.
+Vậy mục đích của query này là gì? Tìm số lượng người có một lastname nhất định? Hay tìm số lượng người _distinct_ có lastname đó?
+Hay tìm số lượng _lastname distinct_? (Đây lại là một query hoàn toàn khác!)
+Việc dùng `distinct` đôi khi đòi hỏi bạn phải tự viết query và dùng `@Query` để lấy đúng thông tin cần thiết, vì bạn cũng có thể cần một projection
+để nhận result set.
 ====
 
 [[jpa.query-methods.named-queries.annotation-based-configuration]]
 === Cấu hình dựa trên Annotation
-Cấu hình dựa trên annotation có lợi thế là không cần chỉnh sửa thêm một configuration file nào khác, giúp giảm công sức bảo trì. Đổi lại, bạn phải recompile domain class của mình mỗi khi khai báo một query mới.
+Cấu hình dựa trên annotation có lợi thế là không cần chỉnh sửa thêm configuration file nào, giúp giảm công sức bảo trì. Đổi lại, bạn phải recompile domain class mỗi khi khai báo query mới.
 
 .Cấu hình named query dựa trên annotation
 ====
@@ -112,11 +112,11 @@ public class User {
 [[jpa.query-methods.named-queries]]
 == Sử dụng JPA Named Query
 
-NOTE: Các ví dụ sử dụng element `<named-query />` và annotation `@NamedQuery`. Query của các configuration element này phải được định nghĩa bằng JPA query language. Tất nhiên, bạn cũng có thể dùng `<named-native-query />` hoặc `@NamedNativeQuery`. Các element này cho phép bạn định nghĩa query bằng native SQL, đổi lại bạn sẽ mất tính độc lập với database platform.
+NOTE: Các ví dụ sử dụng element `<named-query />` và annotation `@NamedQuery`. Query của các configuration element này phải được định nghĩa bằng JPA query language. Tất nhiên, bạn cũng có thể dùng `<named-native-query />` hoặc `@NamedNativeQuery`. Các element này cho phép bạn định nghĩa query bằng native SQL, nhưng làm mất tính độc lập với database platform.
 
 [[jpa.query-methods.named-queries.xml-named-query-definition]]
 === Định nghĩa Named Query bằng XML
-Để dùng XML configuration, thêm element `<named-query />` cần thiết vào file configuration JPA `orm.xml` nằm trong thư mục `META-INF` của classpath. Việc tự động invoke named query được kích hoạt bằng cách dùng một naming convention đã được định nghĩa. Xem chi tiết bên dưới.
+Để dùng XML configuration, thêm element `<named-query />` cần thiết vào file JPA configuration `orm.xml` nằm trong thư mục `META-INF` của classpath. Việc tự động invoke named query được kích hoạt bằng một naming convention đã được định nghĩa. Xem chi tiết bên dưới.
 
 .Cấu hình named query bằng XML
 ====
@@ -128,7 +128,7 @@ NOTE: Các ví dụ sử dụng element `<named-query />` và annotation `@Named
 ----
 ====
 
-Query này có một tên đặc biệt, được dùng để resolve nó tại runtime.
+Query này có một tên đặc biệt, được dùng để resolve tại runtime.
 
 [[jpa.query-methods.named-queries.declaring-interfaces]]
 === Khai báo Interface
@@ -147,15 +147,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-Spring Data cố gắng resolve lời gọi đến các method này thành một named query, bắt đầu bằng simple name của domain class được cấu hình, theo sau là method name, phân cách bằng dấu chấm.
+Spring Data cố gắng resolve lời gọi đến các method này thành một named query, bắt đầu bằng simple name của domain class được cấu hình, theo sau là method name và được phân cách bằng dấu chấm.
 Vì vậy, ví dụ trên sẽ dùng các named query đã được định nghĩa trước đó thay vì cố tạo một query từ method name.
 
 [[jpa.query-methods.at-query]]
 == Sử dụng `@Query`
 
-Dùng named query để khai báo query cho entity là một cách tiếp cận hợp lệ và hoạt động tốt với số lượng query nhỏ. Vì bản thân các query đã gắn liền với Java method chạy chúng, bạn thực sự có thể bind chúng trực tiếp bằng annotation `@Query` của Spring Data JPA thay vì annotate chúng lên domain class. Điều này giúp domain class không còn chứa thông tin đặc thù về persistence, đồng thời đặt query cùng vị trí với repository interface.
+Dùng named query để khai báo query cho entity là một cách tiếp cận hợp lệ và hoạt động tốt với số lượng query nhỏ. Vì bản thân query gắn liền với Java method thực thi nó, bạn có thể bind query trực tiếp bằng annotation `@Query` của Spring Data JPA thay vì annotate nó lên domain class. Điều này giúp domain class không còn chứa thông tin đặc thù về persistence, đồng thời đặt query cùng vị trí với repository interface.
 
-Query được annotate lên query method sẽ được ưu tiên hơn query được định nghĩa bằng `@NamedQuery` hoặc named query khai báo trong `orm.xml`.
+Query được annotate trên query method sẽ được ưu tiên hơn query được định nghĩa bằng `@NamedQuery` hoặc named query khai báo trong `orm.xml`.
 
 Ví dụ sau cho thấy một query được tạo bằng annotation `@Query`:
 
@@ -172,9 +172,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ====
 
 [[jpa.query-methods.at-query.advanced-like]]
-=== Sử dụng LIKE Expression Nâng cao
+=== Sử dụng `LIKE` Expression nâng cao
 
-Cơ chế chạy query dành cho các query được định nghĩa thủ công bằng `@Query` cho phép định nghĩa các `LIKE` expression nâng cao bên trong query, như ví dụ sau:
+Cơ chế chạy query dành cho các query được định nghĩa thủ công bằng `@Query` cho phép định nghĩa `LIKE` expression nâng cao bên trong query, như ví dụ sau:
 
 .`like` expression nâng cao trong @Query
 ====
@@ -188,7 +188,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-Trong ví dụ trên, ký tự delimiter của `LIKE` (`%`) được nhận diện, và query được biến đổi thành một JPQL query hợp lệ (loại bỏ `%`). Khi chạy query, parameter được truyền vào lời gọi method sẽ được bổ sung thêm pattern `LIKE` đã nhận diện trước đó.
+Trong ví dụ trên, ký tự delimiter của `LIKE` (`%`) được nhận diện và query được biến đổi thành JPQL query hợp lệ (loại bỏ `%`). Khi chạy query, parameter được truyền vào method sẽ được bổ sung pattern `LIKE` đã nhận diện trước đó.
 
 [[jpa.query-methods.at-query.native]]
 === Native Query
@@ -207,10 +207,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-NOTE: Annotation `@NativeQuery` về cơ bản là một composed annotation cho `@Query(nativeQuery=true)`, nhưng nó còn cung cấp thêm các attribute như `sqlResultSetMapping` để tận dụng `@SqlResultSetMapping(…)` của JPA.
+NOTE: Annotation `@NativeQuery` về cơ bản là một composed annotation cho `@Query(nativeQuery=true)`, nhưng còn cung cấp các attribute như `sqlResultSetMapping` để tận dụng `@SqlResultSetMapping(…)` của JPA.
 
 NOTE: Spring Data có thể rewrite các query đơn giản để phục vụ pagination và sorting.
-Các query phức tạp hơn yêu cầu hoặc có link:https://github.com/JSQLParser/JSqlParser[JSqlParser] trên classpath, hoặc một `countQuery` được khai báo trong code của bạn.
+Các query phức tạp hơn yêu cầu hoặc link:https://github.com/JSQLParser/JSqlParser[JSqlParser] có trên classpath, hoặc một `countQuery` được khai báo trong code.
 Xem ví dụ bên dưới để biết thêm chi tiết.
 
 .Khai báo native count query cho pagination tại query method bằng `@NativeQuery`
@@ -226,12 +226,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-Cách tiếp cận tương tự cũng áp dụng được với named native query, bằng cách thêm suffix `.count` vào một bản copy của query. Tuy nhiên, bạn có thể cần đăng ký một result set mapping cho count query của mình.
+Cách tiếp cận tương tự cũng áp dụng được với named native query bằng cách thêm suffix `.count` vào một bản copy của query. Tuy nhiên, bạn có thể cần đăng ký result set mapping cho count query.
 
-Bên cạnh việc lấy mapped result, native query còn cho phép bạn đọc raw `Tuple` từ database bằng cách chọn `Map` làm container cho return type của method.
-Map kết quả chứa các cặp key/value đại diện cho tên column thực tế trong database và giá trị của nó.
+Bên cạnh mapped result, native query còn cho phép đọc raw `Tuple` từ database bằng cách chọn `Map` làm container cho return type của method.
+Map kết quả chứa các cặp key/value đại diện cho tên column thực tế trong database và giá trị tương ứng.
 
-.Native query trả về cặp column name/value thô
+.Native query trả về các cặp column name/value thô
 ====
 [source, java]
 ----
@@ -244,30 +244,30 @@ interface UserRepository extends JpaRepository<User, Long> {
   List<Map<String, Object>> findRawMapByLastname(String lastname); <2>
 }
 ----
-<1> Kết quả `Map` đơn, được backed bởi một `Tuple`.
-<2> Nhiều kết quả `Map`, được backed bởi các `Tuple`.
+<1> Kết quả `Map` đơn được backed bởi một `Tuple`.
+<2> Nhiều kết quả `Map` được backed bởi các ``Tuple``.
 ====
 
-NOTE: String-based Tuple Query chỉ được hỗ trợ bởi Hibernate.
+NOTE: String-based Tuple Query chỉ được Hibernate hỗ trợ.
 Eclipselink chỉ hỗ trợ Criteria-based Tuple Query.
 
 [[jpa.query-methods.query-introspection-rewriting]]
 === Query Introspection và Rewriting
 
-Spring Data JPA cung cấp một loạt chức năng có thể dùng để chạy nhiều biến thể (flavor) khác nhau của query.
-Cụ thể, với một declared query cho trước, Spring Data JPA có thể:
+Spring Data JPA cung cấp nhiều chức năng để chạy các loại query khác nhau.
+Cụ thể, với một declared query, Spring Data JPA có thể:
 
-* Introspect (kiểm tra) một query để xác định projection của nó, và chạy một tuple query cho interface projection
-* Dùng DTO projection nếu query sử dụng constructor expression, và rewrite projection khi query khai báo entity alias hoặc chỉ là một multi-select các expression
+* Introspect một query để xác định projection của nó và chạy tuple query cho interface projection
+* Dùng DTO projection nếu query sử dụng constructor expression và rewrite projection khi query khai báo entity alias hoặc chỉ là một multi-select các expression
 * Áp dụng dynamic sorting
-* Derive (suy ra) một `COUNT` query
+* Derive một `COUNT` query
 
-Vì mục đích này, chúng tôi cung cấp sẵn Query Parser dành riêng cho dialect HQL (Hibernate) và EQL (EclipseLink), vì các dialect này được định nghĩa rõ ràng.
-Trong khi đó, SQL cho phép khá nhiều biến thể giữa các dialect khác nhau.
-Vì vậy, Spring Data sẽ không bao giờ có thể hỗ trợ mọi mức độ phức tạp của query.
-Chúng tôi không phải là một general purpose SQL parser library, mà là một library nhằm tăng năng suất của developer bằng cách giúp việc thực thi query đơn giản hơn.
-SQL query enhancer tích hợp sẵn của chúng tôi chỉ hỗ trợ các query đơn giản để introspect và derive `COUNT` query.
-Một query phức tạp hơn sẽ yêu cầu hoặc dùng link:https://github.com/JSQLParser/JSqlParser[JSqlParser], hoặc bạn tự cung cấp một `COUNT` query thông qua `@Query(countQuery=…)`.
+Vì mục đích này, chúng tôi cung cấp Query Parser dành riêng cho dialect HQL (Hibernate) và EQL (EclipseLink), vì các dialect này được định nghĩa rõ ràng.
+Trong khi đó, SQL cho phép khá nhiều khác biệt giữa các dialect.
+Vì vậy, Spring Data sẽ không thể hỗ trợ mọi mức độ phức tạp của query.
+Chúng tôi không phải là general purpose SQL parser library, mà là một library nhằm tăng năng suất của developer bằng cách đơn giản hóa việc thực thi query.
+SQL query enhancer tích hợp sẵn chỉ hỗ trợ query đơn giản để introspect và derive `COUNT` query.
+Query phức tạp hơn sẽ yêu cầu dùng link:https://github.com/JSQLParser/JSqlParser[JSqlParser] hoặc tự cung cấp `COUNT` query thông qua `@Query(countQuery=…)`.
 Nếu JSqlParser có trên classpath, Spring Data JPA sẽ dùng nó cho native query.
 
 Để kiểm soát chi tiết hơn việc lựa chọn, bạn có thể cấu hình javadoc:org.springframework.data.jpa.repository.query.QueryEnhancerSelector[] bằng `@EnableJpaRepositories`:
@@ -284,18 +284,18 @@ class ApplicationConfig {
 ----
 ====
 
-`QueryEnhancerSelector` là một strategy interface nhằm chọn ra một javadoc:org.springframework.data.jpa.repository.query.QueryEnhancer[] dựa trên một query cụ thể.
-Bạn cũng có thể tự cung cấp implementation `QueryEnhancer` của riêng mình nếu muốn.
+`QueryEnhancerSelector` là một strategy interface dùng để chọn javadoc:org.springframework.data.jpa.repository.query.QueryEnhancer[] dựa trên một query cụ thể.
+Bạn cũng có thể tự cung cấp implementation `QueryEnhancer` nếu muốn.
 
 [[jpa.query-methods.query-rewriter]]
 === Áp dụng QueryRewriter
 
-Đôi khi, dù bạn cố áp dụng bao nhiêu feature đi nữa, dường như vẫn không thể khiến Spring Data JPA áp dụng mọi thứ bạn muốn lên một query trước khi nó được gửi tới `EntityManager`.
+Đôi khi, dù cố áp dụng bao nhiêu feature đi nữa, dường như vẫn không thể khiến Spring Data JPA áp dụng mọi thứ bạn muốn lên query trước khi query được gửi tới `EntityManager`.
 
-Bạn có khả năng can thiệp trực tiếp vào query, ngay trước khi nó được gửi tới `EntityManager`, và "rewrite" (viết lại) nó.
+Bạn có thể can thiệp trực tiếp vào query ngay trước khi query được gửi tới `EntityManager` và "rewrite" nó.
 Nghĩa là, bạn có thể thực hiện bất kỳ thay đổi nào vào phút chót.
-Query rewriting áp dụng cho query thực tế, và khi có thể, cho cả count query.
-Count query được tối ưu hóa, do đó hoặc là không cần thiết, hoặc count được lấy bằng cách khác, chẳng hạn derive từ một `SelectionQuery` của Hibernate nếu có transaction bao quanh.
+Query rewriting áp dụng cho query thực tế và khi có thể, cho cả count query.
+Count query được tối ưu hóa, do đó hoặc không cần thiết, hoặc count được lấy bằng cách khác, chẳng hạn derive từ một `SelectionQuery` của Hibernate nếu có transaction bao quanh.
 
 .Khai báo một QueryRewriter bằng `@Query` và `@NativeQuery`
 ====
@@ -314,7 +314,7 @@ public interface MyRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-Ví dụ này cho thấy cả một native rewriter (pure SQL) lẫn một JPQL query, cả hai đều tận dụng cùng một `QueryRewriter`.
+Ví dụ này cho thấy cả native rewriter (pure SQL) lẫn JPQL query, cả hai đều tận dụng cùng một `QueryRewriter`.
 Trong kịch bản này, Spring Data JPA sẽ tìm một bean được đăng ký trong application context có type tương ứng.
 
 Bạn có thể viết một query rewriter như sau:
@@ -333,8 +333,8 @@ public class MyQueryRewriter implements QueryRewriter {
 ----
 ====
 
-Bạn phải đảm bảo `QueryRewriter` của mình được đăng ký trong application context, dù là bằng cách áp dụng một trong các annotation dựa trên
-`@Component` của Spring Framework, hay bằng cách khai báo nó như một phần của method `@Bean` bên trong một class `@Configuration`.
+Bạn phải đảm bảo `QueryRewriter` được đăng ký trong application context, bằng cách áp dụng một trong các annotation dựa trên
+`@Component` của Spring Framework hoặc khai báo nó như một phần của method `@Bean` bên trong class `@Configuration`.
 
 Một lựa chọn khác là để chính repository implement interface đó.
 
@@ -361,21 +361,21 @@ public interface MyRepository extends JpaRepository<User, Long>, QueryRewriter {
 ----
 ====
 
-Tùy vào những gì bạn đang làm với `QueryRewriter`, có thể bạn nên có nhiều hơn một, mỗi cái được đăng ký riêng với application context.
+Tùy vào những gì đang làm với `QueryRewriter`, có thể bạn nên có nhiều hơn một rewriter, mỗi rewriter được đăng ký riêng với application context.
 
-NOTE: Trong môi trường dựa trên CDI, Spring Data JPA sẽ tìm kiếm trong `BeanManager` các instance thuộc implementation
-`QueryRewriter` của bạn.
+NOTE: Trong môi trường dựa trên CDI, Spring Data JPA sẽ tìm kiếm trong `BeanManager` các instance của implementation
+`QueryRewriter`.
 
 [[jpa.query-methods.sorting]]
 == Sử dụng Sort
 
-Sorting có thể được thực hiện bằng cách cung cấp một `PageRequest` hoặc dùng `Sort` trực tiếp. Các property thực sự được dùng bên trong các instance `Order` của `Sort` cần khớp với domain model của bạn, nghĩa là chúng cần resolve tới một property hoặc một alias được dùng trong query. JPQL định nghĩa điều này là một state field path expression.
+Sorting có thể được thực hiện bằng cách cung cấp một `PageRequest` hoặc dùng `Sort` trực tiếp. Các property được dùng bên trong các instance `Order` của `Sort` cần khớp với domain model, nghĩa là chúng cần resolve tới một property hoặc alias được dùng trong query. JPQL định nghĩa điều này là một state field path expression.
 
 NOTE: Dùng bất kỳ path expression nào không thể reference sẽ dẫn tới `Exception`.
 
-Tuy nhiên, dùng `Sort` cùng với xref:jpa/query-methods.adoc#jpa.query-methods.at-query[`@Query`] cho phép bạn "lách" để đưa vào các instance `Order` không được path-check, chứa function bên trong clause `ORDER BY`. Điều này khả thi vì `Order` được append vào chuỗi query đã cho. Theo mặc định, Spring Data JPA từ chối bất kỳ instance `Order` nào chứa function call, nhưng bạn có thể dùng `JpaSort.unsafe` để thêm ordering có khả năng không an toàn (unsafe).
+Dùng `Sort` cùng với xref:jpa/query-methods.adoc#jpa.query-methods.at-query[`@Query`] cho phép bạn "lách" việc path-check để đưa vào các instance `Order` chứa function bên trong clause `ORDER BY`. Điều này khả thi vì `Order` được append vào chuỗi query đã cho. Theo mặc định, Spring Data JPA từ chối mọi instance `Order` chứa function call, nhưng bạn có thể dùng `JpaSort.unsafe` để thêm ordering có khả năng không an toàn.
 
-Ví dụ sau dùng `Sort` và `JpaSort`, bao gồm cả một tùy chọn unsafe trên `JpaSort`:
+Ví dụ sau dùng `Sort` và `JpaSort`, bao gồm cả tùy chọn unsafe trên `JpaSort`:
 
 .Sử dụng `Sort` và `JpaSort`
 ====
@@ -396,40 +396,40 @@ repo.findByAndSort("targaryen", JpaSort.unsafe("LENGTH(firstname)")); <3>
 repo.findByAsArrayAndSort("bolton", Sort.by("fn_len"));               <4>
 ----
 
-<1> `Sort` expression hợp lệ, trỏ tới một property trong domain model.
+<1> `Sort` expression hợp lệ, trỏ tới property trong domain model.
 <2> `Sort` không hợp lệ vì chứa function call.
 Sẽ throw Exception.
 <3> `Sort` hợp lệ, chứa `Order` được khai báo tường minh là _unsafe_.
-<4> `Sort` expression hợp lệ, trỏ tới một function đã được alias.
+<4> `Sort` expression hợp lệ, trỏ tới function đã được alias.
 ====
 
 === Giới hạn của JpaSort.unsafe(…)
 
-`JpaSort.unsafe(…)` hoạt động theo hai chế độ:
+`JpaSort.unsafe(…)` hoạt động theo các chế độ sau:
 
-* Khi dùng với derived query hoặc String-based query, chuỗi order sẽ được append vào query.
-* Khi dùng với Query by Example hoặc Specification (dùng `CriteriaQuery`), các order expression sẽ được parse và thêm vào `CriteriaQuery` dưới dạng expression.
+* Khi dùng với derived query hoặc String-based query, chuỗi order được append vào query.
+* Khi dùng với Query by Example hoặc Specification (dùng `CriteriaQuery`), các order expression được parse và thêm vào `CriteriaQuery` dưới dạng expression.
 * `JpaSort.JpaOrder.withUnsafe(…)` tạo ra một `JpaSort` mới, áp dụng direction, case-sensitivity và cách xử lý null hiện tại cho các property đã cho.
 Query expression có thể chứa function call, nhiều loại clause khác nhau (như `CASE WHEN`, arithmetic expression) hoặc property path.
-Việc dịch (translation) order không hỗ trợ subquery expression, `TREAT` và `CAST`.
+Order translation không hỗ trợ subquery expression, `TREAT` và `CAST`.
 
 [[jpa.query-methods.paging]]
 
 [[jpa.query-methods.scroll]]
-== Scrolling Kết quả Query Lớn
+== Scrolling các Query Result lớn
 
-Khi làm việc với large data set (tập dữ liệu lớn), xref:repositories/query-methods-details.adoc#repositories.scrolling[scrolling] có thể giúp xử lý các kết quả đó hiệu quả mà không cần load toàn bộ kết quả vào memory.
+Khi làm việc với large data set, xref:repositories/query-methods-details.adoc#repositories.scrolling[cuộn] có thể giúp xử lý result hiệu quả mà không cần load toàn bộ vào memory.
 
 Bạn có nhiều lựa chọn để consume large query result:
 
-1. xref:repositories/query-methods-details.adoc#repositories.paging-and-sorting[Paging].
+1. xref:repositories/query-methods-details.adoc#repositories.paging-and-sorting[Phân trang].
 Bạn đã tìm hiểu về `Pageable` và `PageRequest` ở chương trước.
-2. xref:repositories/query-methods-details.adoc#repositories.scrolling.offset[Offset-based scrolling].
-Đây là biến thể nhẹ hơn so với paging vì nó không yêu cầu tổng số kết quả (total result count).
-3. xref:repositories/query-methods-details.adoc#repositories.scrolling.keyset[Keyset-based scrolling].
-Phương pháp này tránh được https://use-the-index-luke.com/no-offset[các hạn chế của việc lấy kết quả dựa trên offset bằng cách tận dụng database index].
+2. xref:repositories/query-methods-details.adoc#repositories.scrolling.offset[Cuộn bằng Offset].
+Đây là biến thể nhẹ hơn so với paging vì không yêu cầu total result count.
+3. xref:repositories/query-methods-details.adoc#repositories.scrolling.keyset[Cuộn bằng Keyset-Filtering].
+Phương pháp này tránh được https://use-the-index-luke.com/no-offset[các hạn chế của việc lấy result dựa trên offset bằng cách tận dụng database index].
 
-Đọc thêm về xref:repositories/query-methods-details.adoc#repositories.scrolling.guidance[which method to use best] để chọn phương pháp phù hợp nhất cho trường hợp cụ thể của bạn.
+Đọc thêm về xref:repositories/query-methods-details.adoc#repositories.scrolling.guidance[phương pháp phù hợp nhất] cho trường hợp cụ thể của bạn.
 
 Bạn có thể dùng Scroll API với query method, xref:repositories/query-by-example.adoc[Query-by-Example], và xref:repositories/core-extensions.adoc#core.extensions.querydsl[Querydsl].
 
@@ -439,8 +439,8 @@ Scrolling cũng không được hỗ trợ khi dùng stored `@Procedure` query m
 [[jpa.named-parameters]]
 == Sử dụng Named Parameter
 
-Theo mặc định, Spring Data JPA dùng position-based parameter binding, như đã mô tả trong tất cả các ví dụ trước.
-Điều này khiến query method dễ xảy ra lỗi khi refactor liên quan tới vị trí parameter.
+Theo mặc định, Spring Data JPA dùng position-based parameter binding, như mô tả trong tất cả các ví dụ trước.
+Điều này khiến query method dễ xảy ra lỗi khi refactor làm thay đổi vị trí parameter.
 Để giải quyết vấn đề này, bạn có thể dùng annotation `@Param` để đặt cho một method parameter một tên cụ thể và bind tên đó trong query, như ví dụ sau:
 
 .Sử dụng named parameter
@@ -456,26 +456,26 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-NOTE: Các method parameter được sắp xếp lại theo thứ tự của chúng trong query đã định nghĩa.
+NOTE: Các method parameter được bind theo thứ tự của chúng trong query đã định nghĩa.
 
-NOTE: Kể từ version 4, Spring hỗ trợ đầy đủ tính năng parameter name discovery của Java 8 dựa trên compiler flag `-parameters`. Bằng cách dùng flag này trong build của bạn như một giải pháp thay thế cho debug information, bạn có thể bỏ qua annotation `@Param` đối với named parameter.
+NOTE: Kể từ version 4, Spring hỗ trợ đầy đủ parameter name discovery của Java 8 dựa trên compiler flag `-parameters`. Bằng cách dùng flag này trong build như một giải pháp thay thế cho debug information, bạn có thể bỏ qua annotation `@Param` đối với named parameter.
 
 [[jpa.query.spel-expressions]]
 == Templated Query và Expression
 
-Chúng tôi hỗ trợ việc sử dụng các restricted expression (expression bị giới hạn) trong các query được định nghĩa thủ công bằng `@Query`.
-Khi query được chạy, các expression này sẽ được evaluate dựa trên một tập variable đã được định nghĩa sẵn.
+Chúng tôi hỗ trợ sử dụng restricted expression trong các query được định nghĩa thủ công bằng `@Query`.
+Khi query được chạy, các expression này được evaluate dựa trên một tập variable được định nghĩa sẵn.
 
-NOTE: Nếu bạn chưa quen với Value Expression, hãy xem xref:jpa/value-expressions.adoc[] để tìm hiểu về SpEL Expression và Property Placeholder.
+NOTE: Nếu chưa quen với Value Expression, hãy xem xref:jpa/value-expressions.adoc[] để tìm hiểu về SpEL Expression và Property Placeholder.
 
 Spring Data JPA hỗ trợ một template variable tên là `entityName`.
 Cách dùng của nó là `select x from #{#entityName} x`.
-Nó chèn vào `entityName` của domain type gắn với repository đã cho.
+Nó chèn `entityName` của domain type gắn với repository đã cho.
 `entityName` được resolve theo cách sau:
-* Nếu domain type đã set property name trên annotation `@Entity`, giá trị đó sẽ được dùng.
-* Nếu không, simple class name của domain type sẽ được dùng.
+* Nếu domain type đã set property name trên annotation `@Entity`, giá trị đó được dùng.
+* Nếu không, simple class name của domain type được dùng.
 
-Ví dụ sau minh họa một use case cho expression `+#{#entityName}+` trong chuỗi query, khi bạn muốn định nghĩa một repository interface với một query method và một query được định nghĩa thủ công:
+Ví dụ sau minh họa một use case cho expression `+#{#entityName}+` trong chuỗi query khi bạn muốn định nghĩa repository interface với query method và query thủ công:
 
 .Sử dụng SpEL expression trong repository query method: entityName
 ====
@@ -499,16 +499,16 @@ public interface UserRepository extends JpaRepository<User,Long> {
 ----
 ====
 
-Để tránh phải ghi rõ tên entity thực tế trong chuỗi query của annotation `@Query`, bạn có thể dùng variable `+#{#entityName}+`.
+Để tránh phải ghi rõ tên entity trong chuỗi query của annotation `@Query`, bạn có thể dùng variable `+#{#entityName}+`.
 
 NOTE: `entityName` có thể được tùy chỉnh bằng annotation `@Entity`.
-Việc tùy chỉnh trong `orm.xml` không được hỗ trợ đối với SpEL expression.
+Tùy chỉnh trong `orm.xml` không được hỗ trợ đối với SpEL expression.
 
 Tất nhiên, bạn cũng có thể dùng trực tiếp `User` trong khai báo query, nhưng khi đó bạn sẽ phải thay đổi query nếu có gì thay đổi.
-Việc tham chiếu tới `#entityName` sẽ tự động cập nhật theo những remapping có thể xảy ra trong tương lai của class `User` sang một entity name khác (ví dụ, bằng cách dùng `@Entity(name = "MyUser")`.
+Tham chiếu tới `#entityName` sẽ tự động cập nhật theo remapping có thể xảy ra trong tương lai của class `User` sang entity name khác (ví dụ, bằng cách dùng `@Entity(name = "MyUser")`.
 
-Một use case khác cho expression `#{#entityName}` trong chuỗi query là khi bạn muốn định nghĩa một generic repository interface với các repository interface chuyên biệt cho một domain type cụ thể.
-Để không phải lặp lại việc định nghĩa custom query method trên các interface cụ thể, bạn có thể dùng entity name expression trong chuỗi query của annotation `@Query` ngay trên generic repository interface, như ví dụ sau:
+Một use case khác cho expression `#{#entityName}` trong chuỗi query là khi bạn muốn định nghĩa generic repository interface với các repository interface chuyên biệt cho một domain type cụ thể.
+Để không phải lặp lại việc định nghĩa custom query method trên các interface cụ thể, bạn có thể dùng entity name expression trong chuỗi query của annotation `@Query` trên generic repository interface, như ví dụ sau:
 
 .Sử dụng SpEL expression trong Repository Query Method: entityName với Inheritance
 ====
@@ -537,11 +537,11 @@ public interface ConcreteRepository
 ====
 
 Trong ví dụ trên, interface `MappedTypeRepository` là parent interface chung cho một vài domain type extend `AbstractMappedType`.
-Nó cũng định nghĩa method generic `findAllByAttribute(…)`, có thể được dùng trên các instance của các repository interface chuyên biệt.
-Nếu bây giờ bạn invoke `findAllByAttribute(…)` trên `ConcreteRepository`, query sẽ trở thành `select t from ConcreteType t where t.attribute = ?1`.
+Nó cũng định nghĩa generic method `findAllByAttribute(…)`, có thể dùng trên các instance của repository interface chuyên biệt.
+Nếu invoke `findAllByAttribute(…)` trên `ConcreteRepository`, query sẽ trở thành `select t from ConcreteType t where t.attribute = ?1`.
 
 Bạn cũng có thể dùng expression để kiểm soát method argument.
-Trong các expression này, entity name không khả dụng, nhưng argument thì có.
+Trong các expression này, entity name không khả dụng nhưng argument thì có.
 Chúng có thể được truy cập bằng name hoặc index, như minh họa trong ví dụ sau.
 
 .Sử dụng Value Expression trong Repository Query Method: Truy cập Argument
@@ -553,8 +553,8 @@ List<User> findByFirstnameAndCurrentUserWithCustomQuery(String firstname);
 ----
 ====
 
-Đối với các điều kiện `like`, người ta thường muốn append `%` vào đầu hoặc cuối một parameter kiểu String.
-Việc này có thể thực hiện bằng cách append hoặc prefix một bind parameter marker hoặc một SpEL expression với `%`.
+Đối với các điều kiện `like`, thường cần append `%` vào đầu hoặc cuối parameter kiểu String.
+Việc này có thể thực hiện bằng cách append hoặc prefix bind parameter marker hoặc SpEL expression với `%`.
 Ví dụ sau minh họa điều này.
 
 .Sử dụng Value Expression trong Repository Query Method: Wildcard shortcut
@@ -566,12 +566,12 @@ List<User> findByLastnameWithSpelExpression(@Param("lastname") String lastname);
 ----
 ====
 
-Khi dùng điều kiện `like` với giá trị đến từ một nguồn không an toàn, các giá trị này nên được sanitize để chúng không thể chứa wildcard nào, tránh việc kẻ tấn công có thể select nhiều dữ liệu hơn mức được phép.
+Khi dùng điều kiện `like` với giá trị đến từ nguồn không an toàn, các giá trị này nên được sanitize để không chứa wildcard, tránh việc kẻ tấn công có thể select nhiều dữ liệu hơn mức được phép.
 Vì mục đích này, method `escape(String)` được cung cấp sẵn trong SpEL context.
-Nó thêm prefix vào tất cả các instance của `_` và `%` trong argument đầu tiên bằng một ký tự duy nhất lấy từ argument thứ hai.
-Kết hợp với clause `escape` của expression `like` sẵn có trong JPQL và SQL chuẩn, điều này giúp việc làm sạch bind parameter trở nên dễ dàng.
+Nó thêm prefix vào mọi instance của `_` và `%` trong argument đầu tiên bằng ký tự duy nhất lấy từ argument thứ hai.
+Kết hợp với clause `escape` của expression `like` có sẵn trong JPQL và SQL chuẩn, điều này giúp sanitize bind parameter dễ dàng.
 
-.Sử dụng Value Expression trong Repository Query Method: Sanitize Giá trị Đầu vào
+.Sử dụng Value Expression trong Repository Query Method: Sanitize giá trị đầu vào
 ====
 [source, java]
 ----
@@ -580,8 +580,8 @@ List<User> findContainingEscaped(String namePart);
 ----
 ====
 
-Với khai báo method này trong repository interface, `findContainingEscaped("Peter_")` sẽ tìm ra `Peter_Parker` nhưng không tìm ra `Peter Parker`.
-Ký tự escape được sử dụng có thể được cấu hình bằng cách set `escapeCharacter` của annotation `@EnableJpaRepositories`.
+Với khai báo method này trong repository interface, `findContainingEscaped("Peter_")` sẽ tìm `Peter_Parker` nhưng không tìm `Peter Parker`.
+Ký tự escape được sử dụng có thể cấu hình bằng cách set `escapeCharacter` của annotation `@EnableJpaRepositories`.
 Lưu ý rằng method `escape(String)` có sẵn trong SpEL context chỉ escape các wildcard chuẩn của SQL và JPQL là `_` và `%`.
 Nếu database bên dưới hoặc JPA implementation hỗ trợ thêm các wildcard khác, những wildcard đó sẽ không được escape.
 
@@ -594,34 +594,34 @@ List<User> findContainingEscaped(String namePart);
 ----
 ====
 
-Trong query method, bạn cũng có thể tham chiếu tới tên configuration property, bao gồm cả fallback, nếu bạn muốn resolve một property từ `Environment` tại runtime.
+Trong query method, bạn cũng có thể tham chiếu tới tên configuration property, bao gồm cả fallback, nếu muốn resolve một property từ `Environment` tại runtime.
 Property này được evaluate khi query được thực thi.
-Thông thường, property placeholder sẽ resolve thành các giá trị kiểu String.
+Thông thường, property placeholder được resolve thành giá trị kiểu String.
 
 [[jpa.query.other-methods]]
-== Các Method Khác
+== Các Method khác
 
-Spring Data JPA cung cấp nhiều cách để xây dựng query.
-Nhưng đôi khi, query của bạn có thể đơn giản là quá phức tạp so với các kỹ thuật được cung cấp.
+Spring Data JPA cung cấp nhiều cách để build query.
+Nhưng đôi khi, query có thể quá phức tạp so với các kỹ thuật được cung cấp.
 Trong tình huống đó, hãy cân nhắc:
 
-* Nếu chưa làm, đơn giản là tự viết query bằng xref:jpa/query-methods.adoc#jpa.query-methods.at-query[`@Query`].
-* Nếu điều đó vẫn chưa đáp ứng nhu cầu của bạn, hãy cân nhắc implement một xref:repositories/custom-implementations.adoc[custom implementation]. Cách này cho phép bạn đăng ký một method trong repository trong khi việc implement hoàn toàn tùy ý bạn. Điều này mang lại cho bạn khả năng:
+* Nếu chưa làm, hãy tự viết query bằng xref:jpa/query-methods.adoc#jpa.query-methods.at-query[`@Query`].
+* Nếu điều đó vẫn chưa đáp ứng nhu cầu, hãy cân nhắc implement một xref:repositories/custom-implementations.adoc[custom implementation]. Cách này cho phép đăng ký method trong repository trong khi việc implement hoàn toàn tùy ý bạn. Điều này mang lại khả năng:
 ** Làm việc trực tiếp với `EntityManager` (viết thuần HQL/JPQL/EQL/native SQL hoặc dùng *Criteria API*)
 ** Tận dụng `JdbcTemplate` của Spring Framework (native SQL)
 ** Dùng một database toolkit của bên thứ ba khác.
-* Một lựa chọn khác là đặt query của bạn bên trong database, sau đó dùng xref:jpa/stored-procedures.adoc[annotation `@StoredProcedure`] của Spring Data JPA, hoặc nếu đó là một database function thì dùng xref:jpa/query-methods.adoc#jpa.query-methods.at-query[annotation `@Query`] và invoke nó bằng `CALL`.
+* Một lựa chọn khác là đặt query bên trong database, sau đó dùng xref:jpa/stored-procedures.adoc[annotation `@StoredProcedure`] của Spring Data JPA, hoặc nếu đó là database function thì dùng xref:jpa/query-methods.adoc#jpa.query-methods.at-query[annotation `@Query`] và invoke nó bằng `CALL`.
 
-Các chiến thuật này có thể hiệu quả nhất khi bạn cần kiểm soát tối đa query của mình, trong khi vẫn để Spring Data JPA đảm nhiệm việc quản lý resource.
+Các cách này có thể hiệu quả nhất khi cần kiểm soát tối đa query, trong khi vẫn để Spring Data JPA đảm nhiệm việc quản lý resource.
 
 [[jpa.modifying-queries]]
 == Modifying Query
 
-Tất cả các phần trước mô tả cách khai báo query để truy cập một entity hoặc một collection entity cho trước.
-Bạn có thể thêm custom modifying behavior bằng cách dùng các custom method facility được mô tả trong {spring-data-commons-docs-url}/repositories/custom-implementations.html[Custom Implementations for Spring Data Repositories].
-Vì cách tiếp cận này phù hợp cho các custom functionality toàn diện, bạn có thể modify các query chỉ cần parameter binding bằng cách annotate query method với `@Modifying`, như ví dụ sau:
+Tất cả các phần trước mô tả cách khai báo query để truy cập entity hoặc collection entity cho trước.
+Bạn có thể thêm custom modifying behavior bằng các custom method facility được mô tả trong {spring-data-commons-docs-url}/repositories/custom-implementations.html[Custom Implementations for Spring Data Repositories].
+Vì cách tiếp cận này phù hợp với custom functionality toàn diện, bạn có thể modify các query chỉ cần parameter binding bằng cách annotate query method với `@Modifying`, như ví dụ sau:
 
-.Khai báo query thao tác dữ liệu (manipulating query)
+.Khai báo query thao tác dữ liệu
 ====
 [source, java]
 ----
@@ -631,15 +631,15 @@ int setFixedFirstnameFor(String firstname, String lastname);
 ----
 ====
 
-Việc này khiến query được annotate lên method được kích hoạt như một updating query thay vì một selecting query. Vì `EntityManager` có thể chứa các entity đã lỗi thời sau khi modifying query được thực thi, chúng tôi không tự động clear nó (xem https://jakarta.ee/specifications/persistence/3.2/apidocs/jakarta.persistence/jakarta/persistence/entitymanager[JavaDoc] của `EntityManager.clear()` để biết chi tiết), vì việc clear sẽ loại bỏ toàn bộ các thay đổi chưa được flush đang chờ xử lý trong `EntityManager`.
-Nếu bạn muốn `EntityManager` được clear tự động, bạn có thể set attribute `clearAutomatically` của annotation `@Modifying` thành `true`.
+Việc này khiến query được annotate trên method được kích hoạt như updating query thay vì selecting query. Vì `EntityManager` có thể chứa các entity đã lỗi thời sau khi modifying query được thực thi, chúng tôi không tự động clear nó (xem https://jakarta.ee/specifications/persistence/3.2/apidocs/jakarta.persistence/jakarta/persistence/entitymanager[JavaDoc] của `EntityManager.clear()` để biết chi tiết), vì việc clear sẽ loại bỏ toàn bộ thay đổi chưa được flush đang chờ xử lý trong `EntityManager`.
+Nếu muốn `EntityManager` được clear tự động, bạn có thể set attribute `clearAutomatically` của annotation `@Modifying` thành `true`.
 
 Annotation `@Modifying` chỉ có ý nghĩa khi kết hợp với annotation `@Query`.
 Derived query method hoặc custom method không cần annotation này.
 
 [[jpa.modifying-queries.derived-delete]]
 === Derived Delete Query
-Spring Data JPA cũng hỗ trợ derived delete query, giúp bạn tránh phải khai báo JPQL query một cách tường minh, như ví dụ sau:
+Spring Data JPA cũng hỗ trợ derived delete query, giúp tránh phải khai báo JPQL query một cách tường minh, như ví dụ sau:
 
 .Sử dụng một derived delete query
 ====
@@ -656,21 +656,21 @@ interface UserRepository extends Repository<User, Long> {
 ----
 ====
 
-Mặc dù method `deleteByRoleId(…)` trông có vẻ cho ra kết quả tương tự như `deleteInBulkByRoleId(…)`, có một khác biệt quan trọng giữa hai khai báo method này xét về cách chúng được chạy.
-Như tên gọi cho thấy, method thứ hai phát ra một JPQL query duy nhất (query được định nghĩa trong annotation) lên database.
-Điều này có nghĩa là ngay cả các instance `User` đang được load hiện tại cũng không thấy lifecycle callback nào được invoke.
+Mặc dù method `deleteByRoleId(…)` có vẻ cho kết quả tương tự `deleteInBulkByRoleId(…)`, có một khác biệt quan trọng giữa hai khai báo method về cách chúng được chạy.
+Như tên gọi cho thấy, method thứ hai phát ra một JPQL query duy nhất (query được định nghĩa trong annotation) tới database.
+Điều này có nghĩa là ngay cả các instance `User` đang được load cũng không thấy lifecycle callback nào được invoke.
 
-Để đảm bảo lifecycle callback thực sự được invoke, một lời gọi `deleteByRoleId(…)` sẽ chạy một query rồi xóa từng instance trả về một, để persistence provider có thể thực sự invoke các callback `@PreRemove` trên các entity đó.
+Để đảm bảo lifecycle callback thực sự được invoke, một lời gọi `deleteByRoleId(…)` sẽ chạy query rồi xóa từng instance được trả về, để persistence provider có thể invoke các callback `@PreRemove` trên những entity đó.
 
-Trên thực tế, một derived delete query là một shortcut cho việc chạy query rồi gọi `CrudRepository.delete(Iterable<User> users)` trên kết quả, đồng thời giữ hành vi đồng bộ với các implementation của những method `delete(…)` khác trong `CrudRepository`.
+Trên thực tế, derived delete query là shortcut cho việc chạy query rồi gọi `CrudRepository.delete(Iterable<User> users)` trên kết quả, đồng thời giữ behavior đồng bộ với implementation của các method `delete(…)` khác trong `CrudRepository`.
 
-NOTE: Khi xóa một lượng lớn object, bạn cần cân nhắc các ảnh hưởng về performance để đảm bảo đủ memory khả dụng.
-Tất cả các object kết quả đều được load vào memory trước khi bị xóa, và được giữ trong session cho tới khi flush hoặc hoàn tất transaction.
+NOTE: Khi xóa nhiều object, bạn cần cân nhắc ảnh hưởng về performance để đảm bảo đủ memory khả dụng.
+Tất cả object kết quả đều được load vào memory trước khi bị xóa và được giữ trong session cho tới khi flush hoặc transaction hoàn tất.
 
 [[jpa.query-hints]]
 == Áp dụng Query Hint
-Để áp dụng JPA query hint cho các query được khai báo trong repository interface của bạn, bạn có thể dùng annotation `@QueryHints`.
-Annotation này nhận một array các annotation `@QueryHint` của JPA, cộng thêm một boolean flag để có thể disable các hint áp dụng cho count query bổ sung được kích hoạt khi áp dụng pagination, như ví dụ sau:
+Để áp dụng JPA query hint cho các query được khai báo trong repository interface, bạn có thể dùng annotation `@QueryHints`.
+Annotation này nhận một array các annotation `@QueryHint` của JPA, cùng một boolean flag để có thể disable các hint áp dụng cho count query bổ sung được kích hoạt khi áp dụng pagination, như ví dụ sau:
 
 .Sử dụng QueryHints với một repository method
 ====
@@ -686,15 +686,15 @@ public interface UserRepository extends Repository<User, Long> {
 ====
 Khai báo trên sẽ áp dụng `@QueryHint` đã cấu hình cho query thực tế, nhưng bỏ qua việc áp dụng nó cho count query được kích hoạt để tính tổng số page.
 
-NOTE: Khi dùng Java `Stream<T>`, hãy xem lại xref:repositories/query-return-types-reference.adoc#return-type.stream[`Stream` semantics and resource handling] trong bối cảnh JPA provider và JDBC driver của bạn, đặc biệt lưu ý tới fetch behavior đặc thù của provider và cấu hình fetch-size của driver.
+NOTE: Khi dùng Java `Stream<T>`, hãy xem lại xref:repositories/query-return-types-reference.adoc#return-type.stream[ngữ nghĩa và quản lý resource của `Stream`] trong bối cảnh JPA provider và JDBC driver, đặc biệt lưu ý tới fetch behavior đặc thù của provider và cấu hình fetch-size của driver.
 
 [[jpa.query-hints.comments]]
 === Thêm Comment vào Query
-Đôi khi, bạn cần debug một query dựa trên performance của database.
-Query mà database administrator của bạn cho xem có thể trông RẤT khác so với query bạn viết bằng `@Query`, hoặc thậm chí không giống chút nào
-với những gì bạn nghĩ Spring Data JPA đã generate cho một custom finder, hoặc nếu bạn dùng query by example.
+Đôi khi, bạn cần debug query dựa trên performance của database.
+Query mà database administrator cho xem có thể trông RẤT khác so với query bạn viết bằng `@Query`, hoặc thậm chí không giống chút nào
+với những gì bạn nghĩ Spring Data JPA đã generate cho custom finder hoặc khi bạn dùng query by example.
 
-Để quá trình này dễ dàng hơn, bạn có thể chèn custom comment vào hầu hết mọi JPA operation, dù đó là một query hay operation khác,
+Để quá trình này dễ dàng hơn, bạn có thể chèn custom comment vào hầu hết mọi JPA operation, dù đó là query hay operation khác,
 bằng cách áp dụng annotation `@Meta`.
 
 .Áp dụng annotation `@Meta` cho repository operation
@@ -720,21 +720,21 @@ public interface RoleRepository extends JpaRepository<Role, Integer> {
 ----
 ====
 
-Repository mẫu này có sự kết hợp giữa custom finder và việc override các operation được kế thừa từ `JpaRepository`.
-Dù theo cách nào, annotation `@Meta` cũng cho phép bạn thêm một `comment` sẽ được chèn vào query trước khi chúng được gửi tới database.
+Repository mẫu này kết hợp custom finder với việc override các operation được kế thừa từ `JpaRepository`.
+Dù theo cách nào, annotation `@Meta` cũng cho phép thêm một `comment` được chèn vào query trước khi query được gửi tới database.
 
 Cũng cần lưu ý rằng feature này không chỉ giới hạn ở query. Nó còn mở rộng tới các operation `count` và `exists`.
-Và dù không được thể hiện ở đây, nó cũng mở rộng tới một số operation `delete` nhất định.
+Dù không được thể hiện ở đây, nó cũng mở rộng tới một số operation `delete` nhất định.
 
-IMPORTANT: Mặc dù chúng tôi đã cố gắng áp dụng feature này ở mọi nơi có thể, một số operation của `EntityManager` bên dưới không hỗ trợ comment. Ví dụ, `entityManager.createQuery()` được document rõ ràng là có hỗ trợ comment, nhưng các operation `entityManager.find()` thì không.
+IMPORTANT: Mặc dù chúng tôi đã cố gắng áp dụng feature này ở mọi nơi có thể, một số operation của `EntityManager` bên dưới không hỗ trợ comment. Ví dụ, `entityManager.createQuery()` được document rõ ràng là hỗ trợ comment, nhưng các operation `entityManager.find()` thì không.
 
-Cả JPQL logging lẫn SQL logging đều không phải là một chuẩn trong JPA, vì vậy mỗi provider yêu cầu cấu hình riêng, như trình bày trong các phần bên dưới.
+Cả JPQL logging lẫn SQL logging đều không phải là standard trong JPA, vì vậy mỗi provider yêu cầu cấu hình riêng, như trình bày trong các phần bên dưới.
 
 [[activating-hibernate-comments]]
 ==== Kích hoạt comment của Hibernate
 Để kích hoạt query comment trong Hibernate, bạn phải set `hibernate.use_sql_comments` thành `true`.
 
-Nếu bạn đang dùng cấu hình dựa trên Java (Java-based configuration), việc này có thể thực hiện như sau:
+Nếu đang dùng Java-based configuration, bạn có thể thực hiện như sau:
 
 .Cấu hình JPA dựa trên Java
 ====
@@ -750,7 +750,7 @@ public Properties jpaProperties() {
 ----
 ====
 
-Nếu bạn có file `persistence.xml`, bạn có thể áp dụng ở đó:
+Nếu có file `persistence.xml`, bạn có thể áp dụng ở đó:
 
 .Cấu hình dựa trên `persistence.xml`
 ====
@@ -767,7 +767,7 @@ Nếu bạn có file `persistence.xml`, bạn có thể áp dụng ở đó:
 ----
 ====
 
-Cuối cùng, nếu bạn dùng Spring Boot, bạn có thể thiết lập bên trong file `application.properties`:
+Cuối cùng, nếu dùng Spring Boot, bạn có thể thiết lập trong file `application.properties`:
 
 .Cấu hình dựa trên property của Spring Boot
 ====
@@ -780,7 +780,7 @@ spring.jpa.properties.hibernate.use_sql_comments=true
 ==== Kích hoạt comment của EclipseLink
 Để kích hoạt query comment trong EclipseLink, bạn phải set `eclipselink.logging.level.sql` thành `FINE`.
 
-Nếu bạn đang dùng cấu hình dựa trên Java, việc này có thể thực hiện như sau:
+Nếu đang dùng Java-based configuration, bạn có thể thực hiện như sau:
 
 .Cấu hình JPA dựa trên Java
 ====
@@ -796,7 +796,7 @@ public Properties jpaProperties() {
 ----
 ====
 
-Nếu bạn có file `persistence.xml`, bạn có thể áp dụng ở đó:
+Nếu có file `persistence.xml`, bạn có thể áp dụng ở đó:
 
 .Cấu hình dựa trên `persistence.xml`
 ====
@@ -813,7 +813,7 @@ Nếu bạn có file `persistence.xml`, bạn có thể áp dụng ở đó:
 ----
 ====
 
-Cuối cùng, nếu bạn dùng Spring Boot, bạn có thể thiết lập bên trong file `application.properties`:
+Cuối cùng, nếu dùng Spring Boot, bạn có thể thiết lập trong file `application.properties`:
 
 .Cấu hình dựa trên property của Spring Boot
 ====
@@ -826,9 +826,9 @@ spring.jpa.properties.eclipselink.logging.level.sql=FINE
 [[jpa.entity-graph]]
 == Cấu hình Fetch Graph và Load Graph
 
-Đặc tả JPA 2.1 đã giới thiệu hỗ trợ để chỉ định Fetch Graph và Load Graph, mà chúng tôi cũng hỗ trợ thông qua annotation `@EntityGraph`, cho phép bạn tham chiếu tới một định nghĩa `@NamedEntityGraph`. Bạn có thể dùng annotation đó trên một entity để cấu hình fetch plan cho query kết quả. Loại fetching (`Fetch` hoặc `Load`) có thể được cấu hình bằng attribute `type` trên annotation `@EntityGraph`. Xem JPA 2.1 Spec 3.7.4 để biết thêm chi tiết.
+Đặc tả JPA 2.1 đã giới thiệu hỗ trợ chỉ định Fetch Graph và Load Graph. Chúng tôi cũng hỗ trợ tính năng này thông qua annotation `@EntityGraph`, cho phép tham chiếu tới một định nghĩa `@NamedEntityGraph`. Bạn có thể dùng annotation đó trên entity để cấu hình fetch plan cho query kết quả. Loại fetching (`Fetch` hoặc `Load`) có thể được cấu hình bằng attribute `type` trên annotation `@EntityGraph`. Xem JPA 2.1 Spec 3.7.4 để biết thêm chi tiết.
 
-Ví dụ sau cho thấy cách định nghĩa một named entity graph trên một entity:
+Ví dụ sau cho thấy cách định nghĩa named entity graph trên entity:
 
 .Định nghĩa một named entity graph trên một entity.
 ====
@@ -848,7 +848,7 @@ public class GroupInfo {
 ----
 ====
 
-Ví dụ sau cho thấy cách tham chiếu tới một named entity graph trên một repository query method:
+Ví dụ sau cho thấy cách tham chiếu tới named entity graph trên repository query method:
 
 .Tham chiếu tới một định nghĩa named entity graph trên một repository query method.
 ====
@@ -863,7 +863,7 @@ public interface GroupRepository extends CrudRepository<GroupInfo, String> {
 ----
 ====
 
-Bạn cũng có thể định nghĩa ad hoc entity graph bằng `@EntityGraph`. `attributePaths` được cung cấp sẽ được dịch thành `EntityGraph` tương ứng mà không cần thêm `@NamedEntityGraph` một cách tường minh vào domain type của bạn, như ví dụ sau:
+Bạn cũng có thể định nghĩa ad hoc entity graph bằng `@EntityGraph`. `attributePaths` được cung cấp sẽ được chuyển thành `EntityGraph` tương ứng mà không cần thêm `@NamedEntityGraph` một cách tường minh vào domain type, như ví dụ sau:
 
 .Sử dụng định nghĩa ad-hoc entity graph trên một repository query method
 ====

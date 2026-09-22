@@ -1,9 +1,9 @@
-Hibernate dịch các lời gọi distance function thành các native database function cho PGvector và Oracle.
-Kết quả của chúng thường là một distance.
-Khi dùng `Similarity` thay vì `Score`, Spring Data chuẩn hóa các distance score thành một similarity score trong khoảng từ 0 đến 1. Score càng cao thì hai vector càng tương đồng.
+Hibernate chuyển các lời gọi distance function thành các native database function cho PGvector và Oracle.
+Kết quả của các function này thường là một distance.
+Khi dùng `Similarity` thay vì `Score`, Spring Data chuẩn hóa distance score thành một similarity score nằm trong khoảng từ 0 đến 1. Score càng cao thì hai vector càng tương đồng.
 // END
 
-.Dùng `Score` và `Similarity` trong một Repository Search Method
+.Dùng `Score` và `Similarity` trong một repository search method
 ====
 [source,java]
 ----
@@ -27,12 +27,12 @@ repository.searchByEmbeddingNear(Vector.of(…), Similarity.of(0.9, ScoringFunct
 repository.searchByEmbeddingNear(Vector.of(…), Similarity.between(0.5, 1, ScoringFunction.euclidean()));<4>
 ----
 
-<1> Chạy một search và trả về các kết quả tương đồng với `Vector` đã cho, áp dụng Cosine scoring.
-<2> Chạy một search và trả về các kết quả có score bằng hoặc nhỏ hơn `0.9`, dùng Cosine distance.
-<3> Chạy một search và chuẩn hóa score thành một giá trị similarity.
-Trả về các kết quả có similarity từ `0.9` trở lên, dùng Cosine scoring.
-<4> Chạy một search và chuẩn hóa score thành một giá trị similarity.
-Trả về các kết quả có similarity nằm trong khoảng từ `0.5` đến `1.0`, dùng Euclidean scoring.
+<1> Thực hiện một search và trả về các kết quả tương đồng với `Vector` đã cho, áp dụng Cosine scoring.
+<2> Thực hiện một search và trả về các kết quả có score bằng hoặc nhỏ hơn `0.9`, dùng Cosine distance.
+<3> Thực hiện một search và chuẩn hóa score thành một giá trị similarity.
+Trả về các kết quả có similarity bằng hoặc lớn hơn `0.9`, dùng Cosine scoring.
+<4> Thực hiện một search và chuẩn hóa score thành một giá trị similarity.
+Trả về các kết quả có similarity trong khoảng từ `0.5` đến `1.0`, dùng Euclidean scoring.
 ====
 
-NOTE: JPA yêu cầu phải cung cấp một `ScoringFunction` khi tạo instance `Score` hoặc `Similarity` để chọn một scoring function.
+NOTE: JPA yêu cầu cung cấp một `ScoringFunction` khi tạo instance `Score` hoặc `Similarity` để chọn scoring function.

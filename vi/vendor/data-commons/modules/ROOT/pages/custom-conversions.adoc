@@ -1,7 +1,7 @@
 [[custom-conversions]]
-= Chuyển đổi tùy chỉnh
+= Conversion tùy chỉnh
 
-Ví dụ sau về một triển khai `Converter` của Spring chuyển đổi từ `String` thành đối tượng giá trị `Email` tùy chỉnh:
+Ví dụ sau về một Spring `Converter` implementation thực hiện conversion từ `String` sang custom `Email` value object:
 
 [source,java,subs="verbatim,attributes"]
 ----
@@ -14,31 +14,31 @@ public class EmailReadConverter implements Converter<String, Email> {
 }
 ----
 
-Nếu bạn viết một `Converter` có source và target type đều là native types, chúng tôi không thể xác định liệu nên xem nó là reading converter hay writing converter.
-Việc đăng ký instance converter cho cả hai chiều có thể dẫn đến kết quả không mong muốn.
-Ví dụ, một `Converter<String, Long>` là mơ hồ, mặc dù có lẽ việc cố gắng chuyển đổi mọi instance `String` thành instance `Long` khi ghi không có ý nghĩa.
-Để cho phép bạn buộc infrastructure chỉ đăng ký một converter cho một chiều, chúng tôi cung cấp các annotation `@ReadingConverter` và `@WritingConverter` để sử dụng trong triển khai converter.
+Nếu bạn viết một `Converter` có source type và target type đều là native types, chúng tôi không thể xác định liệu nên xem nó là reading converter hay writing converter.
+Việc register converter instance cho cả hai chiều có thể dẫn đến kết quả không mong muốn.
+Ví dụ, một `Converter<String, Long>` là ambiguous, mặc dù việc cố gắng convert mọi `String` instance thành `Long` instance khi writing có lẽ không có ý nghĩa.
+Để cho phép bạn buộc infrastructure chỉ register một converter theo một chiều, chúng tôi cung cấp các annotation `@ReadingConverter` và `@WritingConverter` để sử dụng trong converter implementation.
 
-Các Converter phải được đăng ký tường minh vì các instance không được tự động phát hiện từ classpath hoặc quá trình quét container, nhằm tránh việc đăng ký ngoài ý muốn với conversion service và các tác dụng phụ phát sinh từ việc đăng ký đó. Các Converter được đăng ký với `CustomConversions`, cơ chế trung tâm cho phép đăng ký và truy vấn các converter đã đăng ký dựa trên source và target type.
+Converter phải được register explicitly vì các instance không được pick up từ classpath hoặc container scan, nhằm tránh unwanted registration với conversion service và các side effect phát sinh từ việc register đó. Converter được register với `CustomConversions`, central facility cho phép register và query các converter dựa trên source type và target type.
 
-`CustomConversions` cung cấp sẵn một tập hợp các đăng ký converter:
+`CustomConversions` cung cấp một predefined set gồm các converter registration:
 
-* Các Converter JSR-310 để chuyển đổi giữa các kiểu `java.time`, `java.util.Date` và `String`.
+* Các JSR-310 converter để thực hiện conversion giữa các type `java.time`, `java.util.Date` và `String`.
 
-NOTE: Các converter mặc định cho các kiểu thời gian cục bộ (ví dụ: từ `LocalDateTime` sang `java.util.Date`) dựa vào cài đặt múi giờ mặc định của hệ thống để chuyển đổi giữa các kiểu đó. Bạn có thể ghi đè converter mặc định bằng cách đăng ký converter của riêng mình.
+NOTE: Các default converter cho local temporal type (ví dụ: từ `LocalDateTime` sang `java.util.Date`) dựa vào system-default timezone settings để thực hiện conversion giữa các type đó. Bạn có thể override default converter bằng cách register converter của riêng mình.
 
 [[customconversions.converter-disambiguation]]
 == Phân biệt Converter
 
-Nói chung, chúng tôi kiểm tra các triển khai `Converter` để xác định source và target type mà chúng chuyển đổi từ và sang.
-Tùy thuộc vào việc một trong các kiểu đó có phải là kiểu mà API truy cập dữ liệu bên dưới có thể xử lý một cách native hay không, chúng tôi đăng ký instance converter dưới dạng reading converter hoặc writing converter.
+Nói chung, chúng tôi inspect các `Converter` implementation để xác định source type và target type mà chúng convert từ và sang.
+Tùy thuộc vào việc một trong các type đó có phải là type mà underlying data access API có thể handle natively hay không, chúng tôi register converter instance dưới dạng reading converter hoặc writing converter.
 Các ví dụ sau cho thấy một writing converter và một reading converter (lưu ý rằng điểm khác biệt nằm ở thứ tự của các qualifier trên `Converter`):
 
 [source,java]
 ----
-// Writing converter vì chỉ target type là kiểu có thể được xử lý native
+// Writing converter vì chỉ target type được handle natively
 class MyConverter implements Converter<Person, String> { … }
 
-// Reading converter vì chỉ source type là kiểu có thể được xử lý native
+// Reading converter vì chỉ source type được handle natively
 class MyConverter implements Converter<String, Person> { … }
 ----

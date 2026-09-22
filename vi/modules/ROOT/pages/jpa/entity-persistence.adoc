@@ -1,32 +1,32 @@
 [[jpa.entity-persistence]]
-= Persist Entity
+= Persist entity
 
-Phần này mô tả cách persist (save) entity với Spring Data JPA.
+Phần này mô tả cách persist (save) entity bằng Spring Data JPA.
 
 [[jpa.entity-persistence.saving-entities]]
-== Lưu Entity
+== Lưu entity
 
-Việc lưu một entity có thể được thực hiện bằng method `CrudRepository.save(…)`. Method này persist hoặc merge entity đã cho bằng cách sử dụng `EntityManager` của JPA bên dưới. Nếu entity chưa được persist, Spring Data JPA sẽ lưu entity bằng cách gọi method `entityManager.persist(…)`. Ngược lại, nó sẽ gọi method `entityManager.merge(…)`.
+Việc lưu một entity có thể được thực hiện bằng method `CrudRepository.save(…)`. Method này persist hoặc merge entity được cung cấp bằng cách sử dụng `EntityManager` nền tảng của JPA. Nếu entity chưa được persist, Spring Data JPA sẽ lưu entity bằng cách gọi method `entityManager.persist(…)`. Ngược lại, nó sẽ gọi method `entityManager.merge(…)`.
 
 [[jpa.entity-persistence.saving-entities.strategies]]
-=== Chiến lược Phát hiện Trạng thái Entity
+=== Chiến lược phát hiện trạng thái entity
 Spring Data JPA cung cấp các chiến lược sau để phát hiện xem một entity có phải là mới hay không:
 
-1. Kiểm tra Version-Property và Id-Property (*mặc định*):
-   Theo mặc định, Spring Data JPA trước tiên kiểm tra xem có tồn tại Version-property kiểu non-primitive hay không.
+1. Kiểm tra Version property và ID property (*mặc định*):
+   Theo mặc định, Spring Data JPA trước tiên kiểm tra xem có Version property kiểu non-primitive hay không.
    Nếu có, entity được coi là mới nếu giá trị của property đó là `null`.
-   Nếu không có Version-property như vậy, Spring Data JPA sẽ kiểm tra identifier property của entity đã cho.
+   Nếu không có Version property như vậy, Spring Data JPA sẽ kiểm tra identifier property của entity được cung cấp.
    Nếu identifier property là `null`, entity được coi là mới.
    Ngược lại, nó được coi là không mới.
-Khác với các module Spring Data khác, JPA coi `0` (zero) là version đầu tiên được insert của một entity, do đó một primitive version property không thể được dùng để xác định entity có phải là mới hay không.
-2. Implement `Persistable`: Nếu một entity implement `Persistable`, Spring Data JPA sẽ delegate việc phát hiện trạng thái mới cho method `isNew(…)` của entity.
+Khác với các module Spring Data khác, JPA coi `0` (zero) là version đầu tiên được insert của một entity, do đó primitive version property không thể được dùng để xác định entity có phải là mới hay không.
+2. Implement `Persistable`: Nếu một entity implement `Persistable`, Spring Data JPA ủy quyền việc xác định entity mới cho method `isNew(…)` của entity.
 Xem link:{spring-data-commons-javadoc-base}/org/springframework/data/domain/Persistable.html[JavaDoc] để biết chi tiết.
 3. Implement `EntityInformation`: Bạn có thể customize abstraction `EntityInformation` được dùng trong implementation của `SimpleJpaRepository` bằng cách tạo một subclass của `JpaRepositoryFactory` và override method `getEntityInformation(…)` tương ứng. Sau đó, bạn phải đăng ký implementation tùy chỉnh của `JpaRepositoryFactory` như một Spring bean. Lưu ý rằng việc này hiếm khi cần thiết. Xem javadoc:org.springframework.data.jpa.repository.support.JpaRepositoryFactory[JavaDoc] để biết chi tiết.
 
-Option 1 không khả dụng cho các entity sử dụng identifier được gán thủ công (manually assigned) và không có version attribute, vì với những entity đó identifier sẽ luôn khác `null`.
-Một pattern phổ biến trong tình huống này là sử dụng một base class chung với một transient flag mặc định biểu thị một instance mới, và sử dụng JPA lifecycle callback để đổi giá trị flag đó khi thực hiện các persistence operation:
+Tùy chọn 1 không khả dụng cho các entity sử dụng identifier được gán thủ công và không có version attribute, vì với những entity đó identifier sẽ luôn khác `null`.
+Một pattern phổ biến trong tình huống này là sử dụng một base class chung với một transient flag có giá trị mặc định để biểu thị một instance mới, và sử dụng JPA lifecycle callback để đổi giá trị flag đó khi thực hiện các persistence operation:
 
-.Một base class cho các entity có identifier được gán thủ công
+.Base class cho các entity có identifier được gán thủ công
 ====
 [source, java]
 ----
@@ -50,8 +50,7 @@ public abstract class AbstractEntity<ID> implements Persistable<ID> {
   // More code…
 }
 ----
-<1> Khai báo một flag để lưu trạng thái mới (new state). Transient để nó không được persist vào database.
+<1> Khai báo một flag để lưu trạng thái mới. Flag này là transient nên không được persist vào database.
 <2> Trả về flag này trong implementation của `Persistable.isNew()` để Spring Data repository biết nên gọi `EntityManager.persist()` hay `….merge()`.
-<3> Khai báo một method sử dụng JPA entity callback để flag được chuyển trạng thái, biểu thị một entity đã tồn tại, sau khi gọi `save(…)` trên repository hoặc sau khi instance được tạo bởi persistence provider.
+<3> Khai báo một method sử dụng JPA entity callback để chuyển flag sang trạng thái biểu thị một entity đã tồn tại, sau khi repository gọi `save(…)` hoặc sau khi instance được tạo bởi persistence provider.
 ====
-
